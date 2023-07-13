@@ -1,5 +1,5 @@
 {
-	"name": "fractual-viewer",
+	"name": "fractal-viewer",
 	"globIgnorePaths": [
 		"**/package.json",
 		"**/tsconfig.json"
@@ -20,6 +20,8 @@
 				"$path": "include",
 
 				"node_modules": {
+					"$className": "Folder",
+
 					"@rbxts": {
 						"$path": "node_modules/@rbxts"
 					},

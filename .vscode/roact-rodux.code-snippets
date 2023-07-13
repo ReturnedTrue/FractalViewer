@@ -21,7 +21,7 @@
 		"description": "Create a Roact component connected to the client store",
 		"body": [
 			"import Roact from \"@rbxts/roact\";",
-			"import { connectComponent } from \"client/roact/util/connectComponent\";",
+			"import { connectComponent } from \"client/roact/util/functions/connectComponent\";",
 			"",
 			"interface ${TM_FILENAME_BASE}Props {}",
 			"",
