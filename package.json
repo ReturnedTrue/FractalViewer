@@ -1,5 +1,5 @@
 {
-  "name": "roblox-ts-template",
+  "name": "fractual-viewer",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -12,8 +12,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@rbxts/compiler-types": "^2.1.0-types.1",
-    "@rbxts/types": "^1.0.686",
+    "@rbxts/compiler-types": "^2.1.1-types.0",
+    "@rbxts/types": "^1.0.705",
     "@typescript-eslint/eslint-plugin": "^5.59.7",
     "@typescript-eslint/parser": "^5.59.7",
     "eslint": "^8.41.0",
@@ -22,14 +22,13 @@
     "eslint-plugin-roblox-ts": "^0.0.35",
     "prettier": "^2.8.8",
     "rbxts-transform-debug": "^2.1.0-beta.0",
-    "rbxts-transformer-flamework": "^1.0.0-beta.21",
-    "roblox-ts": "^2.1.0",
-    "typescript": "^4.9.4"
+    "rbxts-transformer-flamework": "^1.0.0-beta.22",
+    "roblox-ts": "^2.1.1"
   },
   "dependencies": {
-    "@flamework/components": "^1.0.0-beta.21",
-    "@flamework/core": "^1.0.0-beta.21",
-    "@flamework/networking": "^1.0.0-beta.21",
+    "@flamework/components": "^1.0.0-beta.22",
+    "@flamework/core": "^1.0.0-beta.22",
+    "@flamework/networking": "^1.0.0-beta.22",
     "@rbxts/beacon": "^2.1.1",
     "@rbxts/roact": "^1.4.4-ts.0",
     "@rbxts/roact-rodux": "^0.2.2-ts.8",

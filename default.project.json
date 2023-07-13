@@ -1,5 +1,5 @@
 {
-	"name": "roblox-ts-template",
+	"name": "fractual-viewer",
 	"globIgnorePaths": [
 		"**/package.json",
 		"**/tsconfig.json"
