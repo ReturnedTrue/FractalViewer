@@ -23,8 +23,14 @@ export interface FractalState {
 		magnification: number;
 	};
 
+	hasCacheBeenVoided: boolean;
 	partsFolder: Folder | undefined;
 }
+
+export type FractalParameters = FractalState["parameters"];
+export type FractalParametersNames = keyof FractalState["parameters"];
+
+const parametersWhichVoidCache = new Set<FractalParametersNames>(["magnification"]);
 
 const DEFAULT_VALUE = {
 	fractalId: FractalId.Mandelbrot,
@@ -35,6 +41,7 @@ const DEFAULT_VALUE = {
 		magnification: 1,
 	},
 
+	hasCacheBeenVoided: false,
 	partsFolder: undefined,
 } satisfies FractalState;
 
@@ -49,10 +56,20 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 			fractalId,
 			parametersLastUpdated: os.clock(),
 			parameters: DEFAULT_VALUE.parameters,
+			hasCacheBeenVoided: true,
 		};
 	},
 
 	updateParameters: (state, { parameters: newParameters }) => {
+		let hasCacheBeenVoided = false;
+
+		for (const [parameterName, parameterValue] of pairs(newParameters)) {
+			if (parametersWhichVoidCache.has(parameterName) && state.parameters[parameterName] !== parameterValue) {
+				hasCacheBeenVoided = true;
+				break;
+			}
+		}
+
 		return {
 			...state,
 			parametersLastUpdated: os.clock(),
@@ -60,6 +77,8 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 				...state.parameters,
 				...newParameters,
 			},
+
+			hasCacheBeenVoided,
 		};
 	},
 });

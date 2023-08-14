@@ -48,7 +48,7 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 			zImaginary = math.abs(zRealTemp * zImaginary * 2) + cImaginary;
 		}
 
-		return x;
+		return 1;
 	},
 
 	[FractalId.Julia]: (x, y) => {
@@ -59,6 +59,7 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 @Controller()
 export class CalculationController implements OnStart {
 	private parts = new Array<Array<Part>>();
+	private calculatedCache = new Map<number, Map<number, Color3>>();
 
 	onStart() {
 		this.constructParts();
@@ -66,15 +67,18 @@ export class CalculationController implements OnStart {
 		connectToStoreChange(({ fractal }, oldState) => {
 			if (fractal.parametersLastUpdated === oldState.fractal.parametersLastUpdated) return;
 
-			this.calculateFractal(fractal);
+			if (fractal.hasCacheBeenVoided) {
+				$print("cache voided");
+				this.calculatedCache.clear();
+			}
+
+			this.calculateAndViewFractal(fractal);
 		});
 
 		clientStore.dispatch({ type: "setFractal", fractalId: FractalId.BurningShip });
 	}
 
 	private constructParts() {
-		$print("commencing part construction");
-
 		const containingFolder = new Instance("Folder");
 
 		for (const i of $range(0, AXIS_ITERATION_SIZE)) {
@@ -95,27 +99,56 @@ export class CalculationController implements OnStart {
 			if (i % 10 === 0) task.wait(0.1);
 		}
 
-		$print("parts constructed");
+		$print("complete part construction");
 		clientStore.dispatch({ type: "setPartsFolder", partsFolder: containingFolder });
 	}
 
-	private calculateFractal(fractal: FractalState) {
+	private calculateAndViewFractal(fractal: FractalState) {
 		const { fractalId, parameters } = fractal;
 		if (fractalId === undefined) return;
 
+		const { xOffset, yOffset, magnification } = parameters;
 		const calculator = fractalCalculators[fractalId];
-		const startTime = os.clock();
+
+		const calculationStartTime = os.clock();
 
 		for (const i of $range(0, AXIS_ITERATION_SIZE)) {
-			for (const j of $range(0, AXIS_ITERATION_SIZE)) {
-				const hue = calculator(i + parameters.xOffset, j + parameters.yOffset, parameters.magnification);
+			const xPosition = i + xOffset;
 
-				this.parts[i][j].Color = Color3.fromHSV(hue, 1, 1);
+			let columnCache = this.calculatedCache.get(xPosition);
+
+			if (columnCache === undefined) {
+				columnCache = new Map();
+				this.calculatedCache.set(xPosition, columnCache);
+			}
+
+			for (const j of $range(0, AXIS_ITERATION_SIZE)) {
+				const yPosition = j + yOffset;
+
+				if (!columnCache.has(yPosition)) {
+					const color = Color3.fromHSV(calculator(xPosition, yPosition, magnification), 1, 1);
+					columnCache.set(yPosition, color);
+				}
 			}
 		}
 
-		const totalTime = (os.clock() - startTime) * 1000;
-		const outputString = string.format("fractal %d calculated in %.2f ms", fractalId, totalTime);
-		$print(outputString);
+		$print(string.format("complete fractal calculation (%.2f ms)", (os.clock() - calculationStartTime) * 1000));
+
+		const applicationStartTime = os.clock();
+
+		for (const i of $range(0, AXIS_ITERATION_SIZE)) {
+			const xPosition = i + xOffset;
+
+			const columnCache = this.calculatedCache.get(xPosition)!;
+
+			for (const j of $range(0, AXIS_ITERATION_SIZE)) {
+				const yPosition = j + yOffset;
+				const color = columnCache.get(yPosition)!;
+
+				this.parts[i][j].Color = color;
+			}
+		}
+
+		$print(string.format("complete fractal application (%.2f ms)", (os.clock() - applicationStartTime) * 1000));
 	}
 }
