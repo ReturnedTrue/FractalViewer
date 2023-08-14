@@ -65,6 +65,7 @@ export class CalculationController implements OnStart {
 		this.constructParts();
 
 		connectToStoreChange(({ fractal }, oldState) => {
+			if (!fractal.partsFolder) return;
 			if (fractal.parametersLastUpdated === oldState.fractal.parametersLastUpdated) return;
 
 			if (fractal.hasCacheBeenVoided) {
