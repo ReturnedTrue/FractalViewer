@@ -12,7 +12,7 @@ interface NumberParameterProps {
 
 export class NumberParameter extends Roact.Component<NumberParameterProps> {
 	render() {
-		const { currentValue, name, newValueConstraint } = this.props;
+		const { currentValue, name, newValueConstraint, onNewValue } = this.props;
 
 		return (
 			<frame
@@ -20,7 +20,7 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				Position={this.props.position}
-				Size={new UDim2(0.2, 0, 0.075, 0)}
+				Size={new UDim2(0.2, 0, 0.05, 0)}
 			>
 				<uicorner />
 				<uipadding
@@ -65,9 +65,12 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 									newValue = newValueConstraint(newValue);
 								}
 
-								if (currentValue !== newValue) {
-									this.props.onNewValue(newValue);
+								if (currentValue === newValue) {
+									box.Text = tostring(currentValue);
+									return;
 								}
+
+								onNewValue(newValue);
 							},
 						}}
 						Key="EditBox"

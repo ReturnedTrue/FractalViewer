@@ -1,5 +1,8 @@
 export enum FractalId {
-	Mandelbrot,
-	BurningShip,
-	Julia,
+	Mandelbrot = "Mandelbrot",
+	BurningShip = "Burning Ship",
+	Julia = "Julia",
+
+	Test = "Test fractal",
+	Test2 = "Test fractal 2",
 }

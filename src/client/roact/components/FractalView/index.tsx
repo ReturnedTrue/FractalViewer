@@ -12,6 +12,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 	render() {
 		return (
 			<viewportframe
+				Key="FractalView"
 				Ref={this.viewportRef}
 				BackgroundTransparency={1}
 				LightColor={new Color3(1, 1, 1)}

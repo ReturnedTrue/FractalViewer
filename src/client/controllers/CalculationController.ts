@@ -54,6 +54,14 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 	[FractalId.Julia]: (x, y) => {
 		return x;
 	},
+
+	[FractalId.Test]: (x, y) => {
+		return x;
+	},
+
+	[FractalId.Test2]: (x, y) => {
+		return x;
+	},
 };
 
 @Controller()
