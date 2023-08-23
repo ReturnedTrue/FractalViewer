@@ -44,10 +44,8 @@ export class NavigationController implements OnStart {
 				break;
 
 			case Enum.KeyCode.R:
-				newParameters.xOffset = 0;
-				newParameters.yOffset = 0;
-				newParameters.magnification = 1;
-				break;
+				clientStore.dispatch({ type: "resetParameters" });
+				return;
 
 			default:
 				return;

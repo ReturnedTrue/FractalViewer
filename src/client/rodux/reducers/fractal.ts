@@ -13,7 +13,9 @@ interface UpdateParameters extends Action<"updateParameters"> {
 	parameters: Partial<FractalState["parameters"]>;
 }
 
-export type FractalActions = SetPartsFolder | SetFractal | UpdateParameters;
+interface ResetParameters extends Action<"resetParameters"> {}
+
+export type FractalActions = SetPartsFolder | SetFractal | UpdateParameters | ResetParameters;
 export interface FractalState {
 	fractalId: FractalId;
 	parametersLastUpdated: number;
@@ -79,6 +81,15 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 			},
 
 			hasCacheBeenVoided,
+		};
+	},
+
+	resetParameters: (state) => {
+		return {
+			...state,
+			parametersLastUpdated: os.clock(),
+			parameters: DEFAULT_VALUE.parameters,
+			hasCacheBeenVoided: true,
 		};
 	},
 });

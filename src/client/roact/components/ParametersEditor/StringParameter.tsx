@@ -1,5 +1,53 @@
 import Roact, { createRef } from "@rbxts/roact";
-import { TweenableRef } from "client/roact/util/classes/TweenableRef";
+
+interface OptionFrameProps<K extends string> {
+	ref?: Roact.Ref<TextButton>;
+	position?: UDim2;
+	size?: UDim2;
+
+	value: K;
+	onSelected: (newOption: K) => void;
+}
+
+class OptionFrame<K extends string> extends Roact.Component<OptionFrameProps<K>> {
+	render() {
+		const { ref, position, size, value, onSelected } = this.props;
+
+		return (
+			<textbutton
+				Key="OptionFrame"
+				Ref={ref}
+				Event={{
+					MouseButton1Click: () => onSelected(value),
+				}}
+				BackgroundColor3={Color3.fromRGB(52, 52, 52)}
+				BorderSizePixel={0}
+				Position={position}
+				Size={size}
+			>
+				<uicorner />
+				<uipadding
+					PaddingBottom={new UDim(0.1, 0)}
+					PaddingLeft={new UDim(0.1, 0)}
+					PaddingRight={new UDim(0.1, 0)}
+					PaddingTop={new UDim(0.1, 0)}
+				/>
+				<textlabel
+					Key="OptionText"
+					BackgroundTransparency={1}
+					Font={Enum.Font.Ubuntu}
+					Size={new UDim2(1, 0, 1, 0)}
+					Text={value}
+					TextColor3={Color3.fromRGB(255, 255, 255)}
+					TextScaled={true}
+					TextSize={14}
+					TextWrapped={true}
+					TextXAlignment={Enum.TextXAlignment.Left}
+				/>
+			</textbutton>
+		);
+	}
+}
 
 interface StringParameterProps<K extends string> {
 	position: UDim2;
@@ -12,7 +60,8 @@ interface StringParameterProps<K extends string> {
 }
 
 interface StringParameterState {
-	optionYSize?: number;
+	optionSize?: UDim2;
+
 	isOpen: boolean;
 }
 
@@ -21,57 +70,14 @@ export class StringParameter<K extends string> extends Roact.Component<StringPar
 		isOpen: false,
 	});
 
-	private currentFrameRef = createRef<TextButton>();
-	private arrowTweenRef = new TweenableRef<TextLabel>();
-
-	private getOptionFrames() {
-		const { optionYSize } = this.state;
-		if (optionYSize === undefined) return undefined;
-
-		const frames = [];
-		let count = 1;
-
-		for (const option of this.props.options) {
-			if (option === this.props.currentOption) continue;
-
-			frames.push(
-				<textbutton
-					Key="OptionFrame"
-					BackgroundTransparency={1}
-					Text=""
-					Position={new UDim2(0, 0, 0, optionYSize * count)}
-					Size={new UDim2(1, 0, 0, optionYSize)}
-				>
-					<textbutton
-						Key="NewOption"
-						Event={{
-							MouseButton1Click: () => this.props.onOptionSelected(option),
-						}}
-						Active={false}
-						BackgroundTransparency={1}
-						Font={Enum.Font.Ubuntu}
-						Selectable={false}
-						Size={UDim2.fromScale(0.7, 1)}
-						Text={option}
-						TextColor3={Color3.fromRGB(255, 255, 255)}
-						TextScaled={true}
-						TextSize={14}
-						TextWrapped={true}
-						TextXAlignment={Enum.TextXAlignment.Left}
-					/>
-				</textbutton>,
-			);
-
-			count += 1;
-		}
-
-		return frames;
-	}
+	private currentOptionRef = createRef<TextButton>();
 
 	render() {
+		const { isOpen, optionSize } = this.state;
+
 		return (
 			<frame
-				Key={this.props.name}
+				Key="StringParameter"
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				Position={this.props.position}
@@ -84,110 +90,80 @@ export class StringParameter<K extends string> extends Roact.Component<StringPar
 					PaddingRight={new UDim(0.025, 0)}
 					PaddingTop={new UDim(0.1, 0)}
 				/>
+				<textlabel
+					Key="ParameterName"
+					BackgroundTransparency={1}
+					Font={Enum.Font.Ubuntu}
+					Size={new UDim2(0.425, 0, 1, 0)}
+					Text={this.props.name}
+					TextColor3={Color3.fromRGB(255, 255, 255)}
+					TextScaled={true}
+					TextSize={14}
+					TextWrapped={true}
+				/>
 
-				<scrollingframe
-					Key="ExpandFrame"
-					BackgroundColor3={Color3.fromRGB(52, 52, 52)}
-					BorderSizePixel={0}
-					CanvasSize={
-						this.state.isOpen
-							? UDim2.fromOffset(
-									0,
-									math.max((this.state.optionYSize ?? 0) * this.props.options.size() + 1, 0),
-							  )
-							: new UDim2(0, 0, 0, 0)
-					}
-					Selectable={false}
-					SelectionGroup={false}
-					Size={this.state.isOpen ? UDim2.fromScale(1, 3) : UDim2.fromScale(1, 1)}
-				>
-					<uicorner />
-					<uipadding
-						PaddingBottom={new UDim(0.1, 0)}
-						PaddingLeft={new UDim(0.05, 0)}
-						PaddingRight={new UDim(0.025, 0)}
-						PaddingTop={new UDim(0.1, 0)}
-					/>
+				<OptionFrame
+					ref={this.currentOptionRef}
+					position={new UDim2(0.5, 0, 0, 0)}
+					size={new UDim2(0.5, 0, 1, 0)}
+					value={this.props.currentOption}
+					onSelected={() => this.setState({ isOpen: !isOpen })}
+				/>
 
-					<textbutton
-						Key="CurrentFrame"
-						Ref={this.currentFrameRef}
-						Event={{
-							MouseButton1Click: () => this.setState({ isOpen: !this.state.isOpen }),
-						}}
-						BackgroundTransparency={1}
-						Text=""
-						Size={
-							this.state.optionYSize !== undefined
-								? new UDim2(1, 0, 0, this.state.optionYSize)
-								: new UDim2(1, 0, 1, 0)
-						}
+				{isOpen && optionSize !== undefined && (
+					<frame
+						Key="AppearFrame"
+						BackgroundColor3={Color3.fromRGB(68, 68, 68)}
+						BorderSizePixel={0}
+						ClipsDescendants={true}
+						Position={new UDim2(1.1, 0, 0, 0)}
+						Size={new UDim2(0.6, 0, 2, 0)}
 					>
-						<frame
-							Key="ArrowFrame"
+						<uicorner />
+						<scrollingframe
+							Key="InnerFrame"
 							BackgroundTransparency={1}
-							Position={new UDim2(0.85, 0, 0, 0)}
-							Size={new UDim2(0.15, 0, 1, 0)}
-						>
-							<textlabel
-								Key="Arrow"
-								Ref={this.arrowTweenRef.ref}
-								BackgroundTransparency={1}
-								Font={Enum.Font.Ubuntu}
-								Rotation={89}
-								Size={new UDim2(1, 0, 1, 0)}
-								Text=">"
-								TextColor3={Color3.fromRGB(255, 255, 255)}
-								TextScaled={true}
-								TextSize={14}
-								TextWrapped={true}
-							/>
-						</frame>
-
-						<textlabel
-							Key="CurrentOption"
-							Active={false}
-							BackgroundTransparency={1}
-							Font={Enum.Font.Ubuntu}
-							Selectable={false}
-							Size={UDim2.fromScale(0.7, 1)}
-							Text={
-								this.state.optionYSize !== undefined
-									? `${this.props.name}: ${this.props.currentOption}`
-									: "Configuring..."
+							CanvasSize={
+								new UDim2(0, 0, 0, (this.props.options.size() - 1) * (optionSize.Y.Offset * (4 / 3)))
 							}
-							TextColor3={Color3.fromRGB(255, 255, 255)}
-							TextScaled={true}
-							TextSize={14}
-							TextWrapped={true}
-							TextXAlignment={Enum.TextXAlignment.Left}
-						/>
-					</textbutton>
+							ClipsDescendants={false}
+							Position={new UDim2(0.1, 0, 0.1, 0)}
+							ScrollBarThickness={0}
+							Selectable={false}
+							SelectionGroup={false}
+							Size={new UDim2(0.8, 0, 0.8, 0)}
+						>
+							<uigridlayout
+								CellPadding={new UDim2(0, 0, 0, optionSize.Y.Offset / 3)}
+								CellSize={this.state.optionSize}
+								FillDirectionMaxCells={1}
+								HorizontalAlignment={Enum.HorizontalAlignment.Center}
+								SortOrder={Enum.SortOrder.LayoutOrder}
+							/>
 
-					{this.getOptionFrames()}
-				</scrollingframe>
+							{this.props.options.mapFiltered((option) => {
+								if (option === this.props.currentOption) return;
+
+								return <OptionFrame value={option} onSelected={this.props.onOptionSelected} />;
+							})}
+						</scrollingframe>
+					</frame>
+				)}
 			</frame>
 		);
 	}
 
-	protected didMount() {
-		const currentFrame = this.currentFrameRef.getValue()!;
+	protected didMount(): void {
+		const currentOption = this.currentOptionRef.getValue()!;
+		const absSize = currentOption.AbsoluteSize;
 
-		this.setState({
-			optionYSize: currentFrame.AbsoluteSize.Y * 2,
-		});
+		this.setState({ optionSize: UDim2.fromOffset(absSize.X * 2, absSize.Y * 2) });
 	}
 
 	protected didUpdate(previousProps: StringParameterProps<K>, previousState: StringParameterState): void {
+		// Close when new option selected
 		if (previousProps.currentOption !== this.props.currentOption && this.state.isOpen) {
 			this.setState({ isOpen: false });
-		}
-
-		if (this.state.isOpen !== previousState.isOpen) {
-			this.arrowTweenRef.tween({
-				Time: 0.2,
-				Goal: { Rotation: this.state.isOpen ? 270 : 89 },
-			});
 		}
 	}
 }
