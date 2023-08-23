@@ -25,7 +25,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private fractalOptions = enumToArray(FractalId);
 
 	render() {
-		const { parameters } = this.props;
+		const { currentFractal, parameters } = this.props;
 
 		return (
 			<Roact.Fragment>
@@ -69,10 +69,38 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 				<StringParameter
 					position={UDim2.fromScale(0.05, 0.4)}
 					name="Fractal"
-					currentOption={this.props.currentFractal}
+					currentOption={currentFractal}
 					options={this.fractalOptions}
 					onOptionSelected={(option) => clientStore.dispatch({ type: "setFractal", fractalId: option })}
 				/>
+
+				{currentFractal === FractalId.Julia && (
+					<>
+						<NumberParameter
+							position={UDim2.fromScale(0.05, 0.5)}
+							name="Julia Real"
+							currentValue={parameters.juliaRealConstant}
+							onNewValue={(value) =>
+								clientStore.dispatch({
+									type: "updateParameters",
+									parameters: { ...parameters, juliaRealConstant: value },
+								})
+							}
+						/>
+
+						<NumberParameter
+							position={UDim2.fromScale(0.05, 0.6)}
+							name="Julia Imaginary"
+							currentValue={parameters.juliaImaginaryConstant}
+							onNewValue={(value) =>
+								clientStore.dispatch({
+									type: "updateParameters",
+									parameters: { ...parameters, juliaImaginaryConstant: value },
+								})
+							}
+						/>
+					</>
+				)}
 			</Roact.Fragment>
 		);
 	}

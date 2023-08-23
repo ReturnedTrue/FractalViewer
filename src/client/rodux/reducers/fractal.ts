@@ -23,6 +23,8 @@ export interface FractalState {
 		xOffset: number;
 		yOffset: number;
 		magnification: number;
+		juliaRealConstant: number;
+		juliaImaginaryConstant: number;
 	};
 
 	hasCacheBeenVoided: boolean;
@@ -32,7 +34,11 @@ export interface FractalState {
 export type FractalParameters = FractalState["parameters"];
 export type FractalParametersNames = keyof FractalState["parameters"];
 
-const parametersWhichVoidCache = new Set<FractalParametersNames>(["magnification"]);
+const parametersWhichVoidCache = new Set<FractalParametersNames>([
+	"magnification",
+	"juliaRealConstant",
+	"juliaImaginaryConstant",
+]);
 
 const DEFAULT_VALUE = {
 	fractalId: FractalId.Mandelbrot,
@@ -41,6 +47,9 @@ const DEFAULT_VALUE = {
 		xOffset: 0,
 		yOffset: 0,
 		magnification: 1,
+
+		juliaRealConstant: 0.01,
+		juliaImaginaryConstant: 0.01,
 	},
 
 	hasCacheBeenVoided: false,

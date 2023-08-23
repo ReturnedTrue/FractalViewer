@@ -3,9 +3,14 @@ import { AXIS_ITERATION_SIZE, AXIS_SIZE, MAX_ITERATIONS, MAX_STABLE } from "shar
 import { $print } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
 import { FractalId } from "shared/enums/fractal";
-import { FractalState } from "client/rodux/reducers/fractal";
+import { FractalParameters, FractalState } from "client/rodux/reducers/fractal";
 
-type FractalCalculator = (x: number, y: number, magnification: number) => number;
+type FractalCalculator = (
+	x: number,
+	y: number,
+	magnification: number,
+	otherParameters: Omit<FractalParameters, "xOffset" | "yOffset" | "magnification">,
+) => number;
 
 const getComplexSize = (real: number, imaginary: number) => math.sqrt(real * real + imaginary * imaginary);
 
@@ -51,16 +56,20 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 		return 1;
 	},
 
-	[FractalId.Julia]: (x, y) => {
-		return x;
-	},
+	[FractalId.Julia]: (x, y, magnification, { juliaRealConstant, juliaImaginaryConstant }) => {
+		let zReal = (x / AXIS_SIZE / magnification) * 4 - 2;
+		let zImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
 
-	[FractalId.Test]: (x, y) => {
-		return x;
-	},
+		for (const iteration of $range(1, MAX_ITERATIONS)) {
+			if (getComplexSize(zReal, zImaginary) > MAX_STABLE) return iteration / MAX_ITERATIONS;
 
-	[FractalId.Test2]: (x, y) => {
-		return x;
+			const zRealTemp = zReal;
+
+			zReal = zReal * zReal - zImaginary * zImaginary + juliaRealConstant;
+			zImaginary = zRealTemp * zImaginary * 2 + juliaImaginaryConstant;
+		}
+
+		return 1;
 	},
 };
 
@@ -135,7 +144,7 @@ export class CalculationController implements OnStart {
 				const yPosition = j + yOffset;
 
 				if (!columnCache.has(yPosition)) {
-					const color = Color3.fromHSV(calculator(xPosition, yPosition, magnification), 1, 1);
+					const color = Color3.fromHSV(calculator(xPosition, yPosition, magnification, parameters), 1, 1);
 					columnCache.set(yPosition, color);
 				}
 			}

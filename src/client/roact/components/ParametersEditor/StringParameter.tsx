@@ -42,7 +42,7 @@ class OptionFrame<K extends string> extends Roact.Component<OptionFrameProps<K>>
 					TextScaled={true}
 					TextSize={14}
 					TextWrapped={true}
-					TextXAlignment={Enum.TextXAlignment.Left}
+					TextXAlignment={Enum.TextXAlignment.Center}
 				/>
 			</textbutton>
 		);
@@ -77,7 +77,7 @@ export class StringParameter<K extends string> extends Roact.Component<StringPar
 
 		return (
 			<frame
-				Key="StringParameter"
+				Key={this.props.name}
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				Position={this.props.position}
