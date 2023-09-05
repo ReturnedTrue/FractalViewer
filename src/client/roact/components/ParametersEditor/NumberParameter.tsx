@@ -1,6 +1,7 @@
 import Roact from "@rbxts/roact";
 import { CoreParameterProps } from ".";
 import { clientStore } from "client/rodux/store";
+import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 
 interface NumberParameterProps extends CoreParameterProps<number> {
 	position: UDim2;
@@ -14,7 +15,7 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 
 		return (
 			<frame
-				Key={name}
+				Key={playerFacingName}
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				Position={this.props.position}
@@ -38,7 +39,9 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 					TextScaled={true}
 					TextSize={14}
 					TextWrapped={true}
-				/>
+				>
+					<UnifiedTextScaler />
+				</textlabel>
 
 				<frame
 					Key="EditFrame"
@@ -86,7 +89,9 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}
 						TextWrapped={true}
-					/>
+					>
+						<UnifiedTextScaler />
+					</textbox>
 				</frame>
 			</frame>
 		);

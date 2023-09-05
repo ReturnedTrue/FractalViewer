@@ -3,6 +3,7 @@ import RoactRodux from "@rbxts/roact-rodux";
 import { clientStore } from "client/rodux/store";
 import { FractalView } from "./components/FractalView";
 import { ParametersEditor } from "./components/ParametersEditor";
+import { ParametersClipboard } from "./components/ParametersClipboard";
 
 interface AppProps {}
 
@@ -21,6 +22,7 @@ export class App extends Roact.Component<AppProps> {
 
 					<FractalView />
 					<ParametersEditor />
+					<ParametersClipboard />
 				</screengui>
 			</RoactRodux.StoreProvider>
 		);

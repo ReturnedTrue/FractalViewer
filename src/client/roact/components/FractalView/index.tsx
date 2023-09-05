@@ -16,7 +16,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 				Ref={this.viewportRef}
 				BackgroundTransparency={1}
 				LightColor={new Color3(1, 1, 1)}
-				Position={UDim2.fromScale(0.25, 0.1)}
+				Position={UDim2.fromScale(0.25, 0.05)}
 				Size={UDim2.fromScale(0.7, 0.8)}
 			>
 				{this.props.folder === undefined && (

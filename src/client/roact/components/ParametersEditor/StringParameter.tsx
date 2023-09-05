@@ -2,6 +2,7 @@ import Roact, { createRef } from "@rbxts/roact";
 import { CoreParameterProps } from ".";
 import { clientStore } from "client/rodux/store";
 import { FractalParameterValueForType } from "client/rodux/reducers/fractal";
+import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 
 interface OptionFrameProps {
 	ref?: Roact.Ref<TextButton>;
@@ -46,7 +47,9 @@ class OptionFrame extends Roact.Component<OptionFrameProps> {
 					TextSize={14}
 					TextWrapped={true}
 					TextXAlignment={Enum.TextXAlignment.Center}
-				/>
+				>
+					<UnifiedTextScaler />
+				</textlabel>
 			</textbutton>
 		);
 	}
@@ -76,7 +79,7 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 
 		return (
 			<frame
-				Key={name}
+				Key={playerFacingName}
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				Position={position}
@@ -99,7 +102,9 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 					TextScaled={true}
 					TextSize={14}
 					TextWrapped={true}
-				/>
+				>
+					<UnifiedTextScaler />
+				</textlabel>
 
 				<OptionFrame
 					ref={this.currentOptionRef}
