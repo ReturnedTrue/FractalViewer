@@ -5,21 +5,22 @@ interface SetPartsFolder extends Action<"setPartsFolder"> {
 	partsFolder: Folder;
 }
 
-interface SetFractal extends Action<"setFractal"> {
-	fractalId: FractalId;
-}
-
 interface UpdateParameters extends Action<"updateParameters"> {
 	parameters: Partial<FractalState["parameters"]>;
 }
 
+interface UpdateSingleParameter extends Action<"updateSingleParameter"> {
+	name: FractalParameterName;
+	value: FractalParameters[this["name"]];
+}
+
 interface ResetParameters extends Action<"resetParameters"> {}
 
-export type FractalActions = SetPartsFolder | SetFractal | UpdateParameters | ResetParameters;
+export type FractalActions = SetPartsFolder | UpdateParameters | UpdateSingleParameter | ResetParameters;
 export interface FractalState {
-	fractalId: FractalId;
 	parametersLastUpdated: number;
 	parameters: {
+		fractalId: FractalId;
 		xOffset: number;
 		yOffset: number;
 		magnification: number;
@@ -32,18 +33,18 @@ export interface FractalState {
 }
 
 export type FractalParameters = FractalState["parameters"];
-export type FractalParametersNames = keyof FractalState["parameters"];
+export type FractalParameterName = keyof FractalState["parameters"];
 
-const parametersWhichVoidCache = new Set<FractalParametersNames>([
-	"magnification",
-	"juliaRealConstant",
-	"juliaImaginaryConstant",
-]);
+export type FractalParameterNameForType<T> = {
+	[key in FractalParameterName]: FractalParameters[key] extends T ? key : never;
+}[FractalParameterName];
+
+export type FractalParameterValueForType<T> = FractalParameters[FractalParameterNameForType<T>];
 
 const DEFAULT_VALUE = {
-	fractalId: FractalId.Mandelbrot,
 	parametersLastUpdated: os.clock(),
 	parameters: {
+		fractalId: FractalId.Mandelbrot,
 		xOffset: 0,
 		yOffset: 0,
 		magnification: 1,
@@ -56,26 +57,26 @@ const DEFAULT_VALUE = {
 	partsFolder: undefined,
 } satisfies FractalState;
 
+const parametersWhichVoidCache = new Set<FractalParameterName>([
+	"fractalId",
+	"magnification",
+	"juliaRealConstant",
+	"juliaImaginaryConstant",
+]);
+
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
 	setPartsFolder: (state, { partsFolder }) => {
 		return { ...state, partsFolder };
-	},
-
-	setFractal: (state, { fractalId }) => {
-		return {
-			...state,
-			fractalId,
-			parametersLastUpdated: os.clock(),
-			parameters: DEFAULT_VALUE.parameters,
-			hasCacheBeenVoided: true,
-		};
 	},
 
 	updateParameters: (state, { parameters: newParameters }) => {
 		let hasCacheBeenVoided = false;
 
 		for (const [parameterName, parameterValue] of pairs(newParameters)) {
-			if (parametersWhichVoidCache.has(parameterName) && state.parameters[parameterName] !== parameterValue) {
+			const canVoid = parametersWhichVoidCache.has(parameterName);
+			const hasChanged = state.parameters[parameterName] !== parameterValue;
+
+			if (canVoid && hasChanged) {
 				hasCacheBeenVoided = true;
 				break;
 			}
@@ -87,6 +88,21 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 			parameters: {
 				...state.parameters,
 				...newParameters,
+			},
+
+			hasCacheBeenVoided,
+		};
+	},
+
+	updateSingleParameter: (state, { name, value }) => {
+		const hasCacheBeenVoided = parametersWhichVoidCache.has(name);
+
+		return {
+			...state,
+			parametersLastUpdated: os.clock(),
+			parameters: {
+				...state.parameters,
+				[name]: value,
 			},
 
 			hasCacheBeenVoided,

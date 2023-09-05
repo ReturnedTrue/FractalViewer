@@ -1,14 +1,19 @@
 import Roact from "@rbxts/roact";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
-import { FractalParameters } from "client/rodux/reducers/fractal";
+import {
+	FractalParameterNameForType,
+	FractalParameterValueForType,
+	FractalParameters,
+} from "client/rodux/reducers/fractal";
 import { NumberParameter } from "./NumberParameter";
-import { clientStore } from "client/rodux/store";
 import { StringParameter } from "./StringParameter";
 import { FractalId } from "shared/enums/fractal";
 
-interface ParametersEditorProps {
-	currentFractal: FractalId;
-	parameters: FractalParameters;
+export interface CoreParameterProps<T> {
+	name: FractalParameterNameForType<T>;
+	currentValue: FractalParameterValueForType<T>;
+
+	playerFacingName: string;
 }
 
 function enumToArray<V>(enumGiven: Record<string, V>) {
@@ -21,83 +26,62 @@ function enumToArray<V>(enumGiven: Record<string, V>) {
 	return arr;
 }
 
+interface ParametersEditorProps {
+	parameters: FractalParameters;
+}
+
 class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private fractalOptions = enumToArray(FractalId);
 
 	render() {
-		const { currentFractal, parameters } = this.props;
+		const { parameters: params } = this.props;
 
 		return (
 			<Roact.Fragment>
 				<NumberParameter
 					position={UDim2.fromScale(0.05, 0.1)}
-					name="X Offset"
-					currentValue={parameters.xOffset}
-					onNewValue={(value) =>
-						clientStore.dispatch({
-							type: "updateParameters",
-							parameters: { ...parameters, xOffset: value },
-						})
-					}
+					name="xOffset"
+					currentValue={params.xOffset}
+					playerFacingName="X Offset"
 				/>
 
 				<NumberParameter
 					position={UDim2.fromScale(0.05, 0.2)}
-					name="Y Offset"
-					currentValue={parameters.yOffset}
-					onNewValue={(value) =>
-						clientStore.dispatch({
-							type: "updateParameters",
-							parameters: { ...parameters, yOffset: value },
-						})
-					}
+					name="yOffset"
+					currentValue={params.yOffset}
+					playerFacingName="Y Offset"
 				/>
 
 				<NumberParameter
 					position={UDim2.fromScale(0.05, 0.3)}
-					name="Magnification"
-					currentValue={parameters.magnification}
+					name="magnification"
+					currentValue={params.magnification}
+					playerFacingName="Magnification"
 					newValueConstraint={(value) => math.max(value, 1)}
-					onNewValue={(value) =>
-						clientStore.dispatch({
-							type: "updateParameters",
-							parameters: { ...parameters, magnification: value },
-						})
-					}
 				/>
 
 				<StringParameter
 					position={UDim2.fromScale(0.05, 0.4)}
-					name="Fractal"
-					currentOption={currentFractal}
+					name="fractalId"
+					currentValue={params.fractalId}
+					playerFacingName="Fractal"
 					options={this.fractalOptions}
-					onOptionSelected={(option) => clientStore.dispatch({ type: "setFractal", fractalId: option })}
 				/>
 
-				{currentFractal === FractalId.Julia && (
+				{params.fractalId === FractalId.Julia && (
 					<>
 						<NumberParameter
 							position={UDim2.fromScale(0.05, 0.5)}
-							name="Julia Real"
-							currentValue={parameters.juliaRealConstant}
-							onNewValue={(value) =>
-								clientStore.dispatch({
-									type: "updateParameters",
-									parameters: { ...parameters, juliaRealConstant: value },
-								})
-							}
+							name="juliaRealConstant"
+							currentValue={params.juliaRealConstant}
+							playerFacingName="Julia Real"
 						/>
 
 						<NumberParameter
 							position={UDim2.fromScale(0.05, 0.6)}
-							name="Julia Imaginary"
-							currentValue={parameters.juliaImaginaryConstant}
-							onNewValue={(value) =>
-								clientStore.dispatch({
-									type: "updateParameters",
-									parameters: { ...parameters, juliaImaginaryConstant: value },
-								})
-							}
+							name="juliaImaginaryConstant"
+							currentValue={params.juliaImaginaryConstant}
+							playerFacingName="Julia Imaginary"
 						/>
 					</>
 				)}
@@ -108,7 +92,6 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 
 export const ParametersEditor = connectComponent(BaseParametersEditor, (state) => {
 	return {
-		currentFractal: state.fractal.fractalId,
 		parameters: state.fractal.parameters,
 	};
 });

@@ -93,7 +93,7 @@ export class CalculationController implements OnStart {
 			this.calculateAndViewFractal(fractal);
 		});
 
-		clientStore.dispatch({ type: "setFractal", fractalId: FractalId.BurningShip });
+		clientStore.dispatch({ type: "updateSingleParameter", name: "fractalId", value: FractalId.Mandelbrot });
 	}
 
 	private constructParts() {
@@ -122,10 +122,9 @@ export class CalculationController implements OnStart {
 	}
 
 	private calculateAndViewFractal(fractal: FractalState) {
-		const { fractalId, parameters } = fractal;
-		if (fractalId === undefined) return;
+		const { parameters } = fractal;
 
-		const { xOffset, yOffset, magnification } = parameters;
+		const { fractalId, xOffset, yOffset, magnification } = parameters;
 		const calculator = fractalCalculators[fractalId];
 
 		const calculationStartTime = os.clock();

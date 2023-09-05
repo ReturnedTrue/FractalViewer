@@ -1,18 +1,16 @@
 import Roact from "@rbxts/roact";
+import { CoreParameterProps } from ".";
+import { clientStore } from "client/rodux/store";
 
-interface NumberParameterProps {
+interface NumberParameterProps extends CoreParameterProps<number> {
 	position: UDim2;
 
-	name: string;
-	currentValue: number;
-
-	onNewValue: (newValue: number) => void;
 	newValueConstraint?: (newValue: number) => number;
 }
 
 export class NumberParameter extends Roact.Component<NumberParameterProps> {
 	render() {
-		const { currentValue, name, newValueConstraint, onNewValue } = this.props;
+		const { name, currentValue, playerFacingName, newValueConstraint } = this.props;
 
 		return (
 			<frame
@@ -35,7 +33,7 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(0.425, 0, 1, 0)}
-					Text={name}
+					Text={playerFacingName}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}
@@ -70,7 +68,11 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 									return;
 								}
 
-								onNewValue(newValue);
+								clientStore.dispatch({
+									type: "updateSingleParameter",
+									name: name,
+									value: newValue,
+								});
 							},
 						}}
 						Key="EditBox"
@@ -80,7 +82,7 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 						Position={new UDim2(0.1, 0, 0.1, 0)}
 						Selectable={false}
 						Size={new UDim2(0.8, 0, 0.8, 0)}
-						Text={tostring(this.props.currentValue)}
+						Text={tostring(currentValue)}
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}
 						TextWrapped={true}

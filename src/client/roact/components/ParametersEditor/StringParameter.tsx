@@ -1,24 +1,27 @@
 import Roact, { createRef } from "@rbxts/roact";
+import { CoreParameterProps } from ".";
+import { clientStore } from "client/rodux/store";
+import { FractalParameterValueForType } from "client/rodux/reducers/fractal";
 
-interface OptionFrameProps<K extends string> {
+interface OptionFrameProps {
 	ref?: Roact.Ref<TextButton>;
 	position?: UDim2;
 	size?: UDim2;
 
-	value: K;
-	onSelected: (newOption: K) => void;
+	optionValue: FractalParameterValueForType<string>;
+	onSelected: () => void;
 }
 
-class OptionFrame<K extends string> extends Roact.Component<OptionFrameProps<K>> {
+class OptionFrame extends Roact.Component<OptionFrameProps> {
 	render() {
-		const { ref, position, size, value, onSelected } = this.props;
+		const { ref, position, size, optionValue, onSelected } = this.props;
 
 		return (
 			<textbutton
 				Key="OptionFrame"
 				Ref={ref}
 				Event={{
-					MouseButton1Click: () => onSelected(value),
+					MouseButton1Click: () => onSelected(),
 				}}
 				BackgroundColor3={Color3.fromRGB(52, 52, 52)}
 				BorderSizePixel={0}
@@ -37,7 +40,7 @@ class OptionFrame<K extends string> extends Roact.Component<OptionFrameProps<K>>
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(1, 0, 1, 0)}
-					Text={value}
+					Text={optionValue}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}
@@ -49,14 +52,9 @@ class OptionFrame<K extends string> extends Roact.Component<OptionFrameProps<K>>
 	}
 }
 
-interface StringParameterProps<K extends string> {
+interface StringParameterProps extends CoreParameterProps<string> {
 	position: UDim2;
-
-	name: string;
-	currentOption: K;
-
-	options: Array<K>;
-	onOptionSelected: (newOption: K) => void;
+	options: Array<FractalParameterValueForType<string>>;
 }
 
 interface StringParameterState {
@@ -65,7 +63,7 @@ interface StringParameterState {
 	isOpen: boolean;
 }
 
-export class StringParameter<K extends string> extends Roact.Component<StringParameterProps<K>, StringParameterState> {
+export class StringParameter extends Roact.Component<StringParameterProps, StringParameterState> {
 	state = identity<StringParameterState>({
 		isOpen: false,
 	});
@@ -73,14 +71,15 @@ export class StringParameter<K extends string> extends Roact.Component<StringPar
 	private currentOptionRef = createRef<TextButton>();
 
 	render() {
+		const { name, currentValue, playerFacingName, position } = this.props;
 		const { isOpen, optionSize } = this.state;
 
 		return (
 			<frame
-				Key={this.props.name}
+				Key={name}
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
-				Position={this.props.position}
+				Position={position}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
 			>
 				<uicorner />
@@ -95,7 +94,7 @@ export class StringParameter<K extends string> extends Roact.Component<StringPar
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(0.425, 0, 1, 0)}
-					Text={this.props.name}
+					Text={playerFacingName}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}
@@ -106,7 +105,7 @@ export class StringParameter<K extends string> extends Roact.Component<StringPar
 					ref={this.currentOptionRef}
 					position={new UDim2(0.5, 0, 0, 0)}
 					size={new UDim2(0.5, 0, 1, 0)}
-					value={this.props.currentOption}
+					optionValue={currentValue}
 					onSelected={() => this.setState({ isOpen: !isOpen })}
 				/>
 
@@ -142,9 +141,17 @@ export class StringParameter<K extends string> extends Roact.Component<StringPar
 							/>
 
 							{this.props.options.mapFiltered((option) => {
-								if (option === this.props.currentOption) return;
+								if (option === this.props.currentValue) return;
 
-								return <OptionFrame value={option} onSelected={this.props.onOptionSelected} />;
+								const selected = () => {
+									clientStore.dispatch({
+										type: "updateSingleParameter",
+										name: name,
+										value: option,
+									});
+								};
+
+								return <OptionFrame optionValue={option} onSelected={selected} />;
 							})}
 						</scrollingframe>
 					</frame>
@@ -160,9 +167,9 @@ export class StringParameter<K extends string> extends Roact.Component<StringPar
 		this.setState({ optionSize: UDim2.fromOffset(absSize.X * 2, absSize.Y * 2) });
 	}
 
-	protected didUpdate(previousProps: StringParameterProps<K>, previousState: StringParameterState): void {
+	protected didUpdate(previousProps: StringParameterProps, previousState: StringParameterState): void {
 		// Close when new option selected
-		if (previousProps.currentOption !== this.props.currentOption && this.state.isOpen) {
+		if (previousProps.currentValue !== this.props.currentValue && this.state.isOpen) {
 			this.setState({ isOpen: false });
 		}
 	}
