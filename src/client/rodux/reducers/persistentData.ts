@@ -1,6 +1,6 @@
 import { Action, createReducer } from "@rbxts/rodux";
 import { DEFAULT_PLAYER_DATA } from "shared/constants/data";
-import { PlayerData } from "shared/types/data";
+import { PlayerData } from "shared/types/PlayerData";
 
 interface UpdatePersistentData extends Action<"updatePersistentData"> {
 	newData: PlayerData;

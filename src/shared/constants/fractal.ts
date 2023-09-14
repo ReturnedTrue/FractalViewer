@@ -1,4 +1,4 @@
-import { FractalId } from "shared/enums/fractal";
+import { FractalId } from "shared/enums/FractalId";
 
 export const AXIS_SIZE = 500;
 export const AXIS_ITERATION_SIZE = 500 - 1;

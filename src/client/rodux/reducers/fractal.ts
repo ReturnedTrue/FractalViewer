@@ -1,5 +1,6 @@
 import { Action, createReducer } from "@rbxts/rodux";
-import { FractalId } from "shared/enums/fractal";
+import { FractalId } from "shared/enums/FractalId";
+import { NewtonFunction } from "shared/enums/NewtonFunction";
 
 interface SetPartsFolder extends Action<"setPartsFolder"> {
 	partsFolder: Folder;
@@ -24,8 +25,12 @@ export interface FractalState {
 		xOffset: number;
 		yOffset: number;
 		magnification: number;
+
 		juliaRealConstant: number;
 		juliaImaginaryConstant: number;
+
+		newtonFunction: NewtonFunction;
+		newtonTolerance: number;
 	};
 
 	hasCacheBeenVoided: boolean;
@@ -51,6 +56,9 @@ const DEFAULT_VALUE = {
 
 		juliaRealConstant: 0.01,
 		juliaImaginaryConstant: 0.01,
+
+		newtonFunction: NewtonFunction.BasicQuadratic,
+		newtonTolerance: 0.000001,
 	},
 
 	hasCacheBeenVoided: false,
@@ -62,6 +70,8 @@ const parametersWhichVoidCache = new Set<FractalParameterName>([
 	"magnification",
 	"juliaRealConstant",
 	"juliaImaginaryConstant",
+	"newtonFunction",
+	"newtonTolerance",
 ]);
 
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {

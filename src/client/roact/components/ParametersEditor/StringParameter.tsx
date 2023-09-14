@@ -167,9 +167,16 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 
 	protected didMount(): void {
 		const currentOption = this.currentOptionRef.getValue()!;
-		const absSize = currentOption.AbsoluteSize;
 
-		this.setState({ optionSize: UDim2.fromOffset(absSize.X * 2, absSize.Y * 2) });
+		const setSize = () => {
+			const absSize = currentOption.AbsoluteSize;
+
+			this.setState({ optionSize: UDim2.fromOffset(absSize.X, absSize.Y) });
+		};
+
+		setSize();
+
+		currentOption.GetPropertyChangedSignal("AbsoluteSize").Connect(setSize);
 	}
 
 	protected didUpdate(previousProps: StringParameterProps, previousState: StringParameterState): void {

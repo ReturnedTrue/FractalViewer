@@ -2,8 +2,9 @@ import { Controller, OnStart } from "@flamework/core";
 import { AXIS_ITERATION_SIZE, AXIS_SIZE, MAX_ITERATIONS, MAX_STABLE } from "shared/constants/fractal";
 import { $print } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
-import { FractalId } from "shared/enums/fractal";
+import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters, FractalState } from "client/rodux/reducers/fractal";
+import { NewtonFunction } from "shared/enums/NewtonFunction";
 
 type FractalCalculator = (
 	x: number,
@@ -12,7 +13,49 @@ type FractalCalculator = (
 	otherParameters: Omit<FractalParameters, "xOffset" | "yOffset" | "magnification">,
 ) => number;
 
+type NewtonFunctionData = {
+	roots: Array<[number, number, number]>;
+	execute: (complexReal: number, complexImaginary: number) => LuaTuple<[number, number]>;
+	derivativeExecute: (complexReal: number, complexImaginary: number) => LuaTuple<[number, number]>;
+};
+
 const getComplexSize = (real: number, imaginary: number) => math.sqrt(real * real + imaginary * imaginary);
+
+const newtonFunctionData: Record<NewtonFunction, NewtonFunctionData> = {
+	[NewtonFunction.BasicQuadratic]: {
+		roots: [
+			[-1, 0, 0.1],
+			[1, 0, 0.2],
+		],
+
+		execute: (real, imaginary) => {
+			const newReal = real * real - imaginary * imaginary - 1;
+			const newImaginary = real * imaginary * 2;
+
+			return $tuple(newReal, newImaginary);
+		},
+
+		derivativeExecute: (real, imaginary) => {
+			return $tuple(2 * real, 2 * imaginary);
+		},
+	},
+
+	[NewtonFunction.BasicCubic]: {
+		roots: [
+			[1, 0, 0.2],
+			[-0.5, math.sqrt(3) / 2, 0.4],
+			[-0.5, -math.sqrt(3) / 2, 0.6],
+		],
+
+		execute: (real, imaginary) => {
+			return $tuple(real ** 3 - 3 * real * imaginary ** 2 - 1, 3 * real ** 2 * imaginary - imaginary ** 3);
+		},
+
+		derivativeExecute: (real, imaginary) => {
+			return $tuple(3 * (real * real) - 3 * imaginary * imaginary, 6 * real * imaginary);
+		},
+	},
+};
 
 const fractalCalculators: Record<FractalId, FractalCalculator> = {
 	[FractalId.Mandelbrot]: (x, y, magnification) => {
@@ -67,6 +110,41 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 
 			zReal = zReal * zReal - zImaginary * zImaginary + juliaRealConstant;
 			zImaginary = zRealTemp * zImaginary * 2 + juliaImaginaryConstant;
+		}
+
+		return 1;
+	},
+
+	[FractalId.Newton]: (x, y, magnification, { newtonFunction, newtonTolerance }) => {
+		const functionData = newtonFunctionData[newtonFunction];
+
+		let zReal = (x / AXIS_SIZE / magnification) * 4 - 2;
+		let zImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
+
+		for (const iteration of $range(1, MAX_ITERATIONS)) {
+			const [realResultForFunction, imaginaryResultForFunction] = functionData.execute(zReal, zImaginary);
+			const [realResultForDerivative, imaginaryResultForDerivative] = functionData.derivativeExecute(
+				zReal,
+				zImaginary,
+			);
+
+			// TODO: cleanup this division, maybe create a complex division function? complex order function?
+
+			zReal -=
+				(realResultForFunction * realResultForDerivative +
+					imaginaryResultForFunction * imaginaryResultForDerivative) /
+				(realResultForDerivative ** 2 + imaginaryResultForDerivative ** 2);
+
+			zImaginary -=
+				(imaginaryResultForFunction * realResultForDerivative -
+					realResultForFunction * imaginaryResultForDerivative) /
+				(realResultForDerivative ** 2 + imaginaryResultForDerivative ** 2);
+
+			for (const [rootReal, rootImaginary, rootHue] of functionData.roots) {
+				if (getComplexSize(zReal - rootReal, zImaginary - rootImaginary) < newtonTolerance) {
+					return iteration / MAX_ITERATIONS;
+				}
+			}
 		}
 
 		return 1;

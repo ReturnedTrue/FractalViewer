@@ -7,7 +7,8 @@ import {
 } from "client/rodux/reducers/fractal";
 import { NumberParameter } from "./NumberParameter";
 import { StringParameter } from "./StringParameter";
-import { FractalId } from "shared/enums/fractal";
+import { FractalId } from "shared/enums/FractalId";
+import { NewtonFunction } from "shared/enums/NewtonFunction";
 
 export interface CoreParameterProps<T> {
 	name: FractalParameterNameForType<T>;
@@ -32,6 +33,7 @@ interface ParametersEditorProps {
 
 class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private fractalOptions = enumToArray(FractalId);
+	private newtonFunctionOptions = enumToArray(NewtonFunction);
 
 	render() {
 		const { parameters: params } = this.props;
@@ -82,6 +84,18 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 							name="juliaImaginaryConstant"
 							currentValue={params.juliaImaginaryConstant}
 							playerFacingName="Julia Imaginary"
+						/>
+					</>
+				)}
+
+				{params.fractalId === FractalId.Newton && (
+					<>
+						<StringParameter
+							position={UDim2.fromScale(0.05, 0.5)}
+							name="newtonFunction"
+							currentValue={params.newtonFunction}
+							playerFacingName="Function"
+							options={this.newtonFunctionOptions}
 						/>
 					</>
 				)}
