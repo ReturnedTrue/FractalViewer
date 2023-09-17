@@ -175,7 +175,6 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 		};
 
 		setSize();
-
 		currentOption.GetPropertyChangedSignal("AbsoluteSize").Connect(setSize);
 	}
 

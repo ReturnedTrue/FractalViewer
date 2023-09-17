@@ -37,6 +37,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 
 	render() {
 		const { parameters: params } = this.props;
+		const isCurrentlyFractal = (fractal: FractalId) => params.fractalId === fractal;
 
 		return (
 			<Roact.Fragment>
@@ -70,8 +71,8 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 					options={this.fractalOptions}
 				/>
 
-				{params.fractalId === FractalId.Julia && (
-					<>
+				{isCurrentlyFractal(FractalId.Julia) && (
+					<Roact.Fragment>
 						<NumberParameter
 							position={UDim2.fromScale(0.05, 0.5)}
 							name="juliaRealConstant"
@@ -85,11 +86,11 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 							currentValue={params.juliaImaginaryConstant}
 							playerFacingName="Julia Imaginary"
 						/>
-					</>
+					</Roact.Fragment>
 				)}
 
-				{params.fractalId === FractalId.Newton && (
-					<>
+				{isCurrentlyFractal(FractalId.Newton) && (
+					<Roact.Fragment>
 						<StringParameter
 							position={UDim2.fromScale(0.05, 0.5)}
 							name="newtonFunction"
@@ -97,7 +98,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 							playerFacingName="Function"
 							options={this.newtonFunctionOptions}
 						/>
-					</>
+					</Roact.Fragment>
 				)}
 			</Roact.Fragment>
 		);

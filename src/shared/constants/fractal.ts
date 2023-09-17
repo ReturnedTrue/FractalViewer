@@ -8,3 +8,5 @@ export const MAX_STABLE = 2;
 
 export const WASD_MOVEMENT_INCREMENT = 50;
 export const MAGNIFICATION_INCREMENT = 2;
+
+export const NEWTON_TOLERANCE = 0.000001;

@@ -1,4 +1,6 @@
 export enum NewtonFunction {
-	BasicQuadratic = "z^2 - 1",
-	BasicCubic = "z^3 - 1",
+	Quadratic = "z^2 - 1",
+	Cubic = "z^3 - 1",
+	Quartic = "z^4 - 1",
+	Sine = "sin(z)",
 }

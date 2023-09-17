@@ -30,7 +30,6 @@ export interface FractalState {
 		juliaImaginaryConstant: number;
 
 		newtonFunction: NewtonFunction;
-		newtonTolerance: number;
 	};
 
 	hasCacheBeenVoided: boolean;
@@ -57,22 +56,14 @@ const DEFAULT_VALUE = {
 		juliaRealConstant: 0.01,
 		juliaImaginaryConstant: 0.01,
 
-		newtonFunction: NewtonFunction.BasicQuadratic,
-		newtonTolerance: 0.000001,
+		newtonFunction: NewtonFunction.Quadratic,
 	},
 
 	hasCacheBeenVoided: false,
 	partsFolder: undefined,
 } satisfies FractalState;
 
-const parametersWhichVoidCache = new Set<FractalParameterName>([
-	"fractalId",
-	"magnification",
-	"juliaRealConstant",
-	"juliaImaginaryConstant",
-	"newtonFunction",
-	"newtonTolerance",
-]);
+const parametersWhichRetainCache = new Set<FractalParameterName>(["xOffset", "yOffset"]);
 
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
 	setPartsFolder: (state, { partsFolder }) => {
@@ -83,7 +74,7 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 		let hasCacheBeenVoided = false;
 
 		for (const [parameterName, parameterValue] of pairs(newParameters)) {
-			const canVoid = parametersWhichVoidCache.has(parameterName);
+			const canVoid = !parametersWhichRetainCache.has(parameterName);
 			const hasChanged = state.parameters[parameterName] !== parameterValue;
 
 			if (canVoid && hasChanged) {
@@ -105,7 +96,7 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 	},
 
 	updateSingleParameter: (state, { name, value }) => {
-		const hasCacheBeenVoided = parametersWhichVoidCache.has(name);
+		const hasCacheBeenVoided = !parametersWhichRetainCache.has(name);
 
 		return {
 			...state,
