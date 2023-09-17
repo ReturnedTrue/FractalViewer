@@ -3,6 +3,7 @@ import { FractalId } from "shared/enums/FractalId";
 export const AXIS_SIZE = 500;
 export const AXIS_ITERATION_SIZE = 500 - 1;
 
+export const MAX_SECONDS_BEFORE_WAIT = 5;
 export const MAX_ITERATIONS = 100;
 export const MAX_STABLE = 2;
 

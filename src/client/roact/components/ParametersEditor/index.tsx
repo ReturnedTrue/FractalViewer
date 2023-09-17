@@ -98,6 +98,13 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 							playerFacingName="Function"
 							options={this.newtonFunctionOptions}
 						/>
+
+						<NumberParameter
+							position={UDim2.fromScale(0.05, 0.6)}
+							name="newtonCoefficient"
+							currentValue={params.newtonCoefficient}
+							playerFacingName="Coefficient"
+						/>
 					</Roact.Fragment>
 				)}
 			</Roact.Fragment>

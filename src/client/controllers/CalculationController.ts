@@ -1,11 +1,26 @@
 import { Controller, OnStart } from "@flamework/core";
-import { AXIS_ITERATION_SIZE, AXIS_SIZE, MAX_ITERATIONS, MAX_STABLE, NEWTON_TOLERANCE } from "shared/constants/fractal";
+import {
+	AXIS_ITERATION_SIZE,
+	AXIS_SIZE,
+	MAX_ITERATIONS,
+	MAX_SECONDS_BEFORE_WAIT,
+	MAX_STABLE,
+	NEWTON_TOLERANCE,
+} from "shared/constants/fractal";
 import { $print } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters, FractalState } from "client/rodux/reducers/fractal";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
-import { complexSquare, complexPow, complexSine, complexCos, complexSize, complexDiv } from "client/utility/complex";
+import {
+	complexSquare,
+	complexPow,
+	complexSine,
+	complexCos,
+	complexSize,
+	complexDiv,
+	complexTan,
+} from "client/utility/complex";
 
 type FractalCalculator = (
 	x: number,
@@ -86,6 +101,37 @@ const newtonFunctionData: Record<NewtonFunction, NewtonFunctionData> = {
 		execute: complexSine,
 		derivativeExecute: complexCos,
 	},
+
+	[NewtonFunction.Cos]: {
+		howCloseToRoot: (size) => {
+			return size % (math.pi / 2);
+		},
+
+		execute: complexCos,
+
+		// -sin(x)
+		derivativeExecute: (real, imaginary) => {
+			const [sineReal, sineImaginary] = complexSine(real, imaginary);
+
+			return $tuple(-sineReal, -sineImaginary);
+		},
+	},
+
+	[NewtonFunction.Tan]: {
+		howCloseToRoot: (size) => {
+			return size % math.pi;
+		},
+
+		execute: complexTan,
+
+		// sec^2(x)
+		derivativeExecute: (real, imaginary) => {
+			const [cosineReal, cosineImaginary] = complexCos(real, imaginary);
+			const [squaredReal, squaredImaginary] = complexSquare(cosineReal, cosineImaginary);
+
+			return $tuple(1 / squaredReal, 1 / squaredImaginary);
+		},
+	},
 };
 
 const fractalCalculators: Record<FractalId, FractalCalculator> = {
@@ -143,8 +189,9 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 		return 1;
 	},
 
-	[FractalId.Newton]: (x, y, magnification, { newtonFunction }) => {
+	[FractalId.Newton]: (x, y, magnification, { newtonFunction, newtonCoefficient }) => {
 		const functionData = newtonFunctionData[newtonFunction];
+		const hasDefinedRoots = "roots" in functionData;
 
 		let zReal = (x / AXIS_SIZE / magnification) * 4 - 2;
 		let zImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
@@ -160,19 +207,17 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 				derivativeImaginary,
 			);
 
-			zReal -= dividedReal;
-			zImaginary -= dividedImaginary;
+			zReal -= newtonCoefficient * dividedReal;
+			zImaginary -= newtonCoefficient * dividedImaginary;
 
-			if ("roots" in functionData) {
+			if (hasDefinedRoots) {
 				for (const [rootReal, rootImaginary, rootHue] of functionData.roots) {
 					if (complexSize(zReal - rootReal, zImaginary - rootImaginary) < NEWTON_TOLERANCE) {
 						return rootHue;
 					}
 				}
-			} else {
-				const isClose = functionData.howCloseToRoot(complexSize(zReal, zImaginary)) < NEWTON_TOLERANCE;
-
-				if (isClose) return iteration / MAX_ITERATIONS;
+			} else if (functionData.howCloseToRoot(complexSize(zReal, zImaginary)) < NEWTON_TOLERANCE) {
+				return iteration / MAX_ITERATIONS;
 			}
 		}
 
@@ -197,7 +242,8 @@ export class CalculationController implements OnStart {
 				this.calculatedCache.clear();
 			}
 
-			this.calculateAndViewFractal(fractal);
+			this.calculateFractal(fractal);
+			this.applyFractal(fractal);
 		});
 
 		clientStore.dispatch({ type: "updateSingleParameter", name: "fractalId", value: FractalId.Mandelbrot });
@@ -228,15 +274,15 @@ export class CalculationController implements OnStart {
 		clientStore.dispatch({ type: "setPartsFolder", partsFolder: containingFolder });
 	}
 
-	private calculateAndViewFractal(fractal: FractalState) {
-		const { parameters } = fractal;
-
+	private calculateFractal({ parameters }: FractalState) {
 		const { fractalId, xOffset, yOffset, magnification } = parameters;
 		const calculator = fractalCalculators[fractalId];
 
-		const calculationStartTime = os.clock();
+		let totalCalculationTime = 0;
+		let accumulatedCalculationTime = 0;
 
 		for (const i of $range(0, AXIS_ITERATION_SIZE)) {
+			const columnStartTime = os.clock();
 			const xPosition = i + xOffset;
 
 			let columnCache = this.calculatedCache.get(xPosition);
@@ -254,10 +300,24 @@ export class CalculationController implements OnStart {
 					columnCache.set(yPosition, color);
 				}
 			}
+
+			accumulatedCalculationTime += os.clock() - columnStartTime;
+
+			if (accumulatedCalculationTime > MAX_SECONDS_BEFORE_WAIT) {
+				totalCalculationTime += accumulatedCalculationTime;
+				accumulatedCalculationTime = 0;
+
+				task.wait();
+			}
 		}
 
-		$print(string.format("complete fractal calculation (%.2f ms)", (os.clock() - calculationStartTime) * 1000));
+		totalCalculationTime += accumulatedCalculationTime;
 
+		$print(string.format("complete fractal calculation (%.2f ms)", totalCalculationTime * 1000));
+	}
+
+	private applyFractal({ parameters }: FractalState) {
+		const { xOffset, yOffset } = parameters;
 		const applicationStartTime = os.clock();
 
 		for (const i of $range(0, AXIS_ITERATION_SIZE)) {
@@ -273,6 +333,8 @@ export class CalculationController implements OnStart {
 			}
 		}
 
-		$print(string.format("complete fractal application (%.2f ms)", (os.clock() - applicationStartTime) * 1000));
+		const totalApplicationTime = os.clock() - applicationStartTime;
+
+		$print(string.format("complete fractal application (%.2f ms)", totalApplicationTime * 1000));
 	}
 }

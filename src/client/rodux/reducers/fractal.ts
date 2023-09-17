@@ -30,6 +30,7 @@ export interface FractalState {
 		juliaImaginaryConstant: number;
 
 		newtonFunction: NewtonFunction;
+		newtonCoefficient: number;
 	};
 
 	hasCacheBeenVoided: boolean;
@@ -57,6 +58,7 @@ const DEFAULT_VALUE = {
 		juliaImaginaryConstant: 0.01,
 
 		newtonFunction: NewtonFunction.Quadratic,
+		newtonCoefficient: 1,
 	},
 
 	hasCacheBeenVoided: false,
