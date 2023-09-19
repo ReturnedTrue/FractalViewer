@@ -105,6 +105,10 @@ const newtonFunctionData: Record<NewtonFunction, NewtonFunctionData> = {
 
 	[NewtonFunction.Cos]: {
 		howCloseToRoot: (size) => {
+			/*const leftover = size - 2 * math.pi * math.floor(size / (2 * math.pi));
+
+			return math.min(math.abs(leftover - math.pi / 2), math.abs(leftover - 1.5 * math.pi));*/
+
 			return size % (math.pi / 2);
 		},
 
@@ -152,7 +156,7 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 			zImaginary = zRealTemp * zImaginary * 2 + cImaginary;
 		}
 
-		return 1;
+		return 0;
 	},
 
 	[FractalId.BurningShip]: (x, y, magnification) => {
@@ -171,7 +175,7 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 			zImaginary = math.abs(zRealTemp * zImaginary * 2) + cImaginary;
 		}
 
-		return 1;
+		return 0;
 	},
 
 	[FractalId.Julia]: (x, y, magnification, { juliaRealConstant, juliaImaginaryConstant }) => {
@@ -187,7 +191,7 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 			zImaginary = zRealTemp * zImaginary * 2 + juliaImaginaryConstant;
 		}
 
-		return 1;
+		return 0;
 	},
 
 	[FractalId.Newton]: (x, y, magnification, { newtonFunction, newtonCoefficient }) => {
@@ -222,14 +226,14 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 			}
 		}
 
-		return 1;
+		return 0;
 	},
 };
 
 @Controller()
 export class CalculationController implements OnStart {
 	private parts = new Array<Array<Part>>();
-	private calculatedCache = new Map<number, Map<number, Color3>>();
+	private calculatedCache = new Map<number, Map<number, number>>();
 
 	onStart() {
 		this.constructParts();
@@ -297,8 +301,8 @@ export class CalculationController implements OnStart {
 				const yPosition = j + yOffset;
 
 				if (!columnCache.has(yPosition)) {
-					const color = Color3.fromHSV(calculator(xPosition, yPosition, magnification, parameters), 1, 1);
-					columnCache.set(yPosition, color);
+					const value = calculator(xPosition, yPosition, magnification, parameters);
+					columnCache.set(yPosition, value);
 				}
 			}
 
@@ -318,8 +322,10 @@ export class CalculationController implements OnStart {
 	}
 
 	private applyFractal({ parameters }: FractalState) {
-		const { xOffset, yOffset } = parameters;
+		const { xOffset, yOffset, hueShift } = parameters;
 		const applicationStartTime = os.clock();
+
+		const realHueShift = hueShift / 360;
 
 		for (const i of $range(0, AXIS_ITERATION_SIZE)) {
 			const xPosition = i + xOffset;
@@ -328,7 +334,9 @@ export class CalculationController implements OnStart {
 
 			for (const j of $range(0, AXIS_ITERATION_SIZE)) {
 				const yPosition = j + yOffset;
-				const color = columnCache.get(yPosition)!;
+				const hue = columnCache.get(yPosition)! + realHueShift;
+
+				const color = Color3.fromHSV(hue > 1 ? hue - 1 : hue, 1, 1);
 
 				this.parts[i][j].Color = color;
 			}

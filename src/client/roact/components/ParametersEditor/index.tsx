@@ -12,6 +12,7 @@ import {
 
 export interface CoreParameterProps<T> {
 	name: FractalParameterNameForType<T>;
+	order: number;
 	currentValue: FractalParameterValueForType<T>;
 
 	playerFacingName: string;
@@ -40,32 +41,38 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 		const isCurrentlyFractal = (fractal: FractalId) => params.fractalId === fractal;
 
 		return (
-			<Roact.Fragment>
-				<NumberParameter
-					position={UDim2.fromScale(0.05, 0.1)}
-					name="xOffset"
-					currentValue={params.xOffset}
-					playerFacingName="X Offset"
+			<frame Key="ParametersEditor" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
+				<uilistlayout
+					Padding={new UDim(0.05, 0)}
+					SortOrder={Enum.SortOrder.LayoutOrder}
+					FillDirection={Enum.FillDirection.Vertical}
+					VerticalAlignment={Enum.VerticalAlignment.Top}
 				/>
 
-				<NumberParameter
-					position={UDim2.fromScale(0.05, 0.2)}
-					name="yOffset"
-					currentValue={params.yOffset}
-					playerFacingName="Y Offset"
-				/>
+				<uipadding PaddingLeft={new UDim(0.08, 0)} PaddingTop={new UDim(0.1, 0)} />
+
+				<NumberParameter name="xOffset" order={1} currentValue={params.xOffset} playerFacingName="X Offset" />
+				<NumberParameter name="yOffset" order={2} currentValue={params.yOffset} playerFacingName="Y Offset" />
 
 				<NumberParameter
-					position={UDim2.fromScale(0.05, 0.3)}
 					name="magnification"
+					order={3}
 					currentValue={params.magnification}
 					playerFacingName="Magnification"
 					newValueConstraint={(value) => math.max(value, 1)}
 				/>
 
+				<NumberParameter
+					name="hueShift"
+					order={4}
+					currentValue={params.hueShift}
+					playerFacingName="Hue Shift"
+					newValueConstraint={(value) => math.clamp(value, 0, 360)}
+				/>
+
 				<StringParameter
-					position={UDim2.fromScale(0.05, 0.4)}
 					name="fractalId"
+					order={5}
 					currentValue={params.fractalId}
 					playerFacingName="Fractal"
 					options={this.fractalOptions}
@@ -74,15 +81,15 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 				{isCurrentlyFractal(FractalId.Julia) && (
 					<Roact.Fragment>
 						<NumberParameter
-							position={UDim2.fromScale(0.05, 0.5)}
 							name="juliaRealConstant"
+							order={100}
 							currentValue={params.juliaRealConstant}
 							playerFacingName="Julia Real"
 						/>
 
 						<NumberParameter
-							position={UDim2.fromScale(0.05, 0.6)}
 							name="juliaImaginaryConstant"
+							order={101}
 							currentValue={params.juliaImaginaryConstant}
 							playerFacingName="Julia Imaginary"
 						/>
@@ -92,22 +99,22 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 				{isCurrentlyFractal(FractalId.Newton) && (
 					<Roact.Fragment>
 						<StringParameter
-							position={UDim2.fromScale(0.05, 0.5)}
 							name="newtonFunction"
+							order={100}
 							currentValue={params.newtonFunction}
 							playerFacingName="Function"
 							options={this.newtonFunctionOptions}
 						/>
 
 						<NumberParameter
-							position={UDim2.fromScale(0.05, 0.6)}
 							name="newtonCoefficient"
+							order={101}
 							currentValue={params.newtonCoefficient}
 							playerFacingName="Coefficient"
 						/>
 					</Roact.Fragment>
 				)}
-			</Roact.Fragment>
+			</frame>
 		);
 	}
 }

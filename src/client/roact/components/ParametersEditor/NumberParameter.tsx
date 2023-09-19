@@ -4,21 +4,19 @@ import { clientStore } from "client/rodux/store";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 
 interface NumberParameterProps extends CoreParameterProps<number> {
-	position: UDim2;
-
 	newValueConstraint?: (newValue: number) => number;
 }
 
 export class NumberParameter extends Roact.Component<NumberParameterProps> {
 	render() {
-		const { name, currentValue, playerFacingName, newValueConstraint } = this.props;
+		const { name, order, currentValue, playerFacingName, newValueConstraint } = this.props;
 
 		return (
 			<frame
 				Key={playerFacingName}
+				LayoutOrder={order}
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
-				Position={this.props.position}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
 			>
 				<uicorner />

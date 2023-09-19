@@ -4,6 +4,9 @@ import { clientStore } from "client/rodux/store";
 import { FractalView } from "./components/FractalView";
 import { ParametersEditor } from "./components/ParametersEditor";
 import { ParametersClipboard } from "./components/ParametersClipboard";
+import { GuiService } from "@rbxts/services";
+
+const [guiInset] = GuiService.GetGuiInset();
 
 interface AppProps {}
 
@@ -15,8 +18,8 @@ export class App extends Roact.Component<AppProps> {
 					<frame
 						Key="Background"
 						BackgroundColor3={new Color3()}
-						Position={UDim2.fromOffset(0, -37)}
-						Size={new UDim2(1, 0, 1, 37)}
+						Position={UDim2.fromOffset(0, -guiInset.Y)}
+						Size={new UDim2(1, 0, 1, guiInset.Y)}
 						ZIndex={-1}
 					/>
 
