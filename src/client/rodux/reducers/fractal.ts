@@ -1,13 +1,13 @@
 import { Action, createReducer } from "@rbxts/rodux";
-import { FractalId } from "shared/enums/FractalId";
-import { NewtonFunction } from "shared/enums/NewtonFunction";
+import { DEFAULT_FRACTAL_PARAMETERS, PARAMETERS_WHICH_VOID_CACHE } from "shared/constants/fractal";
+import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 interface SetPartsFolder extends Action<"setPartsFolder"> {
 	partsFolder: Folder;
 }
 
 interface UpdateParameters extends Action<"updateParameters"> {
-	parameters: Partial<FractalState["parameters"]>;
+	parameters: Partial<FractalParameters>;
 }
 
 interface UpdateSingleParameter extends Action<"updateSingleParameter"> {
@@ -20,52 +20,19 @@ interface ResetParameters extends Action<"resetParameters"> {}
 export type FractalActions = SetPartsFolder | UpdateParameters | UpdateSingleParameter | ResetParameters;
 export interface FractalState {
 	parametersLastUpdated: number;
-	parameters: {
-		fractalId: FractalId;
-		xOffset: number;
-		yOffset: number;
-		magnification: number;
-
-		juliaRealConstant: number;
-		juliaImaginaryConstant: number;
-
-		newtonFunction: NewtonFunction;
-		newtonCoefficient: number;
-	};
+	parameters: FractalParameters;
 
 	hasCacheBeenVoided: boolean;
 	partsFolder: Folder | undefined;
 }
 
-export type FractalParameters = FractalState["parameters"];
-export type FractalParameterName = keyof FractalState["parameters"];
-
-export type FractalParameterNameForType<T> = {
-	[key in FractalParameterName]: FractalParameters[key] extends T ? key : never;
-}[FractalParameterName];
-
-export type FractalParameterValueForType<T> = FractalParameters[FractalParameterNameForType<T>];
-
 const DEFAULT_VALUE = {
 	parametersLastUpdated: os.clock(),
-	parameters: {
-		fractalId: FractalId.Mandelbrot,
-		xOffset: 0,
-		yOffset: 0,
-		magnification: 1,
-
-		juliaRealConstant: 0.01,
-		juliaImaginaryConstant: 0.01,
-
-		newtonFunction: NewtonFunction.Quadratic,
-		newtonCoefficient: 1,
-	},
+	parameters: DEFAULT_FRACTAL_PARAMETERS,
 
 	hasCacheBeenVoided: false,
 	partsFolder: undefined,
 } satisfies FractalState;
-
-const parametersWhichRetainCache = new Set<FractalParameterName>(["xOffset", "yOffset"]);
 
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
 	setPartsFolder: (state, { partsFolder }) => {
@@ -76,7 +43,7 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 		let hasCacheBeenVoided = false;
 
 		for (const [parameterName, parameterValue] of pairs(newParameters)) {
-			const canVoid = !parametersWhichRetainCache.has(parameterName);
+			const canVoid = !PARAMETERS_WHICH_VOID_CACHE.has(parameterName);
 			const hasChanged = state.parameters[parameterName] !== parameterValue;
 
 			if (canVoid && hasChanged) {
@@ -98,7 +65,7 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 	},
 
 	updateSingleParameter: (state, { name, value }) => {
-		const hasCacheBeenVoided = !parametersWhichRetainCache.has(name);
+		const hasCacheBeenVoided = !PARAMETERS_WHICH_VOID_CACHE.has(name);
 
 		return {
 			...state,

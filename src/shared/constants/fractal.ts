@@ -1,4 +1,6 @@
 import { FractalId } from "shared/enums/FractalId";
+import { NewtonFunction } from "shared/enums/NewtonFunction";
+import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 export const AXIS_SIZE = 500;
 export const AXIS_ITERATION_SIZE = 500 - 1;
@@ -11,3 +13,21 @@ export const WASD_MOVEMENT_INCREMENT = 50;
 export const MAGNIFICATION_INCREMENT = 2;
 
 export const NEWTON_TOLERANCE = 0.000001;
+
+export const DEFAULT_FRACTAL_PARAMETERS = {
+	fractalId: FractalId.Mandelbrot,
+
+	xOffset: 0,
+	yOffset: 0,
+	magnification: 1,
+
+	hueShift: 0,
+
+	juliaRealConstant: 0.01,
+	juliaImaginaryConstant: 0.01,
+
+	newtonFunction: NewtonFunction.Quadratic,
+	newtonCoefficient: 1,
+} satisfies FractalParameters;
+
+export const PARAMETERS_WHICH_VOID_CACHE = new Set<FractalParameterName>(["xOffset", "yOffset"]);

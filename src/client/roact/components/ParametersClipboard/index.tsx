@@ -1,8 +1,8 @@
 import Roact from "@rbxts/roact";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { CopyFractal } from "./CopyFractal";
-import { FractalParameters } from "client/rodux/reducers/fractal";
 import { PasteFractal } from "./PasteFractal";
+import { FractalParameters } from "shared/types/FractalParameters";
 
 interface ParametersClipboardProps {
 	parameters: FractalParameters;

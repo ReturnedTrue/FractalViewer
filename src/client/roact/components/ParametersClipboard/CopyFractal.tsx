@@ -1,7 +1,7 @@
 import Roact from "@rbxts/roact";
 import { HttpService } from "@rbxts/services";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
-import { FractalParameters } from "client/rodux/reducers/fractal";
+import { FractalParameters } from "shared/types/FractalParameters";
 
 interface CopyFractalProps {
 	parameters: FractalParameters;

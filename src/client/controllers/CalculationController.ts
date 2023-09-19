@@ -10,7 +10,7 @@ import {
 import { $print } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
 import { FractalId } from "shared/enums/FractalId";
-import { FractalParameters, FractalState } from "client/rodux/reducers/fractal";
+import { FractalState } from "client/rodux/reducers/fractal";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 import {
 	complexSquare,
@@ -21,6 +21,7 @@ import {
 	complexDiv,
 	complexTan,
 } from "client/utility/complex";
+import { FractalParameters } from "shared/types/FractalParameters";
 
 type FractalCalculator = (
 	x: number,

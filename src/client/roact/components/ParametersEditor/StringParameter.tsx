@@ -1,8 +1,8 @@
 import Roact, { createRef } from "@rbxts/roact";
 import { CoreParameterProps } from ".";
 import { clientStore } from "client/rodux/store";
-import { FractalParameterValueForType } from "client/rodux/reducers/fractal";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
+import { FractalParameterValueForType } from "shared/types/FractalParameters";
 
 interface OptionFrameProps {
 	ref?: Roact.Ref<TextButton>;

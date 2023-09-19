@@ -2,8 +2,8 @@ import { $terrify } from "rbxts-transformer-t";
 import Roact from "@rbxts/roact";
 import { HttpService } from "@rbxts/services";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
-import { FractalParameters } from "client/rodux/reducers/fractal";
 import { clientStore } from "client/rodux/store";
+import { FractalParameters } from "shared/types/FractalParameters";
 
 const isParameters = $terrify<Partial<FractalParameters>>();
 

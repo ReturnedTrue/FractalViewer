@@ -1,14 +1,14 @@
 import Roact from "@rbxts/roact";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
-import {
-	FractalParameterNameForType,
-	FractalParameterValueForType,
-	FractalParameters,
-} from "client/rodux/reducers/fractal";
 import { NumberParameter } from "./NumberParameter";
 import { StringParameter } from "./StringParameter";
 import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
+import {
+	FractalParameterNameForType,
+	FractalParameterValueForType,
+	FractalParameters,
+} from "shared/types/FractalParameters";
 
 export interface CoreParameterProps<T> {
 	name: FractalParameterNameForType<T>;
