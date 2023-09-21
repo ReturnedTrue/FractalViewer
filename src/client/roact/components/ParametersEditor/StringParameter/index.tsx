@@ -23,7 +23,7 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 	private currentOptionRef = createRef<TextButton>();
 
 	render() {
-		const { name, order, currentValue, playerFacingName } = this.props;
+		const { order, currentValue, playerFacingName, onNewValue } = this.props;
 		const { isOpen, optionSize } = this.state;
 
 		return (
@@ -98,15 +98,7 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 							{this.props.options.mapFiltered((option) => {
 								if (option === this.props.currentValue) return;
 
-								const selected = () => {
-									clientStore.dispatch({
-										type: "updateSingleParameter",
-										name: name,
-										value: option,
-									});
-								};
-
-								return <OptionFrame optionValue={option} onSelected={selected} />;
+								return <OptionFrame optionValue={option} onSelected={onNewValue} />;
 							})}
 						</scrollingframe>
 					</frame>

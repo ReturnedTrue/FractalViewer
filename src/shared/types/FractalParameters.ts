@@ -14,6 +14,7 @@ export interface FractalParameters {
 	juliaImaginaryConstant: number;
 
 	newtonFunction: NewtonFunction;
+	// TODO: allow complex number parameters
 	newtonCoefficient: number;
 }
 

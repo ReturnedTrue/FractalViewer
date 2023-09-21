@@ -8,7 +8,7 @@ interface OptionFrameProps {
 	size?: UDim2;
 
 	optionValue: FractalParameterValueForType<string>;
-	onSelected: () => void;
+	onSelected: (value: this["optionValue"]) => void;
 }
 
 export class OptionFrame extends Roact.Component<OptionFrameProps> {
@@ -20,7 +20,7 @@ export class OptionFrame extends Roact.Component<OptionFrameProps> {
 				Key="OptionFrame"
 				Ref={ref}
 				Event={{
-					MouseButton1Click: () => onSelected(),
+					MouseButton1Click: () => onSelected(optionValue),
 				}}
 				BackgroundColor3={Color3.fromRGB(52, 52, 52)}
 				BorderSizePixel={0}

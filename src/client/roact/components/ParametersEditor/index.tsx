@@ -1,21 +1,23 @@
-import Roact from "@rbxts/roact";
+import Roact, { createElement } from "@rbxts/roact";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { NumberParameter } from "./NumberParameter";
 import { StringParameter } from "./StringParameter";
 import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 import {
+	FractalParameterName,
 	FractalParameterNameForType,
 	FractalParameterValueForType,
 	FractalParameters,
 } from "shared/types/FractalParameters";
+import { clientStore } from "client/rodux/store";
 
 export interface CoreParameterProps<T> {
-	name: FractalParameterNameForType<T>;
-	order: number;
-	currentValue: FractalParameterValueForType<T>;
-
 	playerFacingName: string;
+	order: number;
+
+	currentValue: FractalParameterValueForType<T>;
+	onNewValue: (value: T) => void;
 }
 
 function enumToArray<V>(enumGiven: Record<string, V>) {
@@ -37,8 +39,24 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private newtonFunctionOptions = enumToArray(NewtonFunction);
 
 	render() {
-		const { parameters: params } = this.props;
-		const isCurrentlyFractal = (fractal: FractalId) => params.fractalId === fractal;
+		const { parameters } = this.props;
+
+		function isCurrentlyFractal(fractal: FractalId) {
+			return parameters.fractalId === fractal;
+		}
+
+		function createParameter<P>(
+			parameterComponent: Roact.ComponentConstructor<P>,
+			name: FractalParameterNameForType<P extends CoreParameterProps<infer T> ? T : never>,
+			props: P extends CoreParameterProps<infer T> ? Omit<P, "currentValue" | "onNewValue"> : never,
+		) {
+			return createElement(parameterComponent, {
+				currentValue: parameters[name],
+				onNewValue: (value: never) => clientStore.dispatch({ type: "updateSingleParameter", name, value }),
+
+				...props,
+			} as never);
+		}
 
 		return (
 			<frame Key="ParametersEditor" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
@@ -51,67 +69,53 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 
 				<uipadding PaddingLeft={new UDim(0.08, 0)} PaddingTop={new UDim(0.1, 0)} />
 
-				<NumberParameter name="xOffset" order={1} currentValue={params.xOffset} playerFacingName="X Offset" />
-				<NumberParameter name="yOffset" order={2} currentValue={params.yOffset} playerFacingName="Y Offset" />
+				{createParameter(NumberParameter, "xOffset", { order: 1, playerFacingName: "X Offset" })}
+				{createParameter(NumberParameter, "yOffset", { order: 2, playerFacingName: "Y Offset" })}
 
-				<NumberParameter
-					name="magnification"
-					order={3}
-					currentValue={params.magnification}
-					playerFacingName="Magnification"
-					newValueConstraint={(value) => math.max(value, 1)}
-				/>
+				{createParameter(NumberParameter, "magnification", {
+					order: 3,
+					playerFacingName: "Magnification",
+					newValueConstraint: (value) => math.max(value, 1),
+				})}
 
-				<NumberParameter
-					name="hueShift"
-					order={4}
-					currentValue={params.hueShift}
-					playerFacingName="Hue Shift"
-					newValueConstraint={(value) => math.clamp(value, 0, 360)}
-				/>
+				{createParameter(NumberParameter, "hueShift", {
+					order: 4,
+					playerFacingName: "Hue Shift",
+					newValueConstraint: (value) => math.clamp(value, 0, 360),
+				})}
 
-				<StringParameter
-					name="fractalId"
-					order={5}
-					currentValue={params.fractalId}
-					playerFacingName="Fractal"
-					options={this.fractalOptions}
-				/>
+				{createParameter(StringParameter, "fractalId", {
+					order: 5,
+					playerFacingName: "Fractal",
+					options: this.fractalOptions,
+				})}
 
 				{isCurrentlyFractal(FractalId.Julia) && (
 					<Roact.Fragment>
-						<NumberParameter
-							name="juliaRealConstant"
-							order={100}
-							currentValue={params.juliaRealConstant}
-							playerFacingName="Julia Real"
-						/>
+						{createParameter(NumberParameter, "juliaRealConstant", {
+							order: 100,
+							playerFacingName: "Julia Real",
+						})}
 
-						<NumberParameter
-							name="juliaImaginaryConstant"
-							order={101}
-							currentValue={params.juliaImaginaryConstant}
-							playerFacingName="Julia Imaginary"
-						/>
+						{createParameter(NumberParameter, "juliaImaginaryConstant", {
+							order: 101,
+							playerFacingName: "Julia Imaginary",
+						})}
 					</Roact.Fragment>
 				)}
 
 				{isCurrentlyFractal(FractalId.Newton) && (
 					<Roact.Fragment>
-						<StringParameter
-							name="newtonFunction"
-							order={100}
-							currentValue={params.newtonFunction}
-							playerFacingName="Function"
-							options={this.newtonFunctionOptions}
-						/>
+						{createParameter(StringParameter, "newtonFunction", {
+							order: 100,
+							playerFacingName: "Function",
+							options: this.newtonFunctionOptions,
+						})}
 
-						<NumberParameter
-							name="newtonCoefficient"
-							order={101}
-							currentValue={params.newtonCoefficient}
-							playerFacingName="Coefficient"
-						/>
+						{createParameter(NumberParameter, "newtonCoefficient", {
+							order: 101,
+							playerFacingName: "Coefficient",
+						})}
 					</Roact.Fragment>
 				)}
 			</frame>

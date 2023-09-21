@@ -9,7 +9,27 @@ interface NumberParameterProps extends CoreParameterProps<number> {
 
 export class NumberParameter extends Roact.Component<NumberParameterProps> {
 	render() {
-		const { name, order, currentValue, playerFacingName, newValueConstraint } = this.props;
+		const { order, currentValue, playerFacingName, newValueConstraint, onNewValue } = this.props;
+
+		const onFocusLost = (box: TextBox) => {
+			let newValue = tonumber(box.Text);
+
+			if (newValue === undefined) {
+				box.Text = tostring(currentValue);
+				return;
+			}
+
+			if (newValueConstraint) {
+				newValue = newValueConstraint(newValue);
+			}
+
+			if (currentValue === newValue) {
+				box.Text = tostring(currentValue);
+				return;
+			}
+
+			onNewValue(newValue);
+		};
 
 		return (
 			<frame
@@ -52,29 +72,7 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 
 					<textbox
 						Event={{
-							FocusLost: (box) => {
-								let newValue = tonumber(box.Text);
-
-								if (newValue === undefined) {
-									box.Text = tostring(currentValue);
-									return;
-								}
-
-								if (newValueConstraint) {
-									newValue = newValueConstraint(newValue);
-								}
-
-								if (currentValue === newValue) {
-									box.Text = tostring(currentValue);
-									return;
-								}
-
-								clientStore.dispatch({
-									type: "updateSingleParameter",
-									name: name,
-									value: newValue,
-								});
-							},
+							FocusLost: onFocusLost,
 						}}
 						Key="EditBox"
 						Active={false}
