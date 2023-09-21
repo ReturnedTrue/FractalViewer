@@ -20,6 +20,7 @@ import {
 	complexSize,
 	complexDiv,
 	complexTan,
+	complexMul,
 } from "client/utility/complex";
 import { FractalParameters } from "shared/types/FractalParameters";
 
@@ -30,10 +31,31 @@ type FractalCalculator = (
 	otherParameters: Omit<FractalParameters, "xOffset" | "yOffset" | "magnification">,
 ) => number;
 
+type NewtonFunctionDefinedRoots = {
+	// Real, imaginary, root hue
+	roots: Array<[number, number, number]>;
+};
+
+type NewtonFunctionCalculatedRoots = {
+	determineClosestRoot: (size: number) => number;
+	rootHueCache: Map<number, number>;
+};
+
 type NewtonFunctionData = {
 	execute: (real: number, imaginary: number) => LuaTuple<[number, number]>;
 	derivativeExecute: (real: number, imaginary: number) => LuaTuple<[number, number]>;
-} & ({ roots: Array<[number, number, number]> } | { howCloseToRoot: (size: number) => number });
+} & (NewtonFunctionDefinedRoots | NewtonFunctionCalculatedRoots);
+
+const getFunctionRootHueFromCache = (cache: NewtonFunctionCalculatedRoots["rootHueCache"], closestRoot: number) => {
+	let hue = cache.get(closestRoot);
+
+	if (hue === undefined) {
+		hue = math.random(100) / 100;
+		cache.set(closestRoot, hue);
+	}
+
+	return hue;
+};
 
 const newtonFunctionData: Record<NewtonFunction, NewtonFunctionData> = {
 	[NewtonFunction.Quadratic]: {
@@ -95,8 +117,9 @@ const newtonFunctionData: Record<NewtonFunction, NewtonFunctionData> = {
 	},
 
 	[NewtonFunction.Sine]: {
-		howCloseToRoot: (size) => {
-			return size % math.pi;
+		rootHueCache: new Map(),
+		determineClosestRoot: (size) => {
+			return math.round(size / math.pi) * math.pi;
 		},
 
 		execute: complexSine,
@@ -104,12 +127,9 @@ const newtonFunctionData: Record<NewtonFunction, NewtonFunctionData> = {
 	},
 
 	[NewtonFunction.Cos]: {
-		howCloseToRoot: (size) => {
-			/*const leftover = size - 2 * math.pi * math.floor(size / (2 * math.pi));
-
-			return math.min(math.abs(leftover - math.pi / 2), math.abs(leftover - 1.5 * math.pi));*/
-
-			return size % (math.pi / 2);
+		rootHueCache: new Map(),
+		determineClosestRoot: (size) => {
+			return math.round(size / (math.pi / 2)) * (math.pi / 2);
 		},
 
 		execute: complexCos,
@@ -123,8 +143,9 @@ const newtonFunctionData: Record<NewtonFunction, NewtonFunctionData> = {
 	},
 
 	[NewtonFunction.Tan]: {
-		howCloseToRoot: (size) => {
-			return size % math.pi;
+		rootHueCache: new Map(),
+		determineClosestRoot: (size) => {
+			return math.round(size / math.pi) * math.pi;
 		},
 
 		execute: complexTan,
@@ -194,7 +215,12 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 		return 0;
 	},
 
-	[FractalId.Newton]: (x, y, magnification, { newtonFunction, newtonCoefficient }) => {
+	[FractalId.Newton]: (
+		x,
+		y,
+		magnification,
+		{ newtonFunction, newtonPreferRootBasisHue, newtonCoefficientReal, newtonCoefficientImaginary },
+	) => {
 		const functionData = newtonFunctionData[newtonFunction];
 		const hasDefinedRoots = "roots" in functionData;
 
@@ -212,8 +238,15 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 				derivativeImaginary,
 			);
 
-			zReal -= newtonCoefficient * dividedReal;
-			zImaginary -= newtonCoefficient * dividedImaginary;
+			const [coefficientAppliedReal, coefficientAppliedImaginary] = complexMul(
+				dividedReal,
+				dividedImaginary,
+				newtonCoefficientReal,
+				newtonCoefficientImaginary,
+			);
+
+			zReal -= coefficientAppliedReal;
+			zImaginary -= coefficientAppliedImaginary;
 
 			if (hasDefinedRoots) {
 				for (const [rootReal, rootImaginary, rootHue] of functionData.roots) {
@@ -221,8 +254,15 @@ const fractalCalculators: Record<FractalId, FractalCalculator> = {
 						return rootHue;
 					}
 				}
-			} else if (functionData.howCloseToRoot(complexSize(zReal, zImaginary)) < NEWTON_TOLERANCE) {
-				return iteration / MAX_ITERATIONS;
+			} else {
+				const size = complexSize(zReal, zImaginary);
+				const closestRoot = functionData.determineClosestRoot(size);
+
+				if (math.abs(size - closestRoot) < NEWTON_TOLERANCE) {
+					return newtonPreferRootBasisHue
+						? getFunctionRootHueFromCache(functionData.rootHueCache, closestRoot)
+						: iteration / MAX_ITERATIONS;
+				}
 			}
 		}
 

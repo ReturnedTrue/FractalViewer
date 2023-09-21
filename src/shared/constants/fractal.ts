@@ -27,7 +27,9 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 	juliaImaginaryConstant: 0.01,
 
 	newtonFunction: NewtonFunction.Quadratic,
-	newtonCoefficient: 1,
+	newtonPreferRootBasisHue: false,
+	newtonCoefficientReal: 1,
+	newtonCoefficientImaginary: 0,
 } satisfies FractalParameters;
 
 export const PARAMETERS_WHICH_VOID_CACHE = new Set<FractalParameterName>(["xOffset", "yOffset"]);

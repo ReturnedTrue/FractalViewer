@@ -11,6 +11,7 @@ import {
 	FractalParameters,
 } from "shared/types/FractalParameters";
 import { clientStore } from "client/rodux/store";
+import { BooleanParameter } from "./BooleanParameter";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -112,9 +113,19 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 							options: this.newtonFunctionOptions,
 						})}
 
-						{createParameter(NumberParameter, "newtonCoefficient", {
+						{createParameter(BooleanParameter, "newtonPreferRootBasisHue", {
 							order: 101,
-							playerFacingName: "Coefficient",
+							playerFacingName: "Prefer Per Root Basis Colors",
+						})}
+
+						{createParameter(NumberParameter, "newtonCoefficientReal", {
+							order: 102,
+							playerFacingName: "Coefficient Real",
+						})}
+
+						{createParameter(NumberParameter, "newtonCoefficientImaginary", {
+							order: 103,
+							playerFacingName: "Coefficient Imaginary",
 						})}
 					</Roact.Fragment>
 				)}

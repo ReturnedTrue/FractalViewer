@@ -1,4 +1,4 @@
-import Roact, { createRef } from "@rbxts/roact";
+import Roact from "@rbxts/roact";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { FractalParameterValueForType } from "shared/types/FractalParameters";
 
