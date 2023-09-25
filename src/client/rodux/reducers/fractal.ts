@@ -6,6 +6,10 @@ interface SetPartsFolder extends Action<"setPartsFolder"> {
 	partsFolder: Folder;
 }
 
+interface SetPivot extends Action<"setPivot"> {
+	pivot: Vector3;
+}
+
 interface UpdateParameters extends Action<"updateParameters"> {
 	parameters: Partial<FractalParameters>;
 }
@@ -17,13 +21,15 @@ interface UpdateSingleParameter extends Action<"updateSingleParameter"> {
 
 interface ResetParameters extends Action<"resetParameters"> {}
 
-export type FractalActions = SetPartsFolder | UpdateParameters | UpdateSingleParameter | ResetParameters;
+export type FractalActions = SetPartsFolder | SetPivot | UpdateParameters | UpdateSingleParameter | ResetParameters;
 export interface FractalState {
 	parametersLastUpdated: number;
 	parameters: FractalParameters;
 
 	hasCacheBeenVoided: boolean;
 	partsFolder: Folder | undefined;
+
+	pivot: Vector3;
 }
 
 const DEFAULT_VALUE = {
@@ -32,11 +38,17 @@ const DEFAULT_VALUE = {
 
 	hasCacheBeenVoided: false,
 	partsFolder: undefined,
+
+	pivot: Vector3.zero,
 } satisfies FractalState;
 
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
 	setPartsFolder: (state, { partsFolder }) => {
 		return { ...state, partsFolder };
+	},
+
+	setPivot: (state, { pivot }) => {
+		return { ...state, pivot };
 	},
 
 	updateParameters: (state, { parameters: newParameters }) => {

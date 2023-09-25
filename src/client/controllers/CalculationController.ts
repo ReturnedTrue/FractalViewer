@@ -305,6 +305,10 @@ export class CalculationController implements OnStart {
 				part.Name = `(${i}, ${j})`;
 				part.Position = new Vector3(i, j, 0);
 				part.Size = Vector3.one;
+				part.Anchored = true;
+				part.CanQuery = true;
+				part.CanCollide = false;
+				part.CanTouch = false;
 				part.Parent = containingFolder;
 
 				column.push(part);
@@ -365,7 +369,7 @@ export class CalculationController implements OnStart {
 		const { xOffset, yOffset, hueShift } = parameters;
 		const applicationStartTime = os.clock();
 
-		const realHueShift = hueShift / 360;
+		const trueHueShift = hueShift / 360;
 
 		for (const i of $range(0, AXIS_ITERATION_SIZE)) {
 			const xPosition = i + xOffset;
@@ -374,7 +378,7 @@ export class CalculationController implements OnStart {
 
 			for (const j of $range(0, AXIS_ITERATION_SIZE)) {
 				const yPosition = j + yOffset;
-				const hue = columnCache.get(yPosition)! + realHueShift;
+				const hue = columnCache.get(yPosition)! + trueHueShift;
 
 				const color = Color3.fromHSV(hue > 1 ? hue - 1 : hue, 1, 1);
 
