@@ -291,7 +291,7 @@ export class CalculationController implements OnStart {
 			this.applyFractal(fractal);
 		});
 
-		clientStore.dispatch({ type: "updateSingleParameter", name: "fractalId", value: FractalId.Mandelbrot });
+		clientStore.dispatch({ type: "updateParameter", name: "fractalId", value: FractalId.Mandelbrot });
 	}
 
 	private constructParts() {
@@ -316,7 +316,7 @@ export class CalculationController implements OnStart {
 
 			this.parts.push(column);
 
-			if (i % 10 === 0) task.wait(0.1);
+			if (i % 50 === 0) task.wait(0.1);
 		}
 
 		$print("complete part construction");

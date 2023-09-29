@@ -2,7 +2,7 @@ import Roact, { createElement, createRef } from "@rbxts/roact";
 import { Workspace } from "@rbxts/services";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
-import { AXIS_SIZE } from "shared/constants/fractal";
+import { AXIS_SIZE, CAMERA_FOV } from "shared/constants/fractal";
 
 interface FractalViewProps {
 	folder: Folder | undefined;
@@ -24,21 +24,15 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 			const absolutePos = viewport.AbsolutePosition;
 			const absoluteSize = viewport.AbsoluteSize;
 
-			const actualX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * camera.ViewportSize.X;
-			const actualY = ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * camera.ViewportSize.Y;
+			const { xOffset, yOffset, magnification } = clientStore.getState().fractal.parameters;
 
-			const ray = camera.ViewportPointToRay(actualX, actualY);
-			const result = worldModel.Raycast(ray.Origin, ray.Direction.mul(1000));
-			if (!result) return;
+			const clickedX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * AXIS_SIZE;
+			const clickedY = AXIS_SIZE - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * AXIS_SIZE;
 
-			const position = result.Instance.Position;
-			clientStore.dispatch({
-				type: "setPivot",
-				// TODO: Why this is even happening I have no idea, also need to factor magnification
-				pivot: position.add(new Vector3(position.X > AXIS_SIZE / 2 ? 50 : -50, 0, 0)),
-			});
+			const pivot = new Vector3(clickedX + xOffset, clickedY + yOffset).div(magnification);
 
-			print("pivot set at", clientStore.getState().fractal.pivot);
+			clientStore.dispatch({ type: "setPivot", pivot: pivot });
+			print("pivot set at", pivot);
 		};
 
 		return (
@@ -48,10 +42,16 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 				Ref={this.viewportRef}
 				BackgroundTransparency={1}
 				LightColor={new Color3(1, 1, 1)}
-				Position={UDim2.fromScale(0.25, 0.05)}
-				Size={UDim2.fromScale(0.7, 0.8)}
+				Position={UDim2.fromScale(0.35, 0.05)}
+				Size={UDim2.fromOffset(700, 700)}
 			>
-				<camera Ref={this.cameraRef} CFrame={new CFrame(AXIS_SIZE / 2, AXIS_SIZE / 2, AXIS_SIZE)} />
+				<camera
+					Ref={this.cameraRef}
+					FieldOfView={CAMERA_FOV}
+					CFrame={
+						new CFrame(AXIS_SIZE / 2, AXIS_SIZE / 2, AXIS_SIZE / 2 / math.tan(math.rad(CAMERA_FOV / 2)))
+					}
+				/>
 
 				{this.props.folder === undefined ? (
 					<textlabel
@@ -81,12 +81,12 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 	}
 
 	didUpdate() {
-		if (this.props.folder && !this.props.folder.Parent) {
-			const worldModel = this.worldModelRef.getValue();
-			if (!worldModel) return;
+		if (!this.props.folder || this.props.folder.Parent) return;
 
-			this.props.folder.Parent = worldModel;
-		}
+		const worldModel = this.worldModelRef.getValue();
+		if (!worldModel) return;
+
+		this.props.folder.Parent = worldModel;
 	}
 }
 

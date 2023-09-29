@@ -1,5 +1,5 @@
 import { Action, createReducer } from "@rbxts/rodux";
-import { DEFAULT_FRACTAL_PARAMETERS, PARAMETERS_WHICH_VOID_CACHE } from "shared/constants/fractal";
+import { AXIS_SIZE, DEFAULT_FRACTAL_PARAMETERS, PARAMETERS_WHICH_VOID_CACHE } from "shared/constants/fractal";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 interface SetPartsFolder extends Action<"setPartsFolder"> {
@@ -10,18 +10,18 @@ interface SetPivot extends Action<"setPivot"> {
 	pivot: Vector3;
 }
 
-interface UpdateParameters extends Action<"updateParameters"> {
+interface SetParameters extends Action<"setParameters"> {
 	parameters: Partial<FractalParameters>;
 }
 
-interface UpdateSingleParameter extends Action<"updateSingleParameter"> {
+interface UpdateParameter extends Action<"updateParameter"> {
 	name: FractalParameterName;
 	value: FractalParameters[this["name"]];
 }
 
 interface ResetParameters extends Action<"resetParameters"> {}
 
-export type FractalActions = SetPartsFolder | SetPivot | UpdateParameters | UpdateSingleParameter | ResetParameters;
+export type FractalActions = SetPartsFolder | SetPivot | SetParameters | UpdateParameter | ResetParameters;
 export interface FractalState {
 	parametersLastUpdated: number;
 	parameters: FractalParameters;
@@ -42,6 +42,20 @@ const DEFAULT_VALUE = {
 	pivot: Vector3.zero,
 } satisfies FractalState;
 
+type ParameterSideEffects = {
+	[key in FractalParameterName]?: (value: FractalParameters[key], state: FractalState) => Partial<FractalParameters>;
+};
+
+const parameterSideEffects: ParameterSideEffects = {
+	magnification: (newMagnification, { pivot }) => {
+		print("side effect invoked");
+		return {
+			xOffset: pivot.X * newMagnification - AXIS_SIZE / 2,
+			yOffset: pivot.Y * newMagnification - AXIS_SIZE / 2,
+		};
+	},
+};
+
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
 	setPartsFolder: (state, { partsFolder }) => {
 		return { ...state, partsFolder };
@@ -51,39 +65,29 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 		return { ...state, pivot };
 	},
 
-	updateParameters: (state, { parameters: newParameters }) => {
-		let hasCacheBeenVoided = false;
-
-		for (const [parameterName, parameterValue] of pairs(newParameters)) {
-			const canVoid = !PARAMETERS_WHICH_VOID_CACHE.has(parameterName);
-			const hasChanged = state.parameters[parameterName] !== parameterValue;
-
-			if (canVoid && hasChanged) {
-				hasCacheBeenVoided = true;
-				break;
-			}
-		}
-
+	setParameters: (state, { parameters }) => {
 		return {
 			...state,
 			parametersLastUpdated: os.clock(),
 			parameters: {
 				...state.parameters,
-				...newParameters,
+				parameters,
 			},
 
-			hasCacheBeenVoided,
+			hasCacheBeenVoided: true,
 		};
 	},
 
-	updateSingleParameter: (state, { name, value }) => {
+	updateParameter: (state, { name, value }) => {
 		const hasCacheBeenVoided = !PARAMETERS_WHICH_VOID_CACHE.has(name);
+		const sideEffect = parameterSideEffects[name]?.(value as never, state);
 
 		return {
 			...state,
 			parametersLastUpdated: os.clock(),
 			parameters: {
 				...state.parameters,
+				...sideEffect,
 				[name]: value,
 			},
 

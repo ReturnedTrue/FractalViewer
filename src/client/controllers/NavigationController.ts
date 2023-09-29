@@ -1,8 +1,60 @@
 import { Controller, OnStart } from "@flamework/core";
 import { ContextActionService, UserInputService } from "@rbxts/services";
+import { FractalState } from "client/rodux/reducers/fractal";
 import { clientStore } from "client/rodux/store";
 import { AXIS_SIZE, MAGNIFICATION_INCREMENT, WASD_MOVEMENT_INCREMENT } from "shared/constants/fractal";
-import { FractalParameters } from "shared/types/FractalParameters";
+import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
+
+type NavigationControlFunction = {
+	[key in FractalParameterName]: (
+		state: Readonly<FractalState>,
+	) => { name: key; value: FractalParameters[key] } | false;
+}[FractalParameterName];
+
+const navigationControls = new Map<Enum.KeyCode, NavigationControlFunction>([
+	[
+		Enum.KeyCode.D,
+		({ parameters }) => {
+			return { name: "xOffset", value: parameters.xOffset + WASD_MOVEMENT_INCREMENT };
+		},
+	],
+
+	[
+		Enum.KeyCode.A,
+		({ parameters }) => {
+			return { name: "xOffset", value: parameters.xOffset - WASD_MOVEMENT_INCREMENT };
+		},
+	],
+
+	[
+		Enum.KeyCode.W,
+		({ parameters }) => {
+			return { name: "yOffset", value: parameters.yOffset + WASD_MOVEMENT_INCREMENT };
+		},
+	],
+
+	[
+		Enum.KeyCode.S,
+		({ parameters }) => {
+			return { name: "yOffset", value: parameters.yOffset - WASD_MOVEMENT_INCREMENT };
+		},
+	],
+
+	[
+		Enum.KeyCode.E,
+		({ parameters }) => {
+			return { name: "magnification", value: parameters.magnification + MAGNIFICATION_INCREMENT };
+		},
+	],
+
+	[
+		Enum.KeyCode.R,
+		() => {
+			clientStore.dispatch({ type: "resetParameters" });
+			return false;
+		},
+	],
+]);
 
 @Controller()
 export class NavigationController implements OnStart {
@@ -15,49 +67,14 @@ export class NavigationController implements OnStart {
 	}
 
 	private handleNextInput(input: InputObject) {
+		const registeredFunction = navigationControls.get(input.KeyCode);
+		if (!registeredFunction) return;
+
 		const { fractal } = clientStore.getState();
-		const { pivot, parameters: oldParameters } = fractal;
 
-		const newParameters: Partial<FractalParameters> = {};
+		const updatedParameter = registeredFunction(fractal);
+		if (!updatedParameter) return;
 
-		switch (input.KeyCode) {
-			case Enum.KeyCode.D:
-				newParameters.xOffset = oldParameters.xOffset + WASD_MOVEMENT_INCREMENT;
-				break;
-
-			case Enum.KeyCode.A:
-				newParameters.xOffset = oldParameters.xOffset - WASD_MOVEMENT_INCREMENT;
-				break;
-
-			case Enum.KeyCode.W:
-				newParameters.yOffset = oldParameters.yOffset + WASD_MOVEMENT_INCREMENT;
-				break;
-
-			case Enum.KeyCode.S:
-				newParameters.yOffset = oldParameters.yOffset - WASD_MOVEMENT_INCREMENT;
-				break;
-
-			case Enum.KeyCode.E:
-				newParameters.magnification = oldParameters.magnification + MAGNIFICATION_INCREMENT;
-				newParameters.xOffset = pivot.X * newParameters.magnification - pivot.X;
-				newParameters.yOffset = pivot.Y * newParameters.magnification - pivot.Y;
-
-				break;
-
-			case Enum.KeyCode.Q:
-				newParameters.magnification = math.max(oldParameters.magnification - MAGNIFICATION_INCREMENT, 1);
-				newParameters.xOffset = pivot.X * newParameters.magnification - pivot.X;
-				newParameters.yOffset = pivot.Y * newParameters.magnification - pivot.Y;
-				break;
-
-			case Enum.KeyCode.R:
-				clientStore.dispatch({ type: "resetParameters" });
-				return;
-
-			default:
-				return;
-		}
-
-		clientStore.dispatch({ type: "updateParameters", parameters: newParameters });
+		clientStore.dispatch({ type: "updateParameter", ...updatedParameter });
 	}
 }

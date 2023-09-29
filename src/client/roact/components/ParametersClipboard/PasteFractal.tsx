@@ -23,7 +23,7 @@ export class PasteFractal extends Roact.Component<PasteFractalProps> {
 					return;
 				}
 
-				clientStore.dispatch({ type: "updateParameters", parameters: response as FractalParameters });
+				clientStore.dispatch({ type: "setParameters", parameters: response as FractalParameters });
 			}
 
 			rbx.Text = "";

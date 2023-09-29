@@ -53,7 +53,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 		) {
 			return createElement(parameterComponent, {
 				currentValue: parameters[name],
-				onNewValue: (value: never) => clientStore.dispatch({ type: "updateSingleParameter", name, value }),
+				onNewValue: (value: never) => clientStore.dispatch({ type: "updateParameter", name, value }),
 
 				...props,
 			} as never);
