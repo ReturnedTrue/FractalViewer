@@ -1,8 +1,8 @@
-import Roact, { createElement, createRef } from "@rbxts/roact";
-import { Workspace } from "@rbxts/services";
+import Roact, { createRef } from "@rbxts/roact";
+import { UserInputService } from "@rbxts/services";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
-import { AXIS_SIZE, CAMERA_FOV } from "shared/constants/fractal";
+import { AXIS_SIZE, CAMERA_FOV, MAGNIFICATION_INCREMENT } from "shared/constants/fractal";
 
 interface FractalViewProps {
 	folder: Folder | undefined;
@@ -10,35 +10,48 @@ interface FractalViewProps {
 
 class BaseFractalView extends Roact.Component<FractalViewProps> {
 	private viewportRef = createRef<ViewportFrame>();
-	private worldModelRef = createRef<WorldModel>();
 	private cameraRef = createRef<Camera>();
 
 	render() {
-		const onInput = (viewport: ViewportFrame, input: InputObject) => {
-			if (input.UserInputType !== Enum.UserInputType.MouseButton1) return;
-
-			const worldModel = this.worldModelRef.getValue();
-			const camera = this.cameraRef.getValue();
-			if (!(worldModel && camera)) return;
+		const inputBegan = (viewport: ViewportFrame, input: InputObject) => {
+			if (input.UserInputType !== Enum.UserInputType.MouseButton2) return;
+			const { xOffset, yOffset, magnification } = clientStore.getState().fractal.parameters;
 
 			const absolutePos = viewport.AbsolutePosition;
 			const absoluteSize = viewport.AbsoluteSize;
 
-			const { xOffset, yOffset, magnification } = clientStore.getState().fractal.parameters;
+			const scaledX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * AXIS_SIZE;
+			const scaledY = AXIS_SIZE - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * AXIS_SIZE;
 
-			const clickedX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * AXIS_SIZE;
-			const clickedY = AXIS_SIZE - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * AXIS_SIZE;
+			const pivotX = (scaledX + xOffset) / magnification;
+			const pivotY = (scaledY + yOffset) / magnification;
 
-			const pivot = new Vector3(clickedX + xOffset, clickedY + yOffset).div(magnification);
+			clientStore.dispatch({
+				type: "updateParameter",
+				name: "pivot",
+				value: [pivotX, pivotY],
+			});
+		};
 
-			clientStore.dispatch({ type: "setPivot", pivot: pivot });
-			print("pivot set at", pivot);
+		const inputChanged = (_viewport: ViewportFrame, input: InputObject) => {
+			if (input.UserInputType !== Enum.UserInputType.MouseWheel) return;
+
+			const { magnification } = clientStore.getState().fractal.parameters;
+
+			clientStore.dispatch({
+				type: "updateParameter",
+				name: "magnification",
+				value: magnification + MAGNIFICATION_INCREMENT * input.Position.Z,
+			});
 		};
 
 		return (
 			<viewportframe
 				Key="FractalView"
-				Event={{ InputBegan: onInput }}
+				Event={{
+					InputBegan: inputBegan,
+					InputChanged: inputChanged,
+				}}
 				Ref={this.viewportRef}
 				BackgroundTransparency={1}
 				LightColor={new Color3(1, 1, 1)}
@@ -53,7 +66,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 					}
 				/>
 
-				{this.props.folder === undefined ? (
+				{this.props.folder === undefined && (
 					<textlabel
 						Key="LoadingLabel"
 						BackgroundTransparency={1}
@@ -65,8 +78,6 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 						Font={Enum.Font.Ubuntu}
 						TextColor3={new Color3(1, 1, 1)}
 					/>
-				) : (
-					createElement("WorldModel", { [Roact.Ref]: this.worldModelRef })
 				)}
 			</viewportframe>
 		);
@@ -83,10 +94,10 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 	didUpdate() {
 		if (!this.props.folder || this.props.folder.Parent) return;
 
-		const worldModel = this.worldModelRef.getValue();
-		if (!worldModel) return;
+		const viewport = this.viewportRef.getValue();
+		if (!viewport) return;
 
-		this.props.folder.Parent = worldModel;
+		this.props.folder.Parent = viewport;
 	}
 }
 

@@ -4,12 +4,14 @@ import { clientStore } from "client/rodux/store";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 
 interface NumberParameterProps extends CoreParameterProps<number> {
+	amountOfDecimalPoints?: number;
 	newValueConstraint?: (newValue: number) => number;
 }
 
 export class NumberParameter extends Roact.Component<NumberParameterProps> {
 	render() {
-		const { order, currentValue, playerFacingName, newValueConstraint, onNewValue } = this.props;
+		const { order, currentValue, playerFacingName, amountOfDecimalPoints, newValueConstraint, onNewValue } =
+			this.props;
 
 		const onFocusLost = (box: TextBox) => {
 			let newValue = tonumber(box.Text);
@@ -81,7 +83,7 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 						Position={new UDim2(0.1, 0, 0.1, 0)}
 						Selectable={false}
 						Size={new UDim2(0.8, 0, 0.8, 0)}
-						Text={tostring(currentValue)}
+						Text={string.format(`%.${amountOfDecimalPoints ?? 0}f`, currentValue)}
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}
 						TextWrapped={true}

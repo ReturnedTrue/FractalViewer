@@ -8,6 +8,7 @@ import { FractalParameterName, FractalParameters } from "shared/types/FractalPar
 type NavigationControlFunction = {
 	[key in FractalParameterName]: (
 		state: Readonly<FractalState>,
+		input: InputObject,
 	) => { name: key; value: FractalParameters[key] } | false;
 }[FractalParameterName];
 
@@ -48,6 +49,13 @@ const navigationControls = new Map<Enum.KeyCode, NavigationControlFunction>([
 	],
 
 	[
+		Enum.KeyCode.Q,
+		({ parameters }) => {
+			return { name: "magnification", value: parameters.magnification - MAGNIFICATION_INCREMENT };
+		},
+	],
+
+	[
 		Enum.KeyCode.R,
 		() => {
 			clientStore.dispatch({ type: "resetParameters" });
@@ -72,7 +80,7 @@ export class NavigationController implements OnStart {
 
 		const { fractal } = clientStore.getState();
 
-		const updatedParameter = registeredFunction(fractal);
+		const updatedParameter = registeredFunction(fractal, input);
 		if (!updatedParameter) return;
 
 		clientStore.dispatch({ type: "updateParameter", ...updatedParameter });

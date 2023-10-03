@@ -19,6 +19,8 @@ export const NEWTON_TOLERANCE = 0.000001;
 export const DEFAULT_FRACTAL_PARAMETERS = {
 	fractalId: FractalId.Mandelbrot,
 
+	pivot: [0, 0],
+
 	xOffset: 0,
 	yOffset: 0,
 	magnification: 1,
@@ -34,4 +36,4 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 	newtonCoefficientImaginary: 0,
 } satisfies FractalParameters;
 
-export const PARAMETERS_WHICH_VOID_CACHE = new Set<FractalParameterName>(["xOffset", "yOffset"]);
+export const PARAMETERS_WHICH_RETAIN_CACHE = new Set<FractalParameterName>(["xOffset", "yOffset", "pivot"]);
