@@ -46,7 +46,7 @@ type ParameterSideEffects = {
 const parameterSideEffects: ParameterSideEffects = {
 	magnification: (newMagnification, { parameters }) => {
 		const [pivotX, pivotY] = parameters.pivot;
-		if (pivotX === 0 && pivotY === 0 && newMagnification !== 1) return;
+		if (pivotX === 0 && pivotY === 0) return;
 
 		$print("Magnification side effect invoked");
 
@@ -62,6 +62,8 @@ const parameterSideEffects: ParameterSideEffects = {
 
 		const { magnification } = parameters;
 
+		$print("Pivot set to", pivotX, pivotY);
+
 		return {
 			xOffset: pivotX * magnification - AXIS_SIZE / 2,
 			yOffset: pivotY * magnification - AXIS_SIZE / 2,
@@ -71,7 +73,7 @@ const parameterSideEffects: ParameterSideEffects = {
 
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
 	setPartsFolder: (state, { partsFolder }) => {
-		return { ...state, partsFolder };
+		return { ...state, partsFolder, parametersLastUpdated: os.clock() };
 	},
 
 	setParameters: (state, { parameters }) => {
@@ -96,8 +98,8 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 			parametersLastUpdated: os.clock(),
 			parameters: {
 				...state.parameters,
-				...sideEffect,
 				[name]: value,
+				...sideEffect,
 			},
 
 			hasCacheBeenVoided,

@@ -1,5 +1,5 @@
 // Pythagoras
-export const complexSize = (real: number, imaginary: number) => math.sqrt(real * real + imaginary * imaginary);
+export const modulus = (x: number, y: number) => math.sqrt(x * x + y * y);
 
 /*
 	More efficient than De Moivre's 
@@ -19,7 +19,7 @@ export const complexSquare = (real: number, imaginary: number) => {
 		= (r ** n) * (cos(theta * n) + isin(theta * n))
 */
 export const complexPow = (real: number, imaginary: number, exponent: number) => {
-	const newMagnitude = complexSize(real, imaginary) ** exponent;
+	const newMagnitude = modulus(real, imaginary) ** exponent;
 	const newTheta = math.atan2(imaginary, real) * exponent;
 
 	return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));
@@ -32,7 +32,7 @@ export const complexPow = (real: number, imaginary: number, exponent: number) =>
 	z1/z2 = (r1 / r2) * (cos(theta1 - theta2) * isin(theta1 - theta2))
 */
 export const complexMul = (real1: number, imaginary1: number, real2: number, imaginary2: number) => {
-	const newMagnitude = complexSize(real1, imaginary1) / complexSize(real2, imaginary2);
+	const newMagnitude = modulus(real1, imaginary1) / modulus(real2, imaginary2);
 	const newTheta = math.atan2(imaginary1, real1) - math.atan2(imaginary2, real2);
 
 	return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));
@@ -45,7 +45,7 @@ export const complexMul = (real1: number, imaginary1: number, real2: number, ima
 	z1/z2 = (r1 / r2) * (cos(theta1 - theta2) * isin(theta1 - theta2))
 */
 export const complexDiv = (real1: number, imaginary1: number, real2: number, imaginary2: number) => {
-	const newMagnitude = complexSize(real1, imaginary1) / complexSize(real2, imaginary2);
+	const newMagnitude = modulus(real1, imaginary1) / modulus(real2, imaginary2);
 	const newTheta = math.atan2(imaginary1, real1) - math.atan2(imaginary2, real2);
 
 	return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));

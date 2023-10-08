@@ -23,8 +23,8 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 			const scaledX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * AXIS_SIZE;
 			const scaledY = AXIS_SIZE - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * AXIS_SIZE;
 
-			const pivotX = (scaledX + xOffset) / magnification;
-			const pivotY = (scaledY + yOffset) / magnification;
+			const pivotX = math.round((scaledX + xOffset) / magnification);
+			const pivotY = math.round((scaledY + yOffset) / magnification);
 
 			clientStore.dispatch({
 				type: "updateParameter",
@@ -41,7 +41,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 			clientStore.dispatch({
 				type: "updateParameter",
 				name: "magnification",
-				value: magnification + MAGNIFICATION_INCREMENT * input.Position.Z,
+				value: math.max(magnification + MAGNIFICATION_INCREMENT * input.Position.Z, 1),
 			});
 		};
 
