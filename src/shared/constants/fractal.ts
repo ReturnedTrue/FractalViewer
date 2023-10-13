@@ -36,4 +36,4 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 	newtonCoefficientImaginary: 0,
 } satisfies FractalParameters;
 
-export const PARAMETERS_WHICH_RETAIN_CACHE = new Set<FractalParameterName>(["xOffset", "yOffset", "pivot"]);
+export const PARAMETERS_WHICH_RETAIN_CACHE = new Set<FractalParameterName>(["xOffset", "yOffset", "pivot", "hueShift"]);

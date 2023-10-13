@@ -53,21 +53,23 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 	[
 		FractalId.Buddhabrot,
 		(parameters, cache) => {
-			// Temporary
-			// if (!cache.isEmpty()) cache.clear();
+			if (!cache.isEmpty()) return;
+
+			const scaledAxis = AXIS_SIZE * parameters.magnification;
+			const scaledIterationAxis = scaledAxis - 1;
 
 			let highestCount = 0;
-
-			// TODO debug and solve magnification issues with buddhabrot
 
 			const pointEscaped = (valuesIteratedOver: Array<number>) => {
 				for (const i of $range(0, valuesIteratedOver.size() - 1, 2)) {
 					const zReal = valuesIteratedOver[i];
 					const zImaginary = valuesIteratedOver[i + 1];
 
-					const x = math.round(((zReal + 2) / 4) * AXIS_SIZE) / parameters.magnification;
-					// eslint-disable-next-line prettier/prettier
-					const y = math.round(((zImaginary + 2) / 4) * AXIS_SIZE) / parameters.magnification;
+					const x = math.round(((zReal + 2) / 4) * scaledAxis);
+					const y = math.round(((zImaginary + 2) / 4) * scaledAxis);
+
+					if (x < 0 || x > scaledAxis) continue;
+					if (y < 0 || y > scaledAxis) continue;
 
 					let column = cache.get(x);
 
@@ -111,10 +113,10 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 			let accumulatedTime = 0;
 
-			for (const i of $range(0, AXIS_ITERATION_SIZE)) {
+			for (const i of $range(0, scaledIterationAxis)) {
 				const columnStartTime = os.clock();
 
-				for (const j of $range(0, AXIS_ITERATION_SIZE)) {
+				for (const j of $range(0, scaledIterationAxis)) {
 					solveMandelbrotForPoint(i, j);
 				}
 
