@@ -4,6 +4,7 @@ import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { NewtonFunctionData, newtonFunctionData } from "./NewtonFunctionData";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
+import { $error } from "rbxts-transform-debug";
 
 type FractalCalculator = (
 	x: number,
@@ -95,7 +96,9 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			magnification,
 			{ newtonFunction, newtonPreferRootBasisHue, newtonCoefficientReal, newtonCoefficientImaginary },
 		) => {
-			const data = newtonFunctionData[newtonFunction] as NewtonFunctionData;
+			const data = newtonFunctionData.get(newtonFunction);
+			if (!data) $error(`No data found for newton function ${data}`);
+
 			const hasDefinedRoots = "roots" in data;
 
 			let zReal = (x / AXIS_SIZE / magnification) * 4 - 2;
@@ -128,15 +131,17 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 							return rootHue;
 						}
 					}
-				} else {
-					const size = modulus(zReal, zImaginary);
-					const closestRoot = data.determineClosestRoot(size);
 
-					if (math.abs(size - closestRoot) < NEWTON_TOLERANCE) {
-						return newtonPreferRootBasisHue
-							? getFunctionRootHueFromCache(data.rootHueCache, closestRoot)
-							: iteration / MAX_ITERATIONS;
-					}
+					continue;
+				}
+
+				const size = modulus(zReal, zImaginary);
+				const closestRoot = data.determineClosestRoot(size);
+
+				if (math.abs(size - closestRoot) < NEWTON_TOLERANCE) {
+					return newtonPreferRootBasisHue
+						? getFunctionRootHueFromCache(data.rootHueCache, closestRoot)
+						: iteration / MAX_ITERATIONS;
 				}
 			}
 

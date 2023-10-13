@@ -15,7 +15,7 @@ type FractalSystem = (parameters: FractalParameters, cache: Map<number, Map<numb
 
 export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	const calculator = fractalCalculators.get(parameters.fractalId);
-	if (!calculator) $error(`Fractal system did not find a calculator for fractal ${parameters.fractalId}`);
+	if (!calculator) $error(`No system or calculator defined for fractal ${parameters.fractalId}`);
 
 	let accumulatedTime = 0;
 
@@ -54,7 +54,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 		FractalId.Buddhabrot,
 		(parameters, cache) => {
 			// Temporary
-			if (!cache.isEmpty()) cache.clear();
+			// if (!cache.isEmpty()) cache.clear();
 
 			let highestCount = 0;
 
