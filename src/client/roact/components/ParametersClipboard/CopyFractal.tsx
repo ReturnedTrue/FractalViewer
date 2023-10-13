@@ -16,7 +16,7 @@ export class CopyFractal extends Roact.Component<CopyFractalProps> {
 				Key="CopyFractal"
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
-				Position={new UDim2(0.3, 0, 0.9, 0)}
+				Position={new UDim2(0.2, 0, 0.9, 0)}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
 			>
 				<uicorner />

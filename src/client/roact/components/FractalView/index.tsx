@@ -1,14 +1,24 @@
 import Roact, { createRef } from "@rbxts/roact";
-import { UserInputService } from "@rbxts/services";
+import { UserInputService, Workspace } from "@rbxts/services";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
 import { AXIS_SIZE, CAMERA_FOV, MAGNIFICATION_INCREMENT } from "shared/constants/fractal";
+
+const playerCamera = Workspace.CurrentCamera!;
 
 interface FractalViewProps {
 	folder: Folder | undefined;
 }
 
-class BaseFractalView extends Roact.Component<FractalViewProps> {
+interface FractalViewState {
+	playerViewportSize: Vector2;
+}
+
+class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState> {
+	state = {
+		playerViewportSize: playerCamera.ViewportSize,
+	};
+
 	private viewportRef = createRef<ViewportFrame>();
 	private cameraRef = createRef<Camera>();
 
@@ -45,6 +55,9 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 			});
 		};
 
+		const { playerViewportSize } = this.state;
+		const calculatedViewSize = playerViewportSize.Y * 0.75;
+
 		return (
 			<viewportframe
 				Key="FractalView"
@@ -55,8 +68,8 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 				Ref={this.viewportRef}
 				BackgroundTransparency={1}
 				LightColor={new Color3(1, 1, 1)}
-				Position={UDim2.fromScale(0.35, 0.05)}
-				Size={UDim2.fromOffset(700, 700)}
+				Position={new UDim2(0, (playerViewportSize.X - calculatedViewSize) / 2, 0.05, 0)}
+				Size={UDim2.fromOffset(calculatedViewSize, calculatedViewSize)}
 			>
 				<camera
 					Ref={this.cameraRef}
@@ -89,6 +102,10 @@ class BaseFractalView extends Roact.Component<FractalViewProps> {
 		if (!(viewport && camera)) return;
 
 		viewport.CurrentCamera = camera;
+
+		playerCamera.GetPropertyChangedSignal("ViewportSize").Connect(() => {
+			this.setState({ playerViewportSize: playerCamera.ViewportSize });
+		});
 	}
 
 	didUpdate() {

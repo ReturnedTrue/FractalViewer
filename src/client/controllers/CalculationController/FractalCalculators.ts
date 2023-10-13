@@ -50,8 +50,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 	[
 		FractalId.BurningShip,
 		(x, y, magnification) => {
-			const cReal = ((AXIS_SIZE - x) / AXIS_SIZE / magnification) * 4 - 2;
-			const cImaginary = ((AXIS_SIZE - y) / AXIS_SIZE / magnification) * 4 - 2;
+			const cReal = (x / AXIS_SIZE / magnification) * -4 + 2;
+			const cImaginary = (y / AXIS_SIZE / magnification) * -4 + 2;
 
 			let zReal = cReal;
 			let zImaginary = cImaginary;

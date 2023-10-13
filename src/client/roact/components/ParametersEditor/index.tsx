@@ -49,7 +49,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 		function createParameter<P>(
 			parameterComponent: Roact.ComponentConstructor<P>,
 			name: FractalParameterNameForType<P extends CoreParameterProps<infer T> ? T : never>,
-			props: P extends CoreParameterProps<infer T> ? Omit<P, "currentValue" | "onNewValue"> : never,
+			props: P extends CoreParameterProps<infer _T> ? Omit<P, "currentValue" | "onNewValue"> : never,
 		) {
 			return createElement(parameterComponent, {
 				currentValue: parameters[name],
@@ -68,7 +68,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 					VerticalAlignment={Enum.VerticalAlignment.Top}
 				/>
 
-				<uipadding PaddingLeft={new UDim(0.08, 0)} PaddingTop={new UDim(0.05, 0)} />
+				<uipadding PaddingLeft={new UDim(0.025, 0)} PaddingTop={new UDim(0.05, 0)} />
 
 				{createParameter(NumberParameter, "xOffset", { order: 1, playerFacingName: "X Offset" })}
 				{createParameter(NumberParameter, "yOffset", { order: 2, playerFacingName: "Y Offset" })}
