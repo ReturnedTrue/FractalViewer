@@ -3,7 +3,6 @@ import { AXIS_SIZE, MAX_ITERATIONS, MAX_STABLE, NEWTON_TOLERANCE } from "shared/
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { NewtonFunctionData, newtonFunctionData } from "./NewtonFunctionData";
-import { NewtonFunction } from "shared/enums/NewtonFunction";
 import { $error } from "rbxts-transform-debug";
 
 type FractalCalculator = (
@@ -137,12 +136,11 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 				const size = modulus(zReal, zImaginary);
 				const closestRoot = data.determineClosestRoot(size);
+				if (math.abs(size - closestRoot) >= NEWTON_TOLERANCE) continue;
 
-				if (math.abs(size - closestRoot) < NEWTON_TOLERANCE) {
-					return newtonPreferRootBasisHue
-						? getFunctionRootHueFromCache(data.rootHueCache, closestRoot)
-						: iteration / MAX_ITERATIONS;
-				}
+				return newtonPreferRootBasisHue
+					? getFunctionRootHueFromCache(data.rootHueCache, closestRoot)
+					: iteration / MAX_ITERATIONS;
 			}
 
 			return 0;

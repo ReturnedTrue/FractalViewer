@@ -110,7 +110,10 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 		return {
 			...state,
 			parametersLastUpdated: os.clock(),
-			parameters: DEFAULT_VALUE.parameters,
+			parameters: {
+				...DEFAULT_FRACTAL_PARAMETERS,
+				fractalId: state.parameters.fractalId,
+			},
 			hasCacheBeenVoided: true,
 		};
 	},

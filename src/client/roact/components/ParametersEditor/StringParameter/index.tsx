@@ -4,6 +4,7 @@ import { clientStore } from "client/rodux/store";
 import { FractalParameterValueForType } from "shared/types/FractalParameters";
 import { CoreParameterProps } from "..";
 import { OptionFrame } from "./OptionFrame";
+import { PixelScrollingFrame } from "client/roact/util/components/PixelScrollingFrame";
 
 interface StringParameterProps extends CoreParameterProps<string> {
 	options: Array<FractalParameterValueForType<string>>;
@@ -74,18 +75,25 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 					>
 						<uicorner />
 
-						<scrollingframe
+						<PixelScrollingFrame
 							Key="InnerFrame"
-							BackgroundTransparency={1}
-							CanvasSize={
-								new UDim2(0, 0, 0, (this.props.options.size() - 1) * (optionSize.Y.Offset * (4 / 3)))
-							}
-							ClipsDescendants={false}
-							Position={new UDim2(0.1, 0, 0.1, 0)}
-							ScrollBarThickness={0}
-							Selectable={false}
-							SelectionGroup={false}
-							Size={new UDim2(0.8, 0, 0.8, 0)}
+							pixelsPerScroll={optionSize.Y.Offset * 1.2}
+							timePerScroll={0.25}
+							scrollingFrameProps={{
+								BackgroundTransparency: 1,
+								CanvasSize: new UDim2(
+									0,
+									0,
+									0,
+									(this.props.options.size() - 1) * (optionSize.Y.Offset * (4 / 3)),
+								),
+								ClipsDescendants: false,
+								Position: new UDim2(0.1, 0, 0.1, 0),
+								ScrollBarThickness: 0,
+								Selectable: false,
+								SelectionGroup: false,
+								Size: new UDim2(0.8, 0, 0.8, 0),
+							}}
 						>
 							<uigridlayout
 								CellPadding={new UDim2(0, 0, 0, optionSize.Y.Offset / 3)}
@@ -100,7 +108,7 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 
 								return <OptionFrame optionValue={option} onSelected={onNewValue} />;
 							})}
-						</scrollingframe>
+						</PixelScrollingFrame>
 					</frame>
 				)}
 			</frame>
@@ -108,6 +116,7 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 	}
 
 	protected didMount(): void {
+		// Utilises the first option frame to generate a size for all
 		const currentOption = this.currentOptionRef.getValue()!;
 
 		const setSize = () => {

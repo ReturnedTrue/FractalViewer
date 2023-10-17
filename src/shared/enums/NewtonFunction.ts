@@ -4,5 +4,7 @@ export enum NewtonFunction {
 	Quartic = "z^4 - 1",
 	Sine = "sin(z)",
 	Cos = "cos(z)",
-	Tan = "tan(z)",
+
+	// Too elaborate currently
+	//Tan = "tan(z)",
 }

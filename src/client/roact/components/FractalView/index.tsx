@@ -43,7 +43,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 			});
 		};
 
-		const inputChanged = (_viewport: ViewportFrame, input: InputObject) => {
+		/*const inputChanged = (_viewport: ViewportFrame, input: InputObject) => {
 			if (input.UserInputType !== Enum.UserInputType.MouseWheel) return;
 
 			const { magnification } = clientStore.getState().fractal.parameters;
@@ -53,7 +53,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				name: "magnification",
 				value: math.max(magnification + MAGNIFICATION_INCREMENT * input.Position.Z, 1),
 			});
-		};
+		};*/
 
 		const { playerViewportSize } = this.state;
 		const calculatedViewSize = playerViewportSize.Y * 0.75;
@@ -63,7 +63,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				Key="FractalView"
 				Event={{
 					InputBegan: inputBegan,
-					InputChanged: inputChanged,
+					//InputChanged: inputChanged,
 				}}
 				Ref={this.viewportRef}
 				BackgroundTransparency={1}

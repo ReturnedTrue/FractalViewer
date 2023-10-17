@@ -116,7 +116,7 @@ export const newtonFunctionData = new Map<NewtonFunction, NewtonFunctionData>([
 		},
 	],
 
-	[
+	/*[
 		NewtonFunction.Tan,
 		{
 			rootHueCache: new Map(),
@@ -135,4 +135,5 @@ export const newtonFunctionData = new Map<NewtonFunction, NewtonFunctionData>([
 			},
 		},
 	],
+	*/
 ]);
