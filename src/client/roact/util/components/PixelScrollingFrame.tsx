@@ -1,6 +1,5 @@
 import Roact, { JsxInstanceProperties } from "@rbxts/roact";
-import { TweenableRef } from "../classes/TweenableRef";
-import { BoatTween, BoatTweenData, BoatTweenObject } from "@rbxts/boat-tween";
+import { BoatTween, BoatTweenObject } from "@rbxts/boat-tween";
 import { BoatTweenDataStyle } from "@rbxts/boat-tween/src/types/BoatTweenData";
 
 interface PixelScrollingFrameProps {

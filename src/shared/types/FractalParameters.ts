@@ -4,7 +4,7 @@ import { NewtonFunction } from "shared/enums/NewtonFunction";
 export interface FractalParameters {
 	fractalId: FractalId;
 
-	pivot: [number, number];
+	pivot: [number, number] | false;
 
 	xOffset: number;
 	yOffset: number;
@@ -28,3 +28,5 @@ export type FractalParameterNameForType<T> = {
 }[FractalParameterName];
 
 export type FractalParameterValueForType<T> = FractalParameters[FractalParameterNameForType<T>];
+
+export type PivotParameterData = FractalParameters["pivot"];

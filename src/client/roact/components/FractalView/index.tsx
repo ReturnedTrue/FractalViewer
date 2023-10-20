@@ -25,7 +25,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 	render() {
 		const inputBegan = (viewport: ViewportFrame, input: InputObject) => {
 			if (input.UserInputType !== Enum.UserInputType.MouseButton2) return;
-			const { xOffset, yOffset, magnification } = clientStore.getState().fractal.parameters;
+			const { xOffset, yOffset } = clientStore.getState().fractal.parameters;
 
 			const absolutePos = viewport.AbsolutePosition;
 			const absoluteSize = viewport.AbsoluteSize;
@@ -33,8 +33,8 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 			const scaledX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * AXIS_SIZE;
 			const scaledY = AXIS_SIZE - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * AXIS_SIZE;
 
-			const pivotX = math.round((scaledX + xOffset) / magnification);
-			const pivotY = math.round((scaledY + yOffset) / magnification);
+			const pivotX = math.round(scaledX + xOffset);
+			const pivotY = math.round(scaledY + yOffset);
 
 			clientStore.dispatch({
 				type: "updateParameter",

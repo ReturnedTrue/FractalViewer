@@ -5,6 +5,7 @@ import { FractalView } from "./components/FractalView";
 import { ParametersEditor } from "./components/ParametersEditor";
 import { ParametersClipboard } from "./components/ParametersClipboard";
 import { GuiService } from "@rbxts/services";
+import { PivotDisplay } from "./components/PivotDisplay";
 
 const [guiInset] = GuiService.GetGuiInset();
 
@@ -26,6 +27,7 @@ export class App extends Roact.Component<AppProps> {
 					<FractalView />
 					<ParametersEditor />
 					<ParametersClipboard />
+					<PivotDisplay />
 				</screengui>
 			</RoactRodux.StoreProvider>
 		);

@@ -1,6 +1,4 @@
 import { Action, createReducer } from "@rbxts/rodux";
-import { UserInputService } from "@rbxts/services";
-import { $print, $warn } from "rbxts-transform-debug";
 import { AXIS_SIZE, DEFAULT_FRACTAL_PARAMETERS, PARAMETERS_WHICH_RETAIN_CACHE } from "shared/constants/fractal";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
@@ -39,36 +37,48 @@ const DEFAULT_VALUE = {
 type ParameterSideEffects = {
 	[key in FractalParameterName]?: (
 		value: FractalParameters[key],
+		oldValue: FractalParameters[key],
 		state: FractalState,
 	) => Partial<FractalParameters> | undefined;
 };
 
 const parameterSideEffects: ParameterSideEffects = {
-	magnification: (newMagnification, { parameters }) => {
+	magnification: (newMagnification, oldMagnification, { parameters }) => {
+		if (parameters.pivot === false) return;
+
 		const [pivotX, pivotY] = parameters.pivot;
-		if (pivotX === 0 && pivotY === 0) return;
-
-		$print("Magnification side effect invoked");
+		const newPivotX = math.round((pivotX / oldMagnification) * newMagnification);
+		const newPivotY = math.round((pivotY / oldMagnification) * newMagnification);
 
 		return {
-			xOffset: pivotX * newMagnification - AXIS_SIZE / 2,
-			yOffset: pivotY * newMagnification - AXIS_SIZE / 2,
+			pivot: [newPivotX, newPivotY],
+			xOffset: newPivotX - AXIS_SIZE / 2,
+			yOffset: newPivotY - AXIS_SIZE / 2,
 		};
 	},
 
-	pivot: (newPivot, { parameters }) => {
+	pivot: (newPivot) => {
+		if (newPivot === false) return;
+
 		const [pivotX, pivotY] = newPivot;
-		if (pivotX === 0 && pivotY === 0) return;
-
-		const { magnification } = parameters;
-
-		$print("Pivot set to", pivotX, pivotY);
 
 		return {
-			xOffset: pivotX * magnification - AXIS_SIZE / 2,
-			yOffset: pivotY * magnification - AXIS_SIZE / 2,
+			xOffset: pivotX - AXIS_SIZE / 2,
+			yOffset: pivotY - AXIS_SIZE / 2,
 		};
 	},
+
+	// TODO create a setting to make changing the fractal reset the primary parameters
+	/*
+	fractalId: () => {
+		return {
+			xOffset: 0,
+			yOffset: 0,
+			magnification: 1,
+			pivot: false,
+		};
+	},
+	*/
 };
 
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
@@ -91,7 +101,7 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 
 	updateParameter: (state, { name, value }) => {
 		const hasCacheBeenVoided = !PARAMETERS_WHICH_RETAIN_CACHE.has(name);
-		const sideEffect = parameterSideEffects[name]?.(value as never, state);
+		const sideEffect = parameterSideEffects[name]?.(value as never, state.parameters[name] as never, state);
 
 		return {
 			...state,

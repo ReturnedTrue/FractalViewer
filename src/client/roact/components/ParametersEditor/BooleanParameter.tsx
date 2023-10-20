@@ -1,6 +1,7 @@
 import Roact from "@rbxts/roact";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { CoreParameterProps } from ".";
+import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 
 const ENABLED_COLOR = Color3.fromRGB(85, 170, 255);
 const DISABLED_COLOR = Color3.fromRGB(52, 52, 52);
@@ -21,12 +22,11 @@ export class BooleanParameter extends Roact.Component<BooleanParameterProps> {
 				BorderSizePixel={0}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
 			>
-				<uicorner />
-				<uipadding
-					PaddingBottom={new UDim(0.1, 0)}
-					PaddingLeft={new UDim(0.05, 0)}
-					PaddingRight={new UDim(0.025, 0)}
-					PaddingTop={new UDim(0.1, 0)}
+				<CornerAndPadding
+					paddingOverride={{
+						PaddingLeft: new UDim(0.05, 0),
+						PaddingRight: new UDim(0.025, 0),
+					}}
 				/>
 
 				<textbutton
@@ -45,6 +45,7 @@ export class BooleanParameter extends Roact.Component<BooleanParameterProps> {
 						PaddingRight={new UDim(0.1, 0)}
 						PaddingTop={new UDim(0.1, 0)}
 					/>
+
 					<textlabel
 						Key="ValueText"
 						BackgroundTransparency={1}
@@ -56,7 +57,7 @@ export class BooleanParameter extends Roact.Component<BooleanParameterProps> {
 						TextSize={14}
 						TextWrapped={true}
 					>
-						<uitextsizeconstraint Key="1" MaxTextSize={32} />
+						<UnifiedTextScaler />
 					</textlabel>
 				</textbutton>
 

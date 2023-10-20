@@ -5,6 +5,7 @@ import { FractalParameterValueForType } from "shared/types/FractalParameters";
 import { CoreParameterProps } from "..";
 import { OptionFrame } from "./OptionFrame";
 import { PixelScrollingFrame } from "client/roact/util/components/PixelScrollingFrame";
+import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 
 interface StringParameterProps extends CoreParameterProps<string> {
 	options: Array<FractalParameterValueForType<string>>;
@@ -35,13 +36,13 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 				BorderSizePixel={0}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
 			>
-				<uicorner />
-				<uipadding
-					PaddingBottom={new UDim(0.1, 0)}
-					PaddingLeft={new UDim(0.05, 0)}
-					PaddingRight={new UDim(0.025, 0)}
-					PaddingTop={new UDim(0.1, 0)}
+				<CornerAndPadding
+					paddingOverride={{
+						PaddingLeft: new UDim(0.05, 0),
+						PaddingRight: new UDim(0.025, 0),
+					}}
 				/>
+
 				<textlabel
 					Key="ParameterName"
 					BackgroundTransparency={1}

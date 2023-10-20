@@ -1,5 +1,6 @@
 import Roact from "@rbxts/roact";
 import { HttpService } from "@rbxts/services";
+import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { FractalParameters } from "shared/types/FractalParameters";
 
@@ -19,12 +20,11 @@ export class CopyFractal extends Roact.Component<CopyFractalProps> {
 				Position={new UDim2(0.2, 0, 0.9, 0)}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
 			>
-				<uicorner />
-				<uipadding
-					PaddingBottom={new UDim(0.1, 0)}
-					PaddingLeft={new UDim(0.05, 0)}
-					PaddingRight={new UDim(0.025, 0)}
-					PaddingTop={new UDim(0.1, 0)}
+				<CornerAndPadding
+					paddingOverride={{
+						PaddingLeft: new UDim(0.05, 0),
+						PaddingRight: new UDim(0.05, 0),
+					}}
 				/>
 
 				<textlabel

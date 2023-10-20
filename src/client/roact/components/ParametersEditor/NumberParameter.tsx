@@ -2,6 +2,7 @@ import Roact from "@rbxts/roact";
 import { CoreParameterProps } from ".";
 import { clientStore } from "client/rodux/store";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
+import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 
 interface NumberParameterProps extends CoreParameterProps<number> {
 	newValueConstraint?: (newValue: number) => number;
@@ -39,12 +40,11 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 				BorderSizePixel={0}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
 			>
-				<uicorner />
-				<uipadding
-					PaddingBottom={new UDim(0.1, 0)}
-					PaddingLeft={new UDim(0.05, 0)}
-					PaddingRight={new UDim(0.025, 0)}
-					PaddingTop={new UDim(0.1, 0)}
+				<CornerAndPadding
+					paddingOverride={{
+						PaddingLeft: new UDim(0.05, 0),
+						PaddingRight: new UDim(0.025, 0),
+					}}
 				/>
 
 				<textlabel

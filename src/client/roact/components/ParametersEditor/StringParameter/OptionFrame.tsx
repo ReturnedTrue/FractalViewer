@@ -1,4 +1,5 @@
 import Roact from "@rbxts/roact";
+import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { FractalParameterValueForType } from "shared/types/FractalParameters";
 
@@ -27,13 +28,8 @@ export class OptionFrame extends Roact.Component<OptionFrameProps> {
 				Position={position}
 				Size={size}
 			>
-				<uicorner />
-				<uipadding
-					PaddingBottom={new UDim(0.1, 0)}
-					PaddingLeft={new UDim(0.1, 0)}
-					PaddingRight={new UDim(0.1, 0)}
-					PaddingTop={new UDim(0.1, 0)}
-				/>
+				<CornerAndPadding />
+
 				<textlabel
 					Key="OptionText"
 					BackgroundTransparency={1}

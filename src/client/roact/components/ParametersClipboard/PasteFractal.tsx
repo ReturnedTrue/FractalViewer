@@ -4,6 +4,7 @@ import { HttpService } from "@rbxts/services";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { clientStore } from "client/rodux/store";
 import { FractalParameters } from "shared/types/FractalParameters";
+import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 
 const isParameters = $terrify<Partial<FractalParameters>>();
 
@@ -37,12 +38,11 @@ export class PasteFractal extends Roact.Component<PasteFractalProps> {
 				Position={new UDim2(0.6, 0, 0.9, 0)}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
 			>
-				<uicorner />
-				<uipadding
-					PaddingBottom={new UDim(0.1, 0)}
-					PaddingLeft={new UDim(0.05, 0)}
-					PaddingRight={new UDim(0.025, 0)}
-					PaddingTop={new UDim(0.1, 0)}
+				<CornerAndPadding
+					paddingOverride={{
+						PaddingLeft: new UDim(0.05, 0),
+						PaddingRight: new UDim(0.05, 0),
+					}}
 				/>
 
 				<textlabel

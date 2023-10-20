@@ -60,15 +60,18 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 		}
 
 		return (
-			<frame Key="ParametersEditor" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
+			<frame
+				Key="ParametersEditor"
+				BackgroundTransparency={1}
+				Position={UDim2.fromScale(0.025, 0.05)}
+				Size={UDim2.fromScale(1, 1)}
+			>
 				<uilistlayout
-					Padding={new UDim(0.05, 0)}
+					Padding={new UDim(0.025, 0)}
 					SortOrder={Enum.SortOrder.LayoutOrder}
 					FillDirection={Enum.FillDirection.Vertical}
 					VerticalAlignment={Enum.VerticalAlignment.Top}
 				/>
-
-				<uipadding PaddingLeft={new UDim(0.025, 0)} PaddingTop={new UDim(0.05, 0)} />
 
 				{createParameter(NumberParameter, "xOffset", { order: 1, playerFacingName: "X Offset" })}
 				{createParameter(NumberParameter, "yOffset", { order: 2, playerFacingName: "Y Offset" })}

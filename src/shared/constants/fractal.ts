@@ -19,7 +19,7 @@ export const NEWTON_TOLERANCE = 0.000001;
 export const DEFAULT_FRACTAL_PARAMETERS = {
 	fractalId: FractalId.Buddhabrot,
 
-	pivot: [0, 0],
+	pivot: false,
 
 	xOffset: 0,
 	yOffset: 0,
