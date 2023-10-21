@@ -9,6 +9,7 @@ import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding"
 
 interface StringParameterProps extends CoreParameterProps<string> {
 	options: Array<FractalParameterValueForType<string>>;
+	appearOnRight: boolean;
 }
 
 interface StringParameterState {
@@ -25,7 +26,7 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 	private currentOptionRef = createRef<TextButton>();
 
 	render() {
-		const { order, currentValue, playerFacingName, onNewValue } = this.props;
+		const { order, currentValue, playerFacingName, options, appearOnRight, onNewValue } = this.props;
 		const { isOpen, optionSize } = this.state;
 
 		return (
@@ -71,7 +72,7 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 						BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 						BorderSizePixel={0}
 						ClipsDescendants={true}
-						Position={new UDim2(1.1, 0, 0, 0)}
+						Position={new UDim2(appearOnRight ? 1.1 : -0.7, 0, 0, 0)}
 						Size={new UDim2(0.6, 0, 2, 0)}
 					>
 						<uicorner />
@@ -82,12 +83,7 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 							timePerScroll={0.25}
 							scrollingFrameProps={{
 								BackgroundTransparency: 1,
-								CanvasSize: new UDim2(
-									0,
-									0,
-									0,
-									(this.props.options.size() - 1) * (optionSize.Y.Offset * (4 / 3)),
-								),
+								CanvasSize: new UDim2(0, 0, 0, (options.size() - 1) * (optionSize.Y.Offset * (4 / 3))),
 								ClipsDescendants: false,
 								Position: new UDim2(0.1, 0, 0.1, 0),
 								ScrollBarThickness: 0,
@@ -98,14 +94,14 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 						>
 							<uigridlayout
 								CellPadding={new UDim2(0, 0, 0, optionSize.Y.Offset / 3)}
-								CellSize={this.state.optionSize}
+								CellSize={optionSize}
 								FillDirectionMaxCells={1}
 								HorizontalAlignment={Enum.HorizontalAlignment.Center}
 								SortOrder={Enum.SortOrder.LayoutOrder}
 							/>
 
-							{this.props.options.mapFiltered((option) => {
-								if (option === this.props.currentValue) return;
+							{options.mapFiltered((option) => {
+								if (option === currentValue) return;
 
 								return <OptionFrame optionValue={option} onSelected={onNewValue} />;
 							})}

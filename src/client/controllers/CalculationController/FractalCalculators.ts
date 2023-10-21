@@ -1,15 +1,16 @@
 import { modulus, complexDiv, complexMul } from "client/utility/complex";
-import { AXIS_SIZE, MAX_ITERATIONS, MAX_STABLE, NEWTON_TOLERANCE } from "shared/constants/fractal";
+import { AXIS_SIZE, MAX_STABLE, NEWTON_TOLERANCE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
-import { NewtonFunctionData, newtonFunctionData } from "./NewtonFunctionData";
+import { newtonFunctionData } from "./NewtonFunctionData";
 import { $error } from "rbxts-transform-debug";
 
 type FractalCalculator = (
 	x: number,
 	y: number,
 	magnification: number,
-	otherParameters: Omit<FractalParameters, "xOffset" | "yOffset" | "magnification">,
+	maxIterations: number,
+	otherParameters: Omit<FractalParameters, "xOffset" | "yOffset" | "magnification" | "maxIterations">,
 ) => number;
 
 const getFunctionRootHueFromCache = (cache: Map<number, number>, closestRoot: number) => {
@@ -26,15 +27,15 @@ const getFunctionRootHueFromCache = (cache: Map<number, number>, closestRoot: nu
 export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 	[
 		FractalId.Mandelbrot,
-		(x, y, magnification) => {
+		(x, y, magnification, maxIterations) => {
 			const cReal = (x / AXIS_SIZE / magnification) * 4 - 2;
 			const cImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
 
 			let zReal = 0.01;
 			let zImaginary = 0.01;
 
-			for (const iteration of $range(1, MAX_ITERATIONS)) {
-				if (modulus(zReal, zImaginary) > MAX_STABLE) return iteration / MAX_ITERATIONS;
+			for (const iteration of $range(1, maxIterations)) {
+				if (modulus(zReal, zImaginary) > MAX_STABLE) return iteration / maxIterations;
 
 				const zRealTemp = zReal;
 
@@ -48,15 +49,15 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 	[
 		FractalId.BurningShip,
-		(x, y, magnification) => {
+		(x, y, magnification, maxIterations) => {
 			const cReal = (x / AXIS_SIZE / magnification) * -4 + 2;
 			const cImaginary = (y / AXIS_SIZE / magnification) * -4 + 2;
 
 			let zReal = cReal;
 			let zImaginary = cImaginary;
 
-			for (const iteration of $range(1, MAX_ITERATIONS)) {
-				if (modulus(zReal, zImaginary) > MAX_STABLE) return iteration / MAX_ITERATIONS;
+			for (const iteration of $range(1, maxIterations)) {
+				if (modulus(zReal, zImaginary) > MAX_STABLE) return iteration / maxIterations;
 
 				const zRealTemp = zReal;
 
@@ -70,12 +71,12 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 	[
 		FractalId.Julia,
-		(x, y, magnification, { juliaRealConstant, juliaImaginaryConstant }) => {
+		(x, y, magnification, maxIterations, { juliaRealConstant, juliaImaginaryConstant }) => {
 			let zReal = (x / AXIS_SIZE / magnification) * 4 - 2;
 			let zImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
 
-			for (const iteration of $range(1, MAX_ITERATIONS)) {
-				if (modulus(zReal, zImaginary) > MAX_STABLE) return iteration / MAX_ITERATIONS;
+			for (const iteration of $range(1, maxIterations)) {
+				if (modulus(zReal, zImaginary) > MAX_STABLE) return iteration / maxIterations;
 
 				const zRealTemp = zReal;
 
@@ -93,6 +94,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			x,
 			y,
 			magnification,
+			maxIterations,
 			{ newtonFunction, newtonPreferRootBasisHue, newtonCoefficientReal, newtonCoefficientImaginary },
 		) => {
 			const data = newtonFunctionData.get(newtonFunction);
@@ -103,7 +105,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			let zReal = (x / AXIS_SIZE / magnification) * 4 - 2;
 			let zImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
 
-			for (const iteration of $range(1, MAX_ITERATIONS)) {
+			for (const iteration of $range(1, maxIterations)) {
 				const [functionReal, functionImaginary] = data.execute(zReal, zImaginary);
 				const [derivativeReal, derivativeImaginary] = data.derivativeExecute(zReal, zImaginary);
 
@@ -140,7 +142,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 				return newtonPreferRootBasisHue
 					? getFunctionRootHueFromCache(data.rootHueCache, closestRoot)
-					: iteration / MAX_ITERATIONS;
+					: iteration / maxIterations;
 			}
 
 			return 0;

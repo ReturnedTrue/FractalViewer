@@ -6,6 +6,8 @@ interface SetPartsFolder extends Action<"setPartsFolder"> {
 	partsFolder: Folder;
 }
 
+interface RemovePartsFolder extends Action<"removePartsFolder"> {}
+
 interface SetParameters extends Action<"setParameters"> {
 	parameters: Partial<FractalParameters>;
 }
@@ -17,7 +19,7 @@ interface UpdateParameter extends Action<"updateParameter"> {
 
 interface ResetParameters extends Action<"resetParameters"> {}
 
-export type FractalActions = SetPartsFolder | SetParameters | UpdateParameter | ResetParameters;
+export type FractalActions = SetPartsFolder | RemovePartsFolder | SetParameters | UpdateParameter | ResetParameters;
 export interface FractalState {
 	parametersLastUpdated: number;
 	parameters: FractalParameters;
@@ -84,6 +86,10 @@ const parameterSideEffects: ParameterSideEffects = {
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
 	setPartsFolder: (state, { partsFolder }) => {
 		return { ...state, partsFolder, parametersLastUpdated: os.clock() };
+	},
+
+	removePartsFolder: (state) => {
+		return { ...state, partsFolder: undefined };
 	},
 
 	setParameters: (state, { parameters }) => {

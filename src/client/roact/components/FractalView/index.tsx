@@ -58,6 +58,8 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 		const { playerViewportSize } = this.state;
 		const calculatedViewSize = playerViewportSize.Y * 0.75;
 
+		// TODO implement full picture mode
+
 		return (
 			<viewportframe
 				Key="FractalView"

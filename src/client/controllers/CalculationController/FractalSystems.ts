@@ -1,10 +1,4 @@
-import {
-	AXIS_ITERATION_SIZE,
-	AXIS_SIZE,
-	MAX_ITERATIONS,
-	MAX_SECONDS_BEFORE_WAIT,
-	MAX_STABLE,
-} from "shared/constants/fractal";
+import { AXIS_ITERATION_SIZE, AXIS_SIZE, MAX_SECONDS_BEFORE_WAIT, MAX_STABLE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { fractalCalculators } from "./FractalCalculators";
@@ -17,11 +11,13 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	const calculator = fractalCalculators.get(parameters.fractalId);
 	if (!calculator) $error(`No system or calculator defined for fractal ${parameters.fractalId}`);
 
+	const { xOffset, yOffset, maxIterations, magnification } = parameters;
+
 	let accumulatedTime = 0;
 
 	for (const i of $range(0, AXIS_ITERATION_SIZE)) {
 		const columnStartTime = os.clock();
-		const xPosition = i + parameters.xOffset;
+		const xPosition = i + xOffset;
 
 		let columnCache = cache.get(xPosition);
 
@@ -31,10 +27,10 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 		}
 
 		for (const j of $range(0, AXIS_ITERATION_SIZE)) {
-			const yPosition = j + parameters.yOffset;
+			const yPosition = j + yOffset;
 
 			if (!columnCache.has(yPosition)) {
-				const value = calculator(xPosition, yPosition, parameters.magnification, parameters);
+				const value = calculator(xPosition, yPosition, magnification, maxIterations, parameters);
 				columnCache.set(yPosition, value);
 			}
 		}
@@ -54,6 +50,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 		FractalId.Buddhabrot,
 		(parameters, cache) => {
 			if (!cache.isEmpty()) return;
+
+			const { maxIterations, magnification } = parameters;
 
 			const scaledAxis = AXIS_SIZE * parameters.magnification;
 			const scaledIterationAxis = scaledAxis - 1;
@@ -88,15 +86,15 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 			};
 
 			const solveMandelbrotForPoint = (x: number, y: number) => {
-				const cReal = (x / AXIS_SIZE / parameters.magnification) * 4 - 2;
-				const cImaginary = (y / AXIS_SIZE / parameters.magnification) * 4 - 2;
+				const cReal = (x / AXIS_SIZE / magnification) * 4 - 2;
+				const cImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
 
 				let zReal = 0.01;
 				let zImaginary = 0.01;
 
 				const valuesIteratedOver = new Array<number>();
 
-				for (const _iteration of $range(1, MAX_ITERATIONS)) {
+				for (const _iteration of $range(1, maxIterations)) {
 					if (modulus(zReal, zImaginary) > MAX_STABLE) {
 						pointEscaped(valuesIteratedOver);
 						break;

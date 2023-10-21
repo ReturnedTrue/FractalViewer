@@ -60,79 +60,102 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 		}
 
 		return (
-			<frame
-				Key="ParametersEditor"
-				BackgroundTransparency={1}
-				Position={UDim2.fromScale(0.025, 0.05)}
-				Size={UDim2.fromScale(1, 1)}
-			>
-				<uilistlayout
-					Padding={new UDim(0.025, 0)}
-					SortOrder={Enum.SortOrder.LayoutOrder}
-					FillDirection={Enum.FillDirection.Vertical}
-					VerticalAlignment={Enum.VerticalAlignment.Top}
-				/>
+			<Roact.Fragment>
+				<frame
+					Key="LeftHandParametersEditor"
+					BackgroundTransparency={1}
+					Position={UDim2.fromScale(0.025, 0.05)}
+					Size={UDim2.fromScale(1, 1)}
+				>
+					<uilistlayout
+						Padding={new UDim(0.025, 0)}
+						SortOrder={Enum.SortOrder.LayoutOrder}
+						FillDirection={Enum.FillDirection.Vertical}
+						VerticalAlignment={Enum.VerticalAlignment.Top}
+					/>
 
-				{createParameter(NumberParameter, "xOffset", { order: 1, playerFacingName: "X Offset" })}
-				{createParameter(NumberParameter, "yOffset", { order: 2, playerFacingName: "Y Offset" })}
+					{createParameter(StringParameter, "fractalId", {
+						order: 1,
+						playerFacingName: "Fractal",
+						options: this.fractalOptions,
+						appearOnRight: true,
+					})}
 
-				{createParameter(NumberParameter, "magnification", {
-					order: 3,
-					playerFacingName: "Magnification",
-					newValueConstraint: (value) => math.max(value, 1),
-				})}
+					{createParameter(NumberParameter, "maxIterations", {
+						order: 2,
+						playerFacingName: "Max Iterations",
+					})}
 
-				{createParameter(NumberParameter, "hueShift", {
-					order: 4,
-					playerFacingName: "Hue Shift",
-					newValueConstraint: (value) => math.clamp(value, 0, 360),
-				})}
+					{createParameter(NumberParameter, "xOffset", { order: 3, playerFacingName: "X Offset" })}
+					{createParameter(NumberParameter, "yOffset", { order: 4, playerFacingName: "Y Offset" })}
 
-				{createParameter(StringParameter, "fractalId", {
-					order: 5,
-					playerFacingName: "Fractal",
-					options: this.fractalOptions,
-				})}
+					{createParameter(NumberParameter, "magnification", {
+						order: 5,
+						playerFacingName: "Magnification",
+						newValueConstraint: (value) => math.max(value, 1),
+					})}
 
-				{isCurrentlyFractal(FractalId.Julia) && (
-					<Roact.Fragment>
-						{createParameter(NumberParameter, "juliaRealConstant", {
-							order: 100,
-							playerFacingName: "Julia Real",
-						})}
+					{createParameter(NumberParameter, "hueShift", {
+						order: 6,
+						playerFacingName: "Hue Shift",
+						newValueConstraint: (value) => math.clamp(value, 0, 360),
+					})}
+				</frame>
 
-						{createParameter(NumberParameter, "juliaImaginaryConstant", {
-							order: 101,
-							playerFacingName: "Julia Imaginary",
-						})}
-					</Roact.Fragment>
-				)}
+				<frame
+					Key="RightHandParametersEditor"
+					BackgroundTransparency={1}
+					Position={UDim2.fromScale(0.775, 0.175)}
+					Size={UDim2.fromScale(1, 1)}
+				>
+					<uilistlayout
+						Padding={new UDim(0.025, 0)}
+						SortOrder={Enum.SortOrder.LayoutOrder}
+						FillDirection={Enum.FillDirection.Vertical}
+						VerticalAlignment={Enum.VerticalAlignment.Top}
+					/>
 
-				{isCurrentlyFractal(FractalId.Newton) && (
-					<Roact.Fragment>
-						{createParameter(StringParameter, "newtonFunction", {
-							order: 100,
-							playerFacingName: "Function",
-							options: this.newtonFunctionOptions,
-						})}
+					{isCurrentlyFractal(FractalId.Julia) && (
+						<Roact.Fragment>
+							{createParameter(NumberParameter, "juliaRealConstant", {
+								order: 1,
+								playerFacingName: "Julia Real",
+							})}
 
-						{createParameter(BooleanParameter, "newtonPreferRootBasisHue", {
-							order: 101,
-							playerFacingName: "Prefer Per Root Basis Colors",
-						})}
+							{createParameter(NumberParameter, "juliaImaginaryConstant", {
+								order: 2,
+								playerFacingName: "Julia Imaginary",
+							})}
+						</Roact.Fragment>
+					)}
 
-						{createParameter(NumberParameter, "newtonCoefficientReal", {
-							order: 102,
-							playerFacingName: "Coefficient Real",
-						})}
+					{isCurrentlyFractal(FractalId.Newton) && (
+						<Roact.Fragment>
+							{createParameter(StringParameter, "newtonFunction", {
+								order: 1,
+								playerFacingName: "Function",
+								options: this.newtonFunctionOptions,
+								appearOnRight: false,
+							})}
 
-						{createParameter(NumberParameter, "newtonCoefficientImaginary", {
-							order: 103,
-							playerFacingName: "Coefficient Imaginary",
-						})}
-					</Roact.Fragment>
-				)}
-			</frame>
+							{createParameter(BooleanParameter, "newtonPreferRootBasisHue", {
+								order: 2,
+								playerFacingName: "Prefer Per Root Basis Colors",
+							})}
+
+							{createParameter(NumberParameter, "newtonCoefficientReal", {
+								order: 3,
+								playerFacingName: "Coefficient Real",
+							})}
+
+							{createParameter(NumberParameter, "newtonCoefficientImaginary", {
+								order: 4,
+								playerFacingName: "Coefficient Imaginary",
+							})}
+						</Roact.Fragment>
+					)}
+				</frame>
+			</Roact.Fragment>
 		);
 	}
 }

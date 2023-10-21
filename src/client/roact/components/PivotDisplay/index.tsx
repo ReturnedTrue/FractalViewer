@@ -58,6 +58,7 @@ class BasePivotDisplay extends Roact.Component<PivotDisplayProps> {
 					/>
 
 					<frame
+						Key="XDisplay"
 						LayoutOrder={0}
 						BackgroundColor3={Color3.fromRGB(52, 52, 52)}
 						BorderSizePixel={0}
@@ -80,6 +81,7 @@ class BasePivotDisplay extends Roact.Component<PivotDisplayProps> {
 					</frame>
 
 					<frame
+						Key="YDisplay"
 						LayoutOrder={1}
 						BackgroundColor3={Color3.fromRGB(52, 52, 52)}
 						BorderSizePixel={0}
