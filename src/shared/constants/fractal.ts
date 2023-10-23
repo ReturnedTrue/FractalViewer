@@ -2,9 +2,6 @@ import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
-export const AXIS_SIZE = 500;
-export const AXIS_ITERATION_SIZE = AXIS_SIZE - 1;
-
 export const MAX_SECONDS_BEFORE_WAIT = 5;
 export const MAX_STABLE = 2;
 
@@ -17,7 +14,7 @@ export const NEWTON_TOLERANCE = 0.000001;
 
 export const DEFAULT_FRACTAL_PARAMETERS = {
 	fractalId: FractalId.Buddhabrot,
-	maxIterations: 200,
+	maxIterations: 100,
 	axisSize: 500,
 
 	pivot: false,

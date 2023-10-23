@@ -6,12 +6,14 @@ import { clientStore } from "client/rodux/store";
 import { PivotParameterData } from "shared/types/FractalParameters";
 
 interface PivotDisplayProps {
+	visible: boolean;
 	pivot: PivotParameterData;
 }
 
 class BasePivotDisplay extends Roact.Component<PivotDisplayProps> {
 	render() {
-		const { pivot } = this.props;
+		const { pivot, visible } = this.props;
+		if (!visible) return;
 
 		const onClear = () => {
 			if (!pivot) return;
@@ -137,5 +139,6 @@ class BasePivotDisplay extends Roact.Component<PivotDisplayProps> {
 export const PivotDisplay = connectComponent(BasePivotDisplay, (state) => {
 	return {
 		pivot: state.fractal.parameters.pivot,
+		visible: state.fractal.partsFolder !== undefined,
 	};
 });

@@ -1,12 +1,10 @@
 import { Action, createReducer } from "@rbxts/rodux";
-import { AXIS_SIZE, DEFAULT_FRACTAL_PARAMETERS, PARAMETERS_WHICH_RETAIN_CACHE } from "shared/constants/fractal";
+import { DEFAULT_FRACTAL_PARAMETERS, PARAMETERS_WHICH_RETAIN_CACHE } from "shared/constants/fractal";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 interface SetPartsFolder extends Action<"setPartsFolder"> {
-	partsFolder: Folder;
+	partsFolder: Folder | undefined;
 }
-
-interface RemovePartsFolder extends Action<"removePartsFolder"> {}
 
 interface SetParameters extends Action<"setParameters"> {
 	parameters: Partial<FractalParameters>;
@@ -19,7 +17,7 @@ interface UpdateParameter extends Action<"updateParameter"> {
 
 interface ResetParameters extends Action<"resetParameters"> {}
 
-export type FractalActions = SetPartsFolder | RemovePartsFolder | SetParameters | UpdateParameter | ResetParameters;
+export type FractalActions = SetPartsFolder | SetParameters | UpdateParameter | ResetParameters;
 export interface FractalState {
 	parametersLastUpdated: number;
 	parameters: FractalParameters;
@@ -54,19 +52,19 @@ const parameterSideEffects: ParameterSideEffects = {
 
 		return {
 			pivot: [newPivotX, newPivotY],
-			xOffset: newPivotX - AXIS_SIZE / 2,
-			yOffset: newPivotY - AXIS_SIZE / 2,
+			xOffset: newPivotX - parameters.axisSize / 2,
+			yOffset: newPivotY - parameters.axisSize / 2,
 		};
 	},
 
-	pivot: (newPivot) => {
+	pivot: (newPivot, _oldPivot, { parameters }) => {
 		if (newPivot === false) return;
 
 		const [pivotX, pivotY] = newPivot;
 
 		return {
-			xOffset: pivotX - AXIS_SIZE / 2,
-			yOffset: pivotY - AXIS_SIZE / 2,
+			xOffset: pivotX - parameters.axisSize / 2,
+			yOffset: pivotY - parameters.axisSize / 2,
 		};
 	},
 
@@ -86,10 +84,6 @@ const parameterSideEffects: ParameterSideEffects = {
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
 	setPartsFolder: (state, { partsFolder }) => {
 		return { ...state, partsFolder, parametersLastUpdated: os.clock() };
-	},
-
-	removePartsFolder: (state) => {
-		return { ...state, partsFolder: undefined };
 	},
 
 	setParameters: (state, { parameters }) => {
@@ -129,6 +123,7 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 			parameters: {
 				...DEFAULT_FRACTAL_PARAMETERS,
 				fractalId: state.parameters.fractalId,
+				axisSize: state.parameters.axisSize,
 			},
 			hasCacheBeenVoided: true,
 		};

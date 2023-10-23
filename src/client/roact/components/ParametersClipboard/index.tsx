@@ -6,13 +6,17 @@ import { FractalParameters } from "shared/types/FractalParameters";
 
 interface ParametersClipboardProps {
 	parameters: FractalParameters;
+	visible: boolean;
 }
 
 class BaseParametersClipboard extends Roact.Component<ParametersClipboardProps> {
 	render() {
+		const { parameters, visible } = this.props;
+		if (!visible) return;
+
 		return (
 			<Roact.Fragment>
-				<CopyFractal parameters={this.props.parameters} />
+				<CopyFractal parameters={parameters} />
 				<PasteFractal />
 			</Roact.Fragment>
 		);
@@ -22,5 +26,6 @@ class BaseParametersClipboard extends Roact.Component<ParametersClipboardProps> 
 export const ParametersClipboard = connectComponent(BaseParametersClipboard, (state) => {
 	return {
 		parameters: state.fractal.parameters,
+		visible: state.fractal.partsFolder !== undefined,
 	};
 });

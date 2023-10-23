@@ -2,12 +2,14 @@ import Roact, { createRef } from "@rbxts/roact";
 import { UserInputService, Workspace } from "@rbxts/services";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
-import { AXIS_SIZE, CAMERA_FOV, MAGNIFICATION_INCREMENT } from "shared/constants/fractal";
+import { CAMERA_FOV } from "shared/constants/fractal";
+import { FractalParameters } from "shared/types/FractalParameters";
 
 const playerCamera = Workspace.CurrentCamera!;
 
 interface FractalViewProps {
 	folder: Folder | undefined;
+	parameters: FractalParameters;
 }
 
 interface FractalViewState {
@@ -23,15 +25,16 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 	private cameraRef = createRef<Camera>();
 
 	render() {
+		const { xOffset, yOffset, axisSize } = this.props.parameters;
+
 		const inputBegan = (viewport: ViewportFrame, input: InputObject) => {
 			if (input.UserInputType !== Enum.UserInputType.MouseButton2) return;
-			const { xOffset, yOffset } = clientStore.getState().fractal.parameters;
 
 			const absolutePos = viewport.AbsolutePosition;
 			const absoluteSize = viewport.AbsoluteSize;
 
-			const scaledX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * AXIS_SIZE;
-			const scaledY = AXIS_SIZE - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * AXIS_SIZE;
+			const scaledX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * axisSize;
+			const scaledY = axisSize - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * axisSize;
 
 			const pivotX = math.round(scaledX + xOffset);
 			const pivotY = math.round(scaledY + yOffset);
@@ -76,9 +79,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				<camera
 					Ref={this.cameraRef}
 					FieldOfView={CAMERA_FOV}
-					CFrame={
-						new CFrame(AXIS_SIZE / 2, AXIS_SIZE / 2, AXIS_SIZE / 2 / math.tan(math.rad(CAMERA_FOV / 2)))
-					}
+					CFrame={new CFrame(axisSize / 2, axisSize / 2, axisSize / 2 / math.tan(math.rad(CAMERA_FOV / 2)))}
 				/>
 
 				{this.props.folder === undefined && (
@@ -99,29 +100,35 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 	}
 
 	didMount() {
-		const viewport = this.viewportRef.getValue();
-		const camera = this.cameraRef.getValue();
-		if (!(viewport && camera)) return;
-
-		viewport.CurrentCamera = camera;
-
 		playerCamera.GetPropertyChangedSignal("ViewportSize").Connect(() => {
 			this.setState({ playerViewportSize: playerCamera.ViewportSize });
 		});
 	}
 
-	didUpdate() {
-		if (!this.props.folder || this.props.folder.Parent) return;
-
+	didUpdate(previousProps: FractalViewProps) {
 		const viewport = this.viewportRef.getValue();
-		if (!viewport) return;
+		const camera = this.cameraRef.getValue();
+		if (!(viewport && camera)) return;
 
-		this.props.folder.Parent = viewport;
+		const newFolder = this.props.folder;
+
+		if (previousProps.folder) {
+			// No longer have a folder to view
+			if (!newFolder) {
+				viewport.CurrentCamera = undefined;
+			}
+
+			// New folder to view
+		} else if (newFolder !== undefined && newFolder.Parent === undefined) {
+			newFolder.Parent = viewport;
+			viewport.CurrentCamera = camera;
+		}
 	}
 }
 
 export const FractalView = connectComponent(BaseFractalView, (state) => {
 	return {
 		folder: state.fractal.partsFolder,
+		parameters: state.fractal.parameters,
 	};
 });

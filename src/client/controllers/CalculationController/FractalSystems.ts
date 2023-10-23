@@ -1,4 +1,4 @@
-import { AXIS_ITERATION_SIZE, AXIS_SIZE, MAX_SECONDS_BEFORE_WAIT, MAX_STABLE } from "shared/constants/fractal";
+import { MAX_SECONDS_BEFORE_WAIT, MAX_STABLE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { fractalCalculators } from "./FractalCalculators";
@@ -11,27 +11,27 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	const calculator = fractalCalculators.get(parameters.fractalId);
 	if (!calculator) $error(`No system or calculator defined for fractal ${parameters.fractalId}`);
 
-	const { xOffset, yOffset, maxIterations, magnification } = parameters;
+	const { xOffset, yOffset, axisSize, magnification, maxIterations } = parameters;
 
 	let accumulatedTime = 0;
 
-	for (const i of $range(0, AXIS_ITERATION_SIZE)) {
+	for (const i of $range(0, axisSize - 1)) {
 		const columnStartTime = os.clock();
 		const xPosition = i + xOffset;
 
-		let columnCache = cache.get(xPosition);
+		let cacheColumn = cache.get(xPosition);
 
-		if (columnCache === undefined) {
-			columnCache = new Map();
-			cache.set(xPosition, columnCache);
+		if (cacheColumn === undefined) {
+			cacheColumn = new Map();
+			cache.set(xPosition, cacheColumn);
 		}
 
-		for (const j of $range(0, AXIS_ITERATION_SIZE)) {
+		for (const j of $range(0, axisSize - 1)) {
 			const yPosition = j + yOffset;
 
-			if (!columnCache.has(yPosition)) {
-				const value = calculator(xPosition, yPosition, magnification, maxIterations, parameters);
-				columnCache.set(yPosition, value);
+			if (!cacheColumn.has(yPosition)) {
+				const value = calculator(xPosition, yPosition, axisSize, magnification, maxIterations, parameters);
+				cacheColumn.set(yPosition, value);
 			}
 		}
 
@@ -51,9 +51,9 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 		(parameters, cache) => {
 			if (!cache.isEmpty()) return;
 
-			const { maxIterations, magnification } = parameters;
+			const { axisSize, maxIterations, magnification } = parameters;
 
-			const scaledAxis = AXIS_SIZE * parameters.magnification;
+			const scaledAxis = axisSize * magnification;
 			const scaledIterationAxis = scaledAxis - 1;
 
 			let highestCount = 0;
@@ -69,25 +69,25 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 					if (x < 0 || x > scaledAxis) continue;
 					if (y < 0 || y > scaledAxis) continue;
 
-					let column = cache.get(x);
+					let cacheColumn = cache.get(x);
 
-					if (column === undefined) {
-						column = new Map();
-						cache.set(x, column);
+					if (cacheColumn === undefined) {
+						cacheColumn = new Map();
+						cache.set(x, cacheColumn);
 					}
 
-					const count = (column.get(y) ?? 0) + 1;
+					const count = (cacheColumn.get(y) ?? 0) + 1;
 					if (count > highestCount) {
 						highestCount = count;
 					}
 
-					column.set(y, count);
+					cacheColumn.set(y, count);
 				}
 			};
 
 			const solveMandelbrotForPoint = (x: number, y: number) => {
-				const cReal = (x / AXIS_SIZE / magnification) * 4 - 2;
-				const cImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
+				const cReal = (x / axisSize / magnification) * 4 - 2;
+				const cImaginary = (y / axisSize / magnification) * 4 - 2;
 
 				let zReal = 0.01;
 				let zImaginary = 0.01;

@@ -1,8 +1,7 @@
 import { Controller, OnStart } from "@flamework/core";
-import { AXIS_ITERATION_SIZE, DEFAULT_FRACTAL_PARAMETERS, MAX_SECONDS_BEFORE_WAIT } from "shared/constants/fractal";
+import { DEFAULT_FRACTAL_PARAMETERS } from "shared/constants/fractal";
 import { $print } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
-import { FractalId } from "shared/enums/FractalId";
 import { FractalState } from "client/rodux/reducers/fractal";
 import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
 
@@ -24,6 +23,13 @@ export class CalculationController implements OnStart {
 			if (!fractal.partsFolder) return;
 			if (fractal.parametersLastUpdated === oldState.fractal.parametersLastUpdated) return;
 
+			if (oldState.fractal.partsFolder && fractal.parameters.axisSize !== oldState.fractal.parameters.axisSize) {
+				$print("axis size changed");
+
+				this.clearParts(oldState.fractal.partsFolder);
+				this.constructParts(fractal.parameters.axisSize);
+			}
+
 			if (fractal.hasCacheBeenVoided) {
 				$print("cache voided");
 				this.calculatedCache.clear();
@@ -33,18 +39,17 @@ export class CalculationController implements OnStart {
 			this.applyFractal(fractal);
 		});
 
-		const partsFolder = this.constructParts();
-		clientStore.dispatch({ type: "setPartsFolder", partsFolder });
+		this.constructParts(DEFAULT_FRACTAL_PARAMETERS.axisSize);
 	}
 
-	private constructParts() {
+	private constructParts(size: number) {
 		const containingFolder = new Instance("Folder");
 		const endTimer = beginTimer();
 
-		for (const i of $range(0, AXIS_ITERATION_SIZE)) {
+		for (const i of $range(0, size - 1)) {
 			const column = [];
 
-			for (const j of $range(0, AXIS_ITERATION_SIZE)) {
+			for (const j of $range(0, size - 1)) {
 				const part = new Instance("Part");
 				part.Name = `(${i}, ${j})`;
 				part.Position = new Vector3(i, j, 0);
@@ -64,7 +69,24 @@ export class CalculationController implements OnStart {
 		}
 
 		$print(string.format("complete part construction (%.2f ms)", endTimer()));
-		return containingFolder;
+
+		clientStore.dispatch({ type: "setPartsFolder", partsFolder: containingFolder });
+	}
+
+	private clearParts(oldFolder: Folder) {
+		clientStore.dispatch({ type: "setPartsFolder", partsFolder: undefined });
+
+		let count = 0;
+
+		for (const part of oldFolder.GetChildren()) {
+			part.Destroy();
+
+			count++;
+			if (count % 10000 === 0) task.wait(0.1);
+		}
+
+		oldFolder.Destroy();
+		this.parts.clear();
 	}
 
 	private calculateFractal({ parameters }: FractalState) {
@@ -82,18 +104,19 @@ export class CalculationController implements OnStart {
 
 		const trueHueShift = hueShift / 360;
 
-		for (const i of $range(0, AXIS_ITERATION_SIZE)) {
+		for (const i of $range(0, parameters.axisSize - 1)) {
 			const xPosition = i + xOffset;
 
-			const column = this.calculatedCache.get(xPosition);
+			const cacheColumn = this.calculatedCache.get(xPosition);
+			const partsColumn = this.parts[i];
 
-			for (const j of $range(0, AXIS_ITERATION_SIZE)) {
+			for (const j of $range(0, parameters.axisSize - 1)) {
 				const yPosition = j + yOffset;
-				const hue = (column?.get(yPosition) ?? 0) + trueHueShift;
+				const hue = (cacheColumn?.get(yPosition) ?? 0) + trueHueShift;
 
 				const color = Color3.fromHSV(hue > 1 ? hue - 1 : hue, 1, 1);
 
-				this.parts[i][j].Color = color;
+				partsColumn[j].Color = color;
 			}
 		}
 

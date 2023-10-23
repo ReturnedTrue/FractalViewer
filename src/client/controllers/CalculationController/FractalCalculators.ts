@@ -1,16 +1,17 @@
 import { modulus, complexDiv, complexMul } from "client/utility/complex";
-import { AXIS_SIZE, MAX_STABLE, NEWTON_TOLERANCE } from "shared/constants/fractal";
+import { MAX_STABLE, NEWTON_TOLERANCE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { newtonFunctionData } from "./NewtonFunctionData";
-import { $error } from "rbxts-transform-debug";
+import { $error, $warn } from "rbxts-transform-debug";
 
 type FractalCalculator = (
 	x: number,
 	y: number,
+	axisSize: number,
 	magnification: number,
 	maxIterations: number,
-	otherParameters: Omit<FractalParameters, "xOffset" | "yOffset" | "magnification" | "maxIterations">,
+	otherParameters: Omit<FractalParameters, "xOffset" | "yOffset" | "axisSize" | "magnification" | "maxIterations">,
 ) => number;
 
 const getFunctionRootHueFromCache = (cache: Map<number, number>, closestRoot: number) => {
@@ -27,9 +28,9 @@ const getFunctionRootHueFromCache = (cache: Map<number, number>, closestRoot: nu
 export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 	[
 		FractalId.Mandelbrot,
-		(x, y, magnification, maxIterations) => {
-			const cReal = (x / AXIS_SIZE / magnification) * 4 - 2;
-			const cImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
+		(x, y, axisSize, magnification, maxIterations) => {
+			const cReal = (x / axisSize / magnification) * 4 - 2;
+			const cImaginary = (y / axisSize / magnification) * 4 - 2;
 
 			let zReal = 0.01;
 			let zImaginary = 0.01;
@@ -49,9 +50,9 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 	[
 		FractalId.BurningShip,
-		(x, y, magnification, maxIterations) => {
-			const cReal = (x / AXIS_SIZE / magnification) * -4 + 2;
-			const cImaginary = (y / AXIS_SIZE / magnification) * -4 + 2;
+		(x, y, axisSize, magnification, maxIterations) => {
+			const cReal = (x / axisSize / magnification) * -4 + 2;
+			const cImaginary = (y / axisSize / magnification) * -4 + 2;
 
 			let zReal = cReal;
 			let zImaginary = cImaginary;
@@ -71,9 +72,9 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 	[
 		FractalId.Julia,
-		(x, y, magnification, maxIterations, { juliaRealConstant, juliaImaginaryConstant }) => {
-			let zReal = (x / AXIS_SIZE / magnification) * 4 - 2;
-			let zImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
+		(x, y, axisSize, magnification, maxIterations, { juliaRealConstant, juliaImaginaryConstant }) => {
+			let zReal = (x / axisSize / magnification) * 4 - 2;
+			let zImaginary = (y / axisSize / magnification) * 4 - 2;
 
 			for (const iteration of $range(1, maxIterations)) {
 				if (modulus(zReal, zImaginary) > MAX_STABLE) return iteration / maxIterations;
@@ -93,6 +94,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 		(
 			x,
 			y,
+			axisSize,
 			magnification,
 			maxIterations,
 			{ newtonFunction, newtonPreferRootBasisHue, newtonCoefficientReal, newtonCoefficientImaginary },
@@ -102,8 +104,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 			const hasDefinedRoots = "roots" in data;
 
-			let zReal = (x / AXIS_SIZE / magnification) * 4 - 2;
-			let zImaginary = (y / AXIS_SIZE / magnification) * 4 - 2;
+			let zReal = (x / axisSize / magnification) * 4 - 2;
+			let zImaginary = (y / axisSize / magnification) * 4 - 2;
 
 			for (const iteration of $range(1, maxIterations)) {
 				const [functionReal, functionImaginary] = data.execute(zReal, zImaginary);
@@ -139,6 +141,11 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				const size = modulus(zReal, zImaginary);
 				const closestRoot = data.determineClosestRoot(size);
 				if (math.abs(size - closestRoot) >= NEWTON_TOLERANCE) continue;
+
+				/// NaN occured
+				if (closestRoot !== closestRoot) {
+					return 0;
+				}
 
 				return newtonPreferRootBasisHue
 					? getFunctionRootHueFromCache(data.rootHueCache, closestRoot)

@@ -2,7 +2,7 @@ import { Controller, OnStart } from "@flamework/core";
 import { ContextActionService, UserInputService } from "@rbxts/services";
 import { FractalState } from "client/rodux/reducers/fractal";
 import { clientStore } from "client/rodux/store";
-import { AXIS_SIZE, MAGNIFICATION_INCREMENT, WASD_MOVEMENT_INCREMENT } from "shared/constants/fractal";
+import { MAGNIFICATION_INCREMENT, WASD_MOVEMENT_INCREMENT } from "shared/constants/fractal";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 type NavigationControlFunction = {

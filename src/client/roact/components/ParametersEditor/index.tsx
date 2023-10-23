@@ -33,6 +33,7 @@ function enumToArray<V>(enumGiven: Record<string, V>) {
 
 interface ParametersEditorProps {
 	parameters: FractalParameters;
+	visible: boolean;
 }
 
 class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
@@ -40,7 +41,8 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private newtonFunctionOptions = enumToArray(NewtonFunction);
 
 	render() {
-		const { parameters } = this.props;
+		const { parameters, visible } = this.props;
+		if (!visible) return;
 
 		function isCurrentlyFractal(fractal: FractalId) {
 			return parameters.fractalId === fractal;
@@ -81,22 +83,27 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 						appearOnRight: true,
 					})}
 
-					{createParameter(NumberParameter, "maxIterations", {
+					{createParameter(NumberParameter, "axisSize", {
 						order: 2,
+						playerFacingName: "Axis Size",
+					})}
+
+					{createParameter(NumberParameter, "maxIterations", {
+						order: 3,
 						playerFacingName: "Max Iterations",
 					})}
 
-					{createParameter(NumberParameter, "xOffset", { order: 3, playerFacingName: "X Offset" })}
-					{createParameter(NumberParameter, "yOffset", { order: 4, playerFacingName: "Y Offset" })}
+					{createParameter(NumberParameter, "xOffset", { order: 4, playerFacingName: "X Offset" })}
+					{createParameter(NumberParameter, "yOffset", { order: 5, playerFacingName: "Y Offset" })}
 
 					{createParameter(NumberParameter, "magnification", {
-						order: 5,
+						order: 6,
 						playerFacingName: "Magnification",
 						newValueConstraint: (value) => math.max(value, 1),
 					})}
 
 					{createParameter(NumberParameter, "hueShift", {
-						order: 6,
+						order: 7,
 						playerFacingName: "Hue Shift",
 						newValueConstraint: (value) => math.clamp(value, 0, 360),
 					})}
@@ -163,5 +170,6 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 export const ParametersEditor = connectComponent(BaseParametersEditor, (state) => {
 	return {
 		parameters: state.fractal.parameters,
+		visible: state.fractal.partsFolder !== undefined,
 	};
 });
