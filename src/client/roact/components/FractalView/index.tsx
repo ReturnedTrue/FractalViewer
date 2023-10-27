@@ -3,12 +3,14 @@ import { UserInputService, Workspace } from "@rbxts/services";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
 import { CAMERA_FOV } from "shared/constants/fractal";
+import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 
 const playerCamera = Workspace.CurrentCamera!;
 
 interface FractalViewProps {
 	folder: Folder | undefined;
+	interfaceMode: InterfaceMode;
 	parameters: FractalParameters;
 }
 
@@ -59,9 +61,9 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 		};*/
 
 		const { playerViewportSize } = this.state;
-		const calculatedViewSize = playerViewportSize.Y * 0.75;
 
-		// TODO implement full picture mode
+		const inFullPicture = this.props.interfaceMode === InterfaceMode.FullPicture;
+		const calculatedViewSize = playerViewportSize.Y * (inFullPicture ? 0.9 : 0.75);
 
 		return (
 			<viewportframe
@@ -73,7 +75,9 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				Ref={this.viewportRef}
 				BackgroundTransparency={1}
 				LightColor={new Color3(1, 1, 1)}
-				Position={new UDim2(0, (playerViewportSize.X - calculatedViewSize) / 2, 0.05, 0)}
+				Position={
+					new UDim2(0, (playerViewportSize.X - calculatedViewSize) / 2, inFullPicture ? 0.025 : 0.05, 0)
+				}
 				Size={UDim2.fromOffset(calculatedViewSize, calculatedViewSize)}
 			>
 				<camera
@@ -82,7 +86,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 					CFrame={new CFrame(axisSize / 2, axisSize / 2, axisSize / 2 / math.tan(math.rad(CAMERA_FOV / 2)))}
 				/>
 
-				{this.props.folder === undefined && (
+				{this.props.interfaceMode === InterfaceMode.Hidden && (
 					<textlabel
 						Key="LoadingLabel"
 						BackgroundTransparency={1}
@@ -129,6 +133,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 export const FractalView = connectComponent(BaseFractalView, (state) => {
 	return {
 		folder: state.fractal.partsFolder,
+		interfaceMode: state.fractal.interfaceMode,
 		parameters: state.fractal.parameters,
 	};
 });

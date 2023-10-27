@@ -3,65 +3,25 @@ import { ContextActionService, UserInputService } from "@rbxts/services";
 import { FractalState } from "client/rodux/reducers/fractal";
 import { clientStore } from "client/rodux/store";
 import { MAGNIFICATION_INCREMENT, WASD_MOVEMENT_INCREMENT } from "shared/constants/fractal";
-import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
+import { FractalParameterName, FractalParameterNameForType, FractalParameters } from "shared/types/FractalParameters";
 
-type NavigationControlFunction = {
-	[key in FractalParameterName]: (
-		state: Readonly<FractalState>,
-		input: InputObject,
-	) => { name: key; value: FractalParameters[key] } | false;
-}[FractalParameterName];
+type NavigationControlData = { edits: FractalParameterNameForType<number>; by: number } | (() => void);
 
-const navigationControls = new Map<Enum.KeyCode, NavigationControlFunction>([
-	[
-		Enum.KeyCode.D,
-		({ parameters }) => {
-			return { name: "xOffset", value: parameters.xOffset + WASD_MOVEMENT_INCREMENT };
-		},
-	],
+const navigationControls = new Map<Enum.KeyCode, NavigationControlData>([
+	[Enum.KeyCode.D, { edits: "xOffset", by: WASD_MOVEMENT_INCREMENT }],
 
-	[
-		Enum.KeyCode.A,
-		({ parameters }) => {
-			return { name: "xOffset", value: parameters.xOffset - WASD_MOVEMENT_INCREMENT };
-		},
-	],
+	[Enum.KeyCode.A, { edits: "xOffset", by: -WASD_MOVEMENT_INCREMENT }],
 
-	[
-		Enum.KeyCode.W,
-		({ parameters }) => {
-			return { name: "yOffset", value: parameters.yOffset + WASD_MOVEMENT_INCREMENT };
-		},
-	],
+	[Enum.KeyCode.W, { edits: "yOffset", by: WASD_MOVEMENT_INCREMENT }],
 
-	[
-		Enum.KeyCode.S,
-		({ parameters }) => {
-			return { name: "yOffset", value: parameters.yOffset - WASD_MOVEMENT_INCREMENT };
-		},
-	],
+	[Enum.KeyCode.S, { edits: "yOffset", by: -WASD_MOVEMENT_INCREMENT }],
 
-	[
-		Enum.KeyCode.E,
-		({ parameters }) => {
-			return { name: "magnification", value: parameters.magnification + MAGNIFICATION_INCREMENT };
-		},
-	],
+	[Enum.KeyCode.E, { edits: "magnification", by: MAGNIFICATION_INCREMENT }],
 
-	[
-		Enum.KeyCode.Q,
-		({ parameters }) => {
-			return { name: "magnification", value: parameters.magnification - MAGNIFICATION_INCREMENT };
-		},
-	],
+	[Enum.KeyCode.Q, { edits: "magnification", by: -MAGNIFICATION_INCREMENT }],
 
-	[
-		Enum.KeyCode.R,
-		() => {
-			clientStore.dispatch({ type: "resetParameters" });
-			return false;
-		},
-	],
+	[Enum.KeyCode.R, () => clientStore.dispatch({ type: "resetParameters" })],
+	[Enum.KeyCode.F, () => clientStore.dispatch({ type: "toggleFullPictureMode" })],
 ]);
 
 @Controller()
@@ -75,14 +35,17 @@ export class NavigationController implements OnStart {
 	}
 
 	private handleNextInput(input: InputObject) {
-		const registeredFunction = navigationControls.get(input.KeyCode);
-		if (!registeredFunction) return;
+		const controlData = navigationControls.get(input.KeyCode);
+		if (!controlData) return;
 
-		const { fractal } = clientStore.getState();
+		if (typeIs(controlData, "function")) {
+			controlData();
+			return;
+		}
 
-		const updatedParameter = registeredFunction(fractal, input);
-		if (!updatedParameter) return;
+		const { parameters } = clientStore.getState().fractal;
+		const newValue = parameters[controlData.edits] + controlData.by;
 
-		clientStore.dispatch({ type: "updateParameter", ...updatedParameter });
+		clientStore.dispatch({ type: "updateParameter", name: controlData.edits, value: newValue });
 	}
 }

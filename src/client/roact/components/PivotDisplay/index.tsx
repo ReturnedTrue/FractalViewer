@@ -1,19 +1,23 @@
 import Roact from "@rbxts/roact";
+import { TweenableBinding } from "client/roact/util/classes/TweenableBinding";
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
+import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { PivotParameterData } from "shared/types/FractalParameters";
 
 interface PivotDisplayProps {
-	visible: boolean;
+	interfaceMode: InterfaceMode;
 	pivot: PivotParameterData;
 }
 
 class BasePivotDisplay extends Roact.Component<PivotDisplayProps> {
+	private displayPosition = new TweenableBinding(0.775, { Time: 0.2 });
+
 	render() {
-		const { pivot, visible } = this.props;
-		if (!visible) return;
+		const { pivot, interfaceMode } = this.props;
+		if (interfaceMode === InterfaceMode.Hidden) return;
 
 		const onClear = () => {
 			if (!pivot) return;
@@ -27,7 +31,7 @@ class BasePivotDisplay extends Roact.Component<PivotDisplayProps> {
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				LayoutOrder={1}
-				Position={new UDim2(0.775, 0, 0.05, 0)}
+				Position={this.displayPosition.binding.map((value) => UDim2.fromScale(value, 0.05))}
 				Size={new UDim2(0.2, 0, 0.1, 0)}
 			>
 				<uicorner />
@@ -134,11 +138,22 @@ class BasePivotDisplay extends Roact.Component<PivotDisplayProps> {
 			</frame>
 		);
 	}
+
+	didUpdate(previousProps: PivotDisplayProps) {
+		const nowInFull = this.props.interfaceMode === InterfaceMode.FullPicture;
+		const wasInFull = previousProps.interfaceMode === InterfaceMode.FullPicture;
+
+		if (nowInFull && !wasInFull) {
+			this.displayPosition.tween(1.775);
+		} else if (!nowInFull && wasInFull) {
+			this.displayPosition.tween(0.775);
+		}
+	}
 }
 
 export const PivotDisplay = connectComponent(BasePivotDisplay, (state) => {
 	return {
 		pivot: state.fractal.parameters.pivot,
-		visible: state.fractal.partsFolder !== undefined,
+		interfaceMode: state.fractal.interfaceMode,
 	};
 });

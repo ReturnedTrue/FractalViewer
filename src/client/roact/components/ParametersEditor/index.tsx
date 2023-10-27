@@ -12,6 +12,8 @@ import {
 } from "shared/types/FractalParameters";
 import { clientStore } from "client/rodux/store";
 import { BooleanParameter } from "./BooleanParameter";
+import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { TweenableBinding } from "client/roact/util/classes/TweenableBinding";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -33,16 +35,19 @@ function enumToArray<V>(enumGiven: Record<string, V>) {
 
 interface ParametersEditorProps {
 	parameters: FractalParameters;
-	visible: boolean;
+	interfaceMode: InterfaceMode;
 }
 
 class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private fractalOptions = enumToArray(FractalId);
 	private newtonFunctionOptions = enumToArray(NewtonFunction);
 
+	private leftHandPosition = new TweenableBinding(0.025, { Time: 0.2 });
+	private rightHandPosition = new TweenableBinding(0.775, { Time: 0.2 });
+
 	render() {
-		const { parameters, visible } = this.props;
-		if (!visible) return;
+		const { parameters, interfaceMode } = this.props;
+		if (interfaceMode === InterfaceMode.Hidden) return;
 
 		function isCurrentlyFractal(fractal: FractalId) {
 			return parameters.fractalId === fractal;
@@ -66,7 +71,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 				<frame
 					Key="LeftHandParametersEditor"
 					BackgroundTransparency={1}
-					Position={UDim2.fromScale(0.025, 0.05)}
+					Position={this.leftHandPosition.binding.map((value) => UDim2.fromScale(value, 0.05))}
 					Size={UDim2.fromScale(1, 1)}
 				>
 					<uilistlayout
@@ -112,7 +117,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 				<frame
 					Key="RightHandParametersEditor"
 					BackgroundTransparency={1}
-					Position={UDim2.fromScale(0.775, 0.175)}
+					Position={this.rightHandPosition.binding.map((value) => UDim2.fromScale(value, 0.175))}
 					Size={UDim2.fromScale(1, 1)}
 				>
 					<uilistlayout
@@ -165,11 +170,24 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 			</Roact.Fragment>
 		);
 	}
+
+	didUpdate(previousProps: ParametersEditorProps) {
+		const nowInFull = this.props.interfaceMode === InterfaceMode.FullPicture;
+		const wasInFull = previousProps.interfaceMode === InterfaceMode.FullPicture;
+
+		if (nowInFull && !wasInFull) {
+			this.leftHandPosition.tween(-0.975);
+			this.rightHandPosition.tween(1.775);
+		} else if (!nowInFull && wasInFull) {
+			this.leftHandPosition.tween(0.025);
+			this.rightHandPosition.tween(0.775);
+		}
+	}
 }
 
 export const ParametersEditor = connectComponent(BaseParametersEditor, (state) => {
 	return {
 		parameters: state.fractal.parameters,
-		visible: state.fractal.partsFolder !== undefined,
+		interfaceMode: state.fractal.interfaceMode,
 	};
 });

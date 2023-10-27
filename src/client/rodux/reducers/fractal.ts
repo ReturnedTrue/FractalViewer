@@ -1,10 +1,13 @@
 import { Action, createReducer } from "@rbxts/rodux";
 import { DEFAULT_FRACTAL_PARAMETERS, PARAMETERS_WHICH_RETAIN_CACHE } from "shared/constants/fractal";
+import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 interface SetPartsFolder extends Action<"setPartsFolder"> {
 	partsFolder: Folder | undefined;
 }
+
+interface ToggleFullPictureMode extends Action<"toggleFullPictureMode"> {}
 
 interface SetParameters extends Action<"setParameters"> {
 	parameters: Partial<FractalParameters>;
@@ -17,13 +20,15 @@ interface UpdateParameter extends Action<"updateParameter"> {
 
 interface ResetParameters extends Action<"resetParameters"> {}
 
-export type FractalActions = SetPartsFolder | SetParameters | UpdateParameter | ResetParameters;
+export type FractalActions = SetPartsFolder | ToggleFullPictureMode | SetParameters | UpdateParameter | ResetParameters;
 export interface FractalState {
 	parametersLastUpdated: number;
 	parameters: FractalParameters;
 
 	hasCacheBeenVoided: boolean;
 	partsFolder: Folder | undefined;
+
+	interfaceMode: InterfaceMode;
 }
 
 const DEFAULT_VALUE = {
@@ -32,6 +37,8 @@ const DEFAULT_VALUE = {
 
 	hasCacheBeenVoided: false,
 	partsFolder: undefined,
+
+	interfaceMode: InterfaceMode.Hidden,
 } satisfies FractalState;
 
 type ParameterSideEffects = {
@@ -83,7 +90,22 @@ const parameterSideEffects: ParameterSideEffects = {
 
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
 	setPartsFolder: (state, { partsFolder }) => {
-		return { ...state, partsFolder, parametersLastUpdated: os.clock() };
+		return {
+			...state,
+			partsFolder,
+			interfaceMode: partsFolder !== undefined ? InterfaceMode.Shown : InterfaceMode.Hidden,
+			parametersLastUpdated: os.clock(),
+		};
+	},
+
+	toggleFullPictureMode: (state) => {
+		if (state.partsFolder === undefined) return state;
+
+		return {
+			...state,
+			interfaceMode:
+				state.interfaceMode !== InterfaceMode.FullPicture ? InterfaceMode.FullPicture : InterfaceMode.Shown,
+		};
 	},
 
 	setParameters: (state, { parameters }) => {
