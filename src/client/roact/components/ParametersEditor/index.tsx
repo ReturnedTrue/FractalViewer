@@ -13,7 +13,7 @@ import {
 import { clientStore } from "client/rodux/store";
 import { BooleanParameter } from "./BooleanParameter";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
-import { TweenableBinding } from "client/roact/util/classes/TweenableBinding";
+import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -42,8 +42,8 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private fractalOptions = enumToArray(FractalId);
 	private newtonFunctionOptions = enumToArray(NewtonFunction);
 
-	private leftHandPosition = new TweenableBinding(0.025, { Time: 0.2 });
-	private rightHandPosition = new TweenableBinding(0.775, { Time: 0.2 });
+	private leftHandPosition = new TweenableNumberBinding(0.025, { time: 0.5 });
+	private rightHandPosition = new TweenableNumberBinding(0.775, { time: 0.5 });
 
 	render() {
 		const { parameters, interfaceMode } = this.props;

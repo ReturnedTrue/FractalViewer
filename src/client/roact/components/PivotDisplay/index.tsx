@@ -1,5 +1,5 @@
 import Roact from "@rbxts/roact";
-import { TweenableBinding } from "client/roact/util/classes/TweenableBinding";
+import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
@@ -13,7 +13,7 @@ interface PivotDisplayProps {
 }
 
 class BasePivotDisplay extends Roact.Component<PivotDisplayProps> {
-	private displayPosition = new TweenableBinding(0.775, { Time: 0.2 });
+	private displayPosition = new TweenableNumberBinding(0.775, { time: 0.5 });
 
 	render() {
 		const { pivot, interfaceMode } = this.props;

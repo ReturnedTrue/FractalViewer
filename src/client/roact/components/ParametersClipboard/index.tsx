@@ -4,7 +4,7 @@ import { CopyFractal } from "./CopyFractal";
 import { PasteFractal } from "./PasteFractal";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
-import { TweenableBinding } from "client/roact/util/classes/TweenableBinding";
+import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
 import { propsInFullPicture } from "client/roact/util/functions/propsInFullPicture";
 
 interface ParametersClipboardProps {
@@ -13,7 +13,7 @@ interface ParametersClipboardProps {
 }
 
 class BaseParametersClipboard extends Roact.Component<ParametersClipboardProps> {
-	private clipboardPosition = new TweenableBinding(0, { Time: 0.2 });
+	private clipboardPosition = new TweenableNumberBinding(0, { time: 0.5 });
 
 	render() {
 		const { parameters, interfaceMode } = this.props;
