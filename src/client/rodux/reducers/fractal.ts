@@ -9,6 +9,8 @@ interface SetPartsFolder extends Action<"setPartsFolder"> {
 
 interface ToggleFullPictureMode extends Action<"toggleFullPictureMode"> {}
 
+interface ToggleResetOnFractalChange extends Action<"toggleResetOnFractalChange"> {}
+
 interface SetParameters extends Action<"setParameters"> {
 	parameters: Partial<FractalParameters>;
 }
@@ -20,8 +22,16 @@ interface UpdateParameter extends Action<"updateParameter"> {
 
 interface ResetParameters extends Action<"resetParameters"> {}
 
-export type FractalActions = SetPartsFolder | ToggleFullPictureMode | SetParameters | UpdateParameter | ResetParameters;
+export type FractalActions =
+	| SetPartsFolder
+	| ToggleFullPictureMode
+	| ToggleResetOnFractalChange
+	| SetParameters
+	| UpdateParameter
+	| ResetParameters;
+
 export interface FractalState {
+	parametersResetWithFractalChange: boolean;
 	parametersLastUpdated: number;
 	parameters: FractalParameters;
 
@@ -32,6 +42,7 @@ export interface FractalState {
 }
 
 const DEFAULT_VALUE = {
+	parametersResetWithFractalChange: false,
 	parametersLastUpdated: os.clock(),
 	parameters: DEFAULT_FRACTAL_PARAMETERS,
 
@@ -75,9 +86,9 @@ const parameterSideEffects: ParameterSideEffects = {
 		};
 	},
 
-	// TODO create a setting to make changing the fractal reset the primary parameters
-	/*
-	fractalId: () => {
+	fractalId: (_newFractal, _oldFractal, { parametersResetWithFractalChange }) => {
+		if (!parametersResetWithFractalChange) return;
+
 		return {
 			xOffset: 0,
 			yOffset: 0,
@@ -85,7 +96,6 @@ const parameterSideEffects: ParameterSideEffects = {
 			pivot: false,
 		};
 	},
-	*/
 };
 
 export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAULT_VALUE, {
@@ -105,6 +115,13 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 			...state,
 			interfaceMode:
 				state.interfaceMode !== InterfaceMode.FullPicture ? InterfaceMode.FullPicture : InterfaceMode.Shown,
+		};
+	},
+
+	toggleResetOnFractalChange: (state) => {
+		return {
+			...state,
+			parametersResetWithFractalChange: !state.parametersResetWithFractalChange,
 		};
 	},
 

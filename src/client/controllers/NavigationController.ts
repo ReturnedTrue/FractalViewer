@@ -3,6 +3,8 @@ import { ContextActionService, UserInputService } from "@rbxts/services";
 import { FractalState } from "client/rodux/reducers/fractal";
 import { clientStore } from "client/rodux/store";
 import { MAGNIFICATION_INCREMENT, WASD_MOVEMENT_INCREMENT } from "shared/constants/fractal";
+import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { NotificationImportance } from "shared/enums/NotificationImportance";
 import { FractalParameterName, FractalParameterNameForType, FractalParameters } from "shared/types/FractalParameters";
 
 type NavigationControlData = { edits: FractalParameterNameForType<number>; by: number } | (() => void);
@@ -20,8 +22,56 @@ const navigationControls = new Map<Enum.KeyCode, NavigationControlData>([
 
 	[Enum.KeyCode.Q, { edits: "magnification", by: -MAGNIFICATION_INCREMENT }],
 
-	[Enum.KeyCode.R, () => clientStore.dispatch({ type: "resetParameters" })],
-	[Enum.KeyCode.F, () => clientStore.dispatch({ type: "toggleFullPictureMode" })],
+	[
+		Enum.KeyCode.R,
+		() => {
+			clientStore.dispatch({ type: "resetParameters" });
+
+			clientStore.dispatch({
+				type: "sendNotification",
+				data: {
+					text: "Fractal parameters were reset",
+					importance: NotificationImportance.Medium,
+				},
+			});
+		},
+	],
+
+	[
+		Enum.KeyCode.T,
+		() => {
+			clientStore.dispatch({ type: "toggleResetOnFractalChange" });
+
+			const { parametersResetWithFractalChange } = clientStore.getState().fractal;
+
+			clientStore.dispatch({
+				type: "sendNotification",
+				data: {
+					text: `Main parameters will ${
+						parametersResetWithFractalChange ? "no longer" : ""
+					} reset on fractal change`,
+					importance: NotificationImportance.Medium,
+				},
+			});
+		},
+	],
+
+	[
+		Enum.KeyCode.F,
+		() => {
+			clientStore.dispatch({ type: "toggleFullPictureMode" });
+
+			const { interfaceMode } = clientStore.getState().fractal;
+
+			clientStore.dispatch({
+				type: "sendNotification",
+				data: {
+					text: `${interfaceMode === InterfaceMode.FullPicture ? "Entered" : "Left"} full picture mode`,
+					importance: NotificationImportance.Low,
+				},
+			});
+		},
+	],
 ]);
 
 @Controller()

@@ -80,7 +80,9 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 						<PixelScrollingFrame
 							Key="InnerFrame"
 							pixelsPerScroll={optionSize.Y.Offset * 1.2}
-							timePerScroll={0.25}
+							tweenData={{
+								time: 0.25,
+							}}
 							scrollingFrameProps={{
 								BackgroundTransparency: 1,
 								CanvasSize: new UDim2(0, 0, 0, (options.size() - 1) * (optionSize.Y.Offset * (4 / 3))),

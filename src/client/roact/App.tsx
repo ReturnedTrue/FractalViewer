@@ -6,6 +6,7 @@ import { ParametersEditor } from "./components/ParametersEditor";
 import { ParametersClipboard } from "./components/ParametersClipboard";
 import { GuiService } from "@rbxts/services";
 import { PivotDisplay } from "./components/PivotDisplay";
+import { NotificationBar } from "./components/NotificationBar";
 
 const [guiInset] = GuiService.GetGuiInset();
 
@@ -23,6 +24,8 @@ export class App extends Roact.Component<AppProps> {
 						Size={new UDim2(1, 0, 1, guiInset.Y)}
 						ZIndex={-1}
 					/>
+
+					<NotificationBar />
 
 					<FractalView />
 					<ParametersEditor />
