@@ -8,11 +8,6 @@ export interface BindingTweenData {
 	easingDirection: Enum.EasingDirection;
 }
 
-export enum BindingTweenStatus {
-	Completed,
-	Cancelled,
-}
-
 const DEFAULT_INFO = {
 	time: 1,
 	easingStyle: Enum.EasingStyle.Sine,
@@ -29,7 +24,7 @@ export class TweenableNumberBinding {
 	private updateBinding: BindingFunction<number>;
 	private currentTween?: {
 		connection: RBXScriptConnection;
-		statusEvent: Signal<BindingTweenStatus>;
+		callback?: (didComplete: boolean) => void;
 	};
 
 	constructor(initialValue = 0, private sharedData?: Partial<BindingTweenData>) {
@@ -37,13 +32,13 @@ export class TweenableNumberBinding {
 	}
 
 	public set(value: number) {
-		this.stopCurrentTween(BindingTweenStatus.Cancelled);
+		this.stopCurrentTween(false);
 
 		this.updateBinding(value);
 	}
 
-	public tween(targetValue: number) {
-		this.stopCurrentTween(BindingTweenStatus.Cancelled);
+	public tween(targetValue: number, callback?: (didComplete: boolean) => void) {
+		this.stopCurrentTween(false);
 
 		const chosenData = { ...DEFAULT_INFO, ...this.sharedData };
 		const originalValue = this.binding.getValue();
@@ -55,7 +50,7 @@ export class TweenableNumberBinding {
 				accumulatedTime += deltaTime;
 
 				if (accumulatedTime > chosenData.time) {
-					this.stopCurrentTween(BindingTweenStatus.Completed);
+					this.stopCurrentTween(true);
 					return;
 				}
 
@@ -68,19 +63,17 @@ export class TweenableNumberBinding {
 				this.updateBinding(lerp(originalValue, targetValue, alpha));
 			}),
 
-			statusEvent: new Signal(),
+			callback,
 		};
-
-		return this.currentTween.statusEvent;
 	}
 
-	private stopCurrentTween(status: BindingTweenStatus) {
+	private stopCurrentTween(didComplete: boolean) {
 		if (this.currentTween) {
 			const tweenReference = this.currentTween;
 			this.currentTween = undefined;
 
 			tweenReference.connection.Disconnect();
-			tweenReference.statusEvent.Fire(status);
+			tweenReference.callback?.(didComplete);
 		}
 	}
 }

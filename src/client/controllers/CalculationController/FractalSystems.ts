@@ -3,7 +3,7 @@ import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { fractalCalculators } from "./FractalCalculators";
 import { $error } from "rbxts-transform-debug";
-import { modulus } from "client/utility/complex";
+import { modulus } from "client/controllers/CalculationController/ComplexMath";
 
 type FractalSystem = (parameters: FractalParameters, cache: Map<number, Map<number, number>>) => void;
 

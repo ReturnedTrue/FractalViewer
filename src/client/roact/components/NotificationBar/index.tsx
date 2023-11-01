@@ -1,8 +1,9 @@
 import Roact from "@rbxts/roact";
-import { BindingTweenStatus, TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
+import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
+import { NOTIFICATION_TIME } from "shared/constants/notification";
 import { NotifcationData } from "shared/types/NotificationData";
 
 interface NotificationBarProps {
@@ -14,18 +15,17 @@ class BaseNotificationBar extends Roact.Component<NotificationBarProps> {
 	private notificationPosition = new TweenableNumberBinding(-1.2, { time: 0.5 });
 
 	render() {
-		if (!this.props.nextNotification) return;
+		const { nextNotification } = this.props;
+		if (!nextNotification) return;
 
-		const { text } = this.props.nextNotification;
-
-		// TODO work with importance, connect close button, improve design
+		const { text } = nextNotification;
 
 		return (
 			<frame
 				Key="NotificationBar"
 				BackgroundTransparency={1}
 				Position={new UDim2(0, 0, 0, -36)}
-				Size={new UDim2(1, 0, 0.025, 36)}
+				Size={new UDim2(1, 0, 0.015, 36)}
 			>
 				<frame
 					Key="Notification"
@@ -40,7 +40,7 @@ class BaseNotificationBar extends Roact.Component<NotificationBarProps> {
 						Key="Label"
 						BackgroundTransparency={1}
 						Font={Enum.Font.SourceSans}
-						Size={new UDim2(0.8, 0, 1, 0)}
+						Size={new UDim2(1, 0, 1, 0)}
 						Text={text}
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}
@@ -49,20 +49,6 @@ class BaseNotificationBar extends Roact.Component<NotificationBarProps> {
 					>
 						<UnifiedTextScaler />
 					</textlabel>
-
-					<textbutton
-						Key="Close"
-						BackgroundTransparency={1}
-						Font={Enum.Font.Ubuntu}
-						Position={new UDim2(0.8, 0, 0, 0)}
-						Size={new UDim2(0.2, 0, 1, 0)}
-						Text="X"
-						TextColor3={Color3.fromRGB(255, 255, 255)}
-						TextScaled={true}
-						TextSize={14}
-						TextWrapped={true}
-						TextXAlignment={Enum.TextXAlignment.Right}
-					/>
 				</frame>
 			</frame>
 		);
@@ -74,11 +60,10 @@ class BaseNotificationBar extends Roact.Component<NotificationBarProps> {
 		if (previousProps.updatedTime !== threadUpdatedTime) {
 			this.notificationPosition.set(-1.2);
 
-			const event = this.notificationPosition.tween(0.2);
-			event.Once((status) => {
-				if (status !== BindingTweenStatus.Completed) return;
+			this.notificationPosition.tween(0.2, (didComplete) => {
+				if (!didComplete) return;
 
-				task.wait(0.5);
+				task.wait(NOTIFICATION_TIME);
 				if (this.props.updatedTime !== threadUpdatedTime) return;
 
 				this.notificationPosition.tween(-1.2);

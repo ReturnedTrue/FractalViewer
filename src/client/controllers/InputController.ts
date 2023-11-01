@@ -1,15 +1,14 @@
 import { Controller, OnStart } from "@flamework/core";
-import { ContextActionService, UserInputService } from "@rbxts/services";
-import { FractalState } from "client/rodux/reducers/fractal";
+import { UserInputService } from "@rbxts/services";
 import { clientStore } from "client/rodux/store";
 import { MAGNIFICATION_INCREMENT, WASD_MOVEMENT_INCREMENT } from "shared/constants/fractal";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
-import { NotificationImportance } from "shared/enums/NotificationImportance";
-import { FractalParameterName, FractalParameterNameForType, FractalParameters } from "shared/types/FractalParameters";
+import { FractalParameterNameForType } from "shared/types/FractalParameters";
+import { NotifcationData } from "shared/types/NotificationData";
 
-type NavigationControlData = { edits: FractalParameterNameForType<number>; by: number } | (() => void);
+type InputControlData = { edits: FractalParameterNameForType<number>; by: number } | (() => NotifcationData | void);
 
-const navigationControls = new Map<Enum.KeyCode, NavigationControlData>([
+const inputControls = new Map<Enum.KeyCode, InputControlData>([
 	[Enum.KeyCode.D, { edits: "xOffset", by: WASD_MOVEMENT_INCREMENT }],
 
 	[Enum.KeyCode.A, { edits: "xOffset", by: -WASD_MOVEMENT_INCREMENT }],
@@ -27,13 +26,9 @@ const navigationControls = new Map<Enum.KeyCode, NavigationControlData>([
 		() => {
 			clientStore.dispatch({ type: "resetParameters" });
 
-			clientStore.dispatch({
-				type: "sendNotification",
-				data: {
-					text: "Fractal parameters were reset",
-					importance: NotificationImportance.Medium,
-				},
-			});
+			return {
+				text: "Fractal parameters were reset",
+			};
 		},
 	],
 
@@ -44,15 +39,11 @@ const navigationControls = new Map<Enum.KeyCode, NavigationControlData>([
 
 			const { parametersResetWithFractalChange } = clientStore.getState().fractal;
 
-			clientStore.dispatch({
-				type: "sendNotification",
-				data: {
-					text: `Main parameters will ${
-						parametersResetWithFractalChange ? "no longer" : ""
-					} reset on fractal change`,
-					importance: NotificationImportance.Medium,
-				},
-			});
+			return {
+				text: `Main parameters will ${
+					parametersResetWithFractalChange ? "no longer" : ""
+				} reset on fractal change`,
+			};
 		},
 	],
 
@@ -63,19 +54,15 @@ const navigationControls = new Map<Enum.KeyCode, NavigationControlData>([
 
 			const { interfaceMode } = clientStore.getState().fractal;
 
-			clientStore.dispatch({
-				type: "sendNotification",
-				data: {
-					text: `${interfaceMode === InterfaceMode.FullPicture ? "Entered" : "Left"} full picture mode`,
-					importance: NotificationImportance.Low,
-				},
-			});
+			return {
+				text: `${interfaceMode === InterfaceMode.FullPicture ? "Entered" : "Left"} full picture mode`,
+			};
 		},
 	],
 ]);
 
 @Controller()
-export class NavigationController implements OnStart {
+export class InputController implements OnStart {
 	onStart() {
 		UserInputService.InputBegan.Connect((input, processed) => {
 			if (processed) return;
@@ -85,15 +72,22 @@ export class NavigationController implements OnStart {
 	}
 
 	private handleNextInput(input: InputObject) {
-		const controlData = navigationControls.get(input.KeyCode);
+		const controlData = inputControls.get(input.KeyCode);
 		if (!controlData) return;
 
+		const { partsFolder, parameters } = clientStore.getState().fractal;
+		if (!partsFolder) return;
+
 		if (typeIs(controlData, "function")) {
-			controlData();
+			const notificationData = controlData();
+
+			if (notificationData) {
+				clientStore.dispatch({ type: "sendNotification", data: notificationData });
+			}
+
 			return;
 		}
 
-		const { parameters } = clientStore.getState().fractal;
 		const newValue = parameters[controlData.edits] + controlData.by;
 
 		clientStore.dispatch({ type: "updateParameter", name: controlData.edits, value: newValue });

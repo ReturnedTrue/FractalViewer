@@ -29,11 +29,11 @@ export const complexPow = (real: number, imaginary: number, exponent: number) =>
 	z1 = r1 * (cos(theta1) + isin(theta1))
 	z2 = r2 * (cos(theta2) + isin(theta2))
 
-	z1/z2 = (r1 / r2) * (cos(theta1 - theta2) * isin(theta1 - theta2))
+	z1 * z2 = (r1 * r2) * (cos(theta1 + theta2) * isin(theta1 + theta2))
 */
 export const complexMul = (real1: number, imaginary1: number, real2: number, imaginary2: number) => {
-	const newMagnitude = modulus(real1, imaginary1) / modulus(real2, imaginary2);
-	const newTheta = math.atan2(imaginary1, real1) - math.atan2(imaginary2, real2);
+	const newMagnitude = modulus(real1, imaginary1) * modulus(real2, imaginary2);
+	const newTheta = math.atan2(imaginary1, real1) + math.atan2(imaginary2, real2);
 
 	return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));
 };
@@ -42,7 +42,7 @@ export const complexMul = (real1: number, imaginary1: number, real2: number, ima
 	z1 = r1 * (cos(theta1) + isin(theta1))
 	z2 = r2 * (cos(theta2) + isin(theta2))
 
-	z1/z2 = (r1 / r2) * (cos(theta1 - theta2) * isin(theta1 - theta2))
+	z1 / z2 = (r1 / r2) * (cos(theta1 - theta2) * isin(theta1 - theta2))
 */
 export const complexDiv = (real1: number, imaginary1: number, real2: number, imaginary2: number) => {
 	const newMagnitude = modulus(real1, imaginary1) / modulus(real2, imaginary2);

@@ -1,4 +1,4 @@
-import { modulus, complexDiv, complexMul } from "client/utility/complex";
+import { modulus, complexDiv, complexMul } from "client/controllers/CalculationController/ComplexMath";
 import { MAX_STABLE, NEWTON_TOLERANCE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
@@ -131,7 +131,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				if (hasDefinedRoots) {
 					for (const [rootReal, rootImaginary, rootHue] of data.roots) {
 						if (modulus(zReal - rootReal, zImaginary - rootImaginary) < NEWTON_TOLERANCE) {
-							return rootHue;
+							return newtonPreferRootBasisHue ? rootHue : iteration / maxIterations;
 						}
 					}
 
