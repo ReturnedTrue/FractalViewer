@@ -98,17 +98,22 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 						playerFacingName: "Max Iterations",
 					})}
 
-					{createParameter(NumberParameter, "xOffset", { order: 4, playerFacingName: "X Offset" })}
-					{createParameter(NumberParameter, "yOffset", { order: 5, playerFacingName: "Y Offset" })}
+					{createParameter(NumberParameter, "maxStable", {
+						order: 4,
+						playerFacingName: "Max Stable",
+					})}
+
+					{createParameter(NumberParameter, "xOffset", { order: 5, playerFacingName: "X Offset" })}
+					{createParameter(NumberParameter, "yOffset", { order: 6, playerFacingName: "Y Offset" })}
 
 					{createParameter(NumberParameter, "magnification", {
-						order: 6,
+						order: 7,
 						playerFacingName: "Magnification",
 						newValueConstraint: (value) => math.max(value, 1),
 					})}
 
 					{createParameter(NumberParameter, "hueShift", {
-						order: 7,
+						order: 8,
 						playerFacingName: "Hue Shift",
 						newValueConstraint: (value) => math.clamp(value, 0, 360),
 					})}

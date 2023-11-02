@@ -4,6 +4,7 @@ import { NewtonFunction } from "shared/enums/NewtonFunction";
 export interface FractalParameters {
 	fractalId: FractalId;
 	maxIterations: number;
+	maxStable: number;
 	axisSize: number;
 
 	pivot: [number, number] | false;

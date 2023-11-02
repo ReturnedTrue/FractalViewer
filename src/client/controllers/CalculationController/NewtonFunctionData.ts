@@ -1,4 +1,10 @@
-import { complexSquare, complexPow, complexSine, complexCos, complexTan } from "client/controllers/CalculationController/ComplexMath";
+import {
+	complexSquare,
+	complexPow,
+	complexSine,
+	complexCos,
+	complexTan,
+} from "client/controllers/CalculationController/ComplexMath";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 
 type NewtonFunctionDefinedRoots = {
