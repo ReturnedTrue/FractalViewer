@@ -1,25 +1,41 @@
 import { Controller, OnStart } from "@flamework/core";
 import { UserInputService } from "@rbxts/services";
 import { clientStore } from "client/rodux/store";
-import { MAGNIFICATION_INCREMENT, WASD_MOVEMENT_INCREMENT } from "shared/constants/fractal";
+import {
+	HELD_INPUT_SECONDS_INTERVAL,
+	MAGNIFICATION_INCREMENT,
+	WASD_MOVEMENT_INCREMENT,
+} from "shared/constants/fractal";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
-import { FractalParameterNameForType } from "shared/types/FractalParameters";
+import { FractalParameterNameForType, FractalParameters } from "shared/types/FractalParameters";
 import { NotifcationData } from "shared/types/NotificationData";
 
-type InputControlData = { edits: FractalParameterNameForType<number>; by: number } | (() => NotifcationData | void);
+type ParameterEditingControlData = {
+	edits: FractalParameterNameForType<number>;
+	by: number;
+	repeats?: boolean;
+	validatedVia?: (newValue: number) => boolean;
+};
+
+type FunctionControlData = () => NotifcationData | void;
+
+type InputControlData = ParameterEditingControlData | FunctionControlData;
 
 const inputControls = new Map<Enum.KeyCode, InputControlData>([
-	[Enum.KeyCode.D, { edits: "xOffset", by: WASD_MOVEMENT_INCREMENT }],
+	[Enum.KeyCode.D, { edits: "xOffset", by: WASD_MOVEMENT_INCREMENT, repeats: true }],
 
-	[Enum.KeyCode.A, { edits: "xOffset", by: -WASD_MOVEMENT_INCREMENT }],
+	[Enum.KeyCode.A, { edits: "xOffset", by: -WASD_MOVEMENT_INCREMENT, repeats: true }],
 
-	[Enum.KeyCode.W, { edits: "yOffset", by: WASD_MOVEMENT_INCREMENT }],
+	[Enum.KeyCode.W, { edits: "yOffset", by: WASD_MOVEMENT_INCREMENT, repeats: true }],
 
-	[Enum.KeyCode.S, { edits: "yOffset", by: -WASD_MOVEMENT_INCREMENT }],
+	[Enum.KeyCode.S, { edits: "yOffset", by: -WASD_MOVEMENT_INCREMENT, repeats: true }],
 
-	[Enum.KeyCode.E, { edits: "magnification", by: MAGNIFICATION_INCREMENT }],
+	[Enum.KeyCode.E, { edits: "magnification", by: MAGNIFICATION_INCREMENT, repeats: true }],
 
-	[Enum.KeyCode.Q, { edits: "magnification", by: -MAGNIFICATION_INCREMENT }],
+	[
+		Enum.KeyCode.Q,
+		{ edits: "magnification", by: -MAGNIFICATION_INCREMENT, repeats: true, validatedVia: (value) => value > 0 },
+	],
 
 	[
 		Enum.KeyCode.R,
@@ -38,11 +54,10 @@ const inputControls = new Map<Enum.KeyCode, InputControlData>([
 			clientStore.dispatch({ type: "toggleResetOnFractalChange" });
 
 			const { parametersResetWithFractalChange } = clientStore.getState().fractal;
+			const innerText = parametersResetWithFractalChange ? "no longer " : "";
 
 			return {
-				text: `Main parameters will ${
-					parametersResetWithFractalChange ? "no longer" : ""
-				} reset on fractal change`,
+				text: `Main parameters will ${innerText}reset on fractal change`,
 			};
 		},
 	],
@@ -63,33 +78,70 @@ const inputControls = new Map<Enum.KeyCode, InputControlData>([
 
 @Controller()
 export class InputController implements OnStart {
+	private controlThreads = new Map<Enum.KeyCode, thread>();
+
 	onStart() {
 		UserInputService.InputBegan.Connect((input, processed) => {
 			if (processed) return;
 
-			this.handleNextInput(input);
+			this.handleControl(input.KeyCode);
+		});
+
+		UserInputService.InputEnded.Connect((input, processed) => {
+			if (processed) return;
+
+			const ongoingControlThread = this.controlThreads.get(input.KeyCode);
+
+			if (ongoingControlThread) {
+				task.cancel(ongoingControlThread);
+				this.controlThreads.delete(input.KeyCode);
+			}
 		});
 	}
 
-	private handleNextInput(input: InputObject) {
-		const controlData = inputControls.get(input.KeyCode);
+	private handleControl(keyCode: Enum.KeyCode) {
+		const controlData = inputControls.get(keyCode);
 		if (!controlData) return;
 
-		const { partsFolder, parameters } = clientStore.getState().fractal;
-		if (!partsFolder) return;
+		const { interfaceMode, parameters } = clientStore.getState().fractal;
+		if (interfaceMode === InterfaceMode.Hidden) return;
 
 		if (typeIs(controlData, "function")) {
-			const notificationData = controlData();
-
-			if (notificationData) {
-				clientStore.dispatch({ type: "sendNotification", data: notificationData });
-			}
-
+			this.runFunctionData(controlData);
 			return;
 		}
 
-		const newValue = parameters[controlData.edits] + controlData.by;
+		this.runParameterEditingData(parameters, controlData);
 
-		clientStore.dispatch({ type: "updateParameter", name: controlData.edits, value: newValue });
+		if (controlData.repeats && UserInputService.IsKeyDown(keyCode)) {
+			const controlThread = task.spawn(() => {
+				while (true) {
+					task.wait(HELD_INPUT_SECONDS_INTERVAL);
+
+					const { parameters: parametersNow } = clientStore.getState().fractal;
+					this.runParameterEditingData(parametersNow, controlData);
+				}
+			});
+
+			this.controlThreads.set(keyCode, controlThread);
+		}
+	}
+
+	private runFunctionData(data: FunctionControlData) {
+		const notificationData = data();
+
+		if (notificationData) {
+			clientStore.dispatch({ type: "sendNotification", data: notificationData });
+		}
+	}
+
+	private runParameterEditingData(parameters: FractalParameters, data: ParameterEditingControlData) {
+		const newValue = parameters[data.edits] + data.by;
+
+		if (data.validatedVia && !data.validatedVia(newValue)) {
+			return;
+		}
+
+		clientStore.dispatch({ type: "updateParameter", name: data.edits, value: newValue });
 	}
 }
