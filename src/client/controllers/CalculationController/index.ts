@@ -1,12 +1,7 @@
 import { Controller, OnStart } from "@flamework/core";
-import {
-	DEFAULT_FRACTAL_PARAMETERS,
-	MAX_PARTS_PER_CREATION_SEGMENT,
-	MAX_PARTS_PER_DELETION_SEGMENT,
-} from "shared/constants/fractal";
+import { MAX_PARTS_PER_CREATION_SEGMENT, MAX_PARTS_PER_DELETION_SEGMENT } from "shared/constants/fractal";
 import { $print } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
-import { FractalState } from "client/rodux/reducers/fractal";
 import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
@@ -68,7 +63,6 @@ export class CalculationController implements OnStart {
 			this.applyFractal(parameters);
 
 			if (viewAfterApplication) {
-				task.wait();
 				clientStore.dispatch({ type: "changeViewingStatus", isViewed: true });
 			}
 		});
@@ -149,9 +143,8 @@ export class CalculationController implements OnStart {
 	}
 
 	private applyFractal({ xOffset, yOffset, hueShift, axisSize }: FractalParameters) {
-		const endTimer = beginTimer();
-
 		const trueHueShift = hueShift / 360;
+		const endTimer = beginTimer();
 
 		for (const i of $range(0, axisSize - 1)) {
 			const xPosition = i + xOffset;

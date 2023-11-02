@@ -4,7 +4,7 @@ import { FractalParameterName, FractalParameters } from "shared/types/FractalPar
 
 export const MAX_TIME_PER_CALCULATION_SEGMENT = 5;
 export const MAX_PARTS_PER_CREATION_SEGMENT = 20000;
-export const MAX_PARTS_PER_DELETION_SEGMENT = 20000;
+export const MAX_PARTS_PER_DELETION_SEGMENT = 25000;
 
 export const MAX_STABLE = 2;
 
