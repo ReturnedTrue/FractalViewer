@@ -1,116 +1,165 @@
 import { Controller, OnStart } from "@flamework/core";
-import { DEFAULT_FRACTAL_PARAMETERS } from "shared/constants/fractal";
+import {
+	DEFAULT_FRACTAL_PARAMETERS,
+	MAX_PARTS_PER_CREATION_SEGMENT,
+	MAX_PARTS_PER_DELETION_SEGMENT,
+} from "shared/constants/fractal";
 import { $print } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
 import { FractalState } from "client/rodux/reducers/fractal";
 import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
+import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { FractalParameters } from "shared/types/FractalParameters";
 
 export function beginTimer() {
 	const startTime = os.clock();
 
 	return () => {
-		return (os.clock() - startTime) * 1000;
+		return string.format("(%.2f ms)", (os.clock() - startTime) * 1000);
 	};
 }
 
 @Controller()
 export class CalculationController implements OnStart {
-	private parts = new Array<Array<Part>>();
-	private calculatedCache = new Map<number, Map<number, number>>();
+	// The folder which holds all the displayed parts
+	private containingFolder = new Instance("Folder");
+
+	// Stores the displayed parts in a 2D array
+	private partsGrid = new Array<Array<Part>>();
+
+	// Stores the columns for each row, and each contained value is the calculated hue
+	// Cache can be voided by most parameters, all pixels must be recalculated
+	private hueCache = new Map<number, Map<number, number>>();
 
 	onStart() {
-		connectToStoreChange(({ fractal }, oldState) => {
-			if (!fractal.partsFolder) return;
-			if (fractal.parametersLastUpdated === oldState.fractal.parametersLastUpdated) return;
+		connectToStoreChange(({ fractal }, { fractal: oldFractal }) => {
+			if (fractal.parametersLastUpdated === oldFractal.parametersLastUpdated) return;
 
-			if (oldState.fractal.partsFolder && fractal.parameters.axisSize !== oldState.fractal.parameters.axisSize) {
+			const { parameters } = fractal;
+			const { parameters: oldParameters } = oldFractal;
+
+			let viewAfterApplication = false;
+
+			// First render
+			if (oldFractal.parametersLastUpdated === undefined) {
+				$print("beginning first render");
+
+				this.constructParts(parameters.axisSize);
+				viewAfterApplication = true;
+			}
+
+			// If the parts are viewed and the axis size has changed, recreate the view
+			if (oldFractal.interfaceMode !== InterfaceMode.Hidden && oldParameters.axisSize !== parameters.axisSize) {
 				$print("axis size changed");
 
-				this.clearParts(oldState.fractal.partsFolder);
-				this.constructParts(fractal.parameters.axisSize);
+				clientStore.dispatch({ type: "changeViewingStatus", isViewed: false });
+				this.clearParts(oldParameters.axisSize);
+
+				this.constructParts(parameters.axisSize);
+				viewAfterApplication = true;
 			}
 
 			if (fractal.hasCacheBeenVoided) {
 				$print("cache voided");
-				this.calculatedCache.clear();
+				this.hueCache.clear();
 			}
 
-			this.calculateFractal(fractal);
-			this.applyFractal(fractal);
+			this.calculateFractal(parameters);
+			this.applyFractal(parameters);
+
+			if (viewAfterApplication) {
+				task.wait();
+				clientStore.dispatch({ type: "changeViewingStatus", isViewed: true });
+			}
 		});
 
-		this.constructParts(DEFAULT_FRACTAL_PARAMETERS.axisSize);
+		clientStore.dispatch({ type: "setPartsFolder", partsFolder: this.containingFolder });
+		clientStore.dispatch({ type: "requestRender" });
 	}
 
-	private constructParts(size: number) {
-		const containingFolder = new Instance("Folder");
+	private constructParts(axisSize: number) {
 		const endTimer = beginTimer();
 
-		for (const i of $range(0, size - 1)) {
+		let createdCount = 0;
+
+		for (const i of $range(0, axisSize - 1)) {
 			const column = [];
 
-			for (const j of $range(0, size - 1)) {
+			for (const j of $range(0, axisSize - 1)) {
 				const part = new Instance("Part");
 				part.Name = `(${i}, ${j})`;
 				part.Position = new Vector3(i, j, 0);
 				part.Size = Vector3.one;
 				part.Anchored = true;
-				part.CanQuery = true;
-				part.CanCollide = false;
+				part.CanQuery = false;
 				part.CanTouch = false;
-				part.Parent = containingFolder;
+				part.CanCollide = false;
+				part.Parent = this.containingFolder;
 
 				column.push(part);
+				createdCount++;
+
+				if (createdCount >= MAX_PARTS_PER_CREATION_SEGMENT) {
+					createdCount = 0;
+					task.wait();
+				}
 			}
 
-			this.parts.push(column);
-
-			if (i % 50 === 0) task.wait(0.1);
+			this.partsGrid.push(column);
 		}
 
-		$print(string.format("complete part construction (%.2f ms)", endTimer()));
-
-		clientStore.dispatch({ type: "setPartsFolder", partsFolder: containingFolder });
+		$print("complete part construction", endTimer());
 	}
 
-	private clearParts(oldFolder: Folder) {
-		clientStore.dispatch({ type: "setPartsFolder", partsFolder: undefined });
+	private clearParts(axisSize: number) {
+		const endTimer = beginTimer();
 
-		let count = 0;
+		let deletedCount = 0;
 
-		for (const part of oldFolder.GetChildren()) {
-			part.Destroy();
+		for (const i of $range(0, axisSize - 1)) {
+			const partsColumn = this.partsGrid[i];
 
-			count++;
-			if (count % 10000 === 0) task.wait(0.1);
+			for (const j of $range(0, axisSize - 1)) {
+				const part = partsColumn[j];
+
+				part.Destroy();
+				deletedCount++;
+
+				if (deletedCount >= MAX_PARTS_PER_DELETION_SEGMENT) {
+					deletedCount = 0;
+					task.wait();
+				}
+			}
+
+			delete this.partsGrid[i];
 		}
 
-		oldFolder.Destroy();
-		this.parts.clear();
+		$print("complete part deletion", endTimer());
 	}
 
-	private calculateFractal({ parameters }: FractalState) {
+	private calculateFractal(parameters: FractalParameters) {
+		// A fractal can either have a system which defines its own behaviour and updates the cache
+		// Or a calculator which is ran by the default system for each pixel
 		const system = fractalSystems.get(parameters.fractalId) ?? defaultFractalSystem;
 		const endTimer = beginTimer();
 
-		system(parameters, this.calculatedCache);
+		system(parameters, this.hueCache);
 
-		$print(string.format("complete fractal calculation (%.2f ms)", endTimer()));
+		$print("complete fractal calculation", endTimer());
 	}
 
-	private applyFractal({ parameters }: FractalState) {
-		const { xOffset, yOffset, hueShift } = parameters;
+	private applyFractal({ xOffset, yOffset, hueShift, axisSize }: FractalParameters) {
 		const endTimer = beginTimer();
 
 		const trueHueShift = hueShift / 360;
 
-		for (const i of $range(0, parameters.axisSize - 1)) {
+		for (const i of $range(0, axisSize - 1)) {
 			const xPosition = i + xOffset;
 
-			const cacheColumn = this.calculatedCache.get(xPosition);
-			const partsColumn = this.parts[i];
+			const cacheColumn = this.hueCache.get(xPosition);
+			const partsColumn = this.partsGrid[i];
 
-			for (const j of $range(0, parameters.axisSize - 1)) {
+			for (const j of $range(0, axisSize - 1)) {
 				const yPosition = j + yOffset;
 				const hue = (cacheColumn?.get(yPosition) ?? 0) + trueHueShift;
 
@@ -120,6 +169,6 @@ export class CalculationController implements OnStart {
 			}
 		}
 
-		$print(string.format("complete fractal application (%.2f ms)", endTimer()));
+		$print("complete fractal application", endTimer());
 	}
 }

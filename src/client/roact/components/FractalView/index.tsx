@@ -107,25 +107,37 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 		playerCamera.GetPropertyChangedSignal("ViewportSize").Connect(() => {
 			this.setState({ playerViewportSize: playerCamera.ViewportSize });
 		});
+
+		const viewport = this.viewportRef.getValue();
+		const camera = this.cameraRef.getValue();
+		const folder = this.props.folder;
+		if (!(viewport && camera && folder)) return;
+
+		// Viewed before mount
+		if (this.props.interfaceMode !== InterfaceMode.Hidden) {
+			folder.Parent = viewport;
+			viewport.CurrentCamera = camera;
+		}
 	}
 
 	didUpdate(previousProps: FractalViewProps) {
 		const viewport = this.viewportRef.getValue();
 		const camera = this.cameraRef.getValue();
-		if (!(viewport && camera)) return;
+		const folder = this.props.folder;
+		if (!(viewport && camera && folder)) return;
 
-		const newFolder = this.props.folder;
+		const wasHidden = previousProps.interfaceMode === InterfaceMode.Hidden;
+		const isCurrentlyHidden = this.props.interfaceMode === InterfaceMode.Hidden;
 
-		if (previousProps.folder) {
-			// No longer have a folder to view
-			if (!newFolder) {
-				viewport.CurrentCamera = undefined;
-			}
-
-			// New folder to view
-		} else if (newFolder !== undefined && newFolder.Parent === undefined) {
-			newFolder.Parent = viewport;
+		// Parts are now viewed
+		if (wasHidden && !isCurrentlyHidden) {
+			folder.Parent = viewport;
 			viewport.CurrentCamera = camera;
+
+			// Parts are no longer viewed
+		} else if (!wasHidden && isCurrentlyHidden) {
+			folder.Parent = undefined;
+			viewport.CurrentCamera = undefined;
 		}
 	}
 }

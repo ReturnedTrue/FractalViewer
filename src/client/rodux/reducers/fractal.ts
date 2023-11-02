@@ -4,8 +4,14 @@ import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 interface SetPartsFolder extends Action<"setPartsFolder"> {
-	partsFolder: Folder | undefined;
+	partsFolder: Folder;
 }
+
+interface ChangeViewingStatus extends Action<"changeViewingStatus"> {
+	isViewed: boolean;
+}
+
+interface RequestRender extends Action<"requestRender"> {}
 
 interface ToggleFullPictureMode extends Action<"toggleFullPictureMode"> {}
 
@@ -24,6 +30,8 @@ interface ResetParameters extends Action<"resetParameters"> {}
 
 export type FractalActions =
 	| SetPartsFolder
+	| ChangeViewingStatus
+	| RequestRender
 	| ToggleFullPictureMode
 	| ToggleResetOnFractalChange
 	| SetParameters
@@ -32,7 +40,7 @@ export type FractalActions =
 
 export interface FractalState {
 	parametersResetWithFractalChange: boolean;
-	parametersLastUpdated: number;
+	parametersLastUpdated: number | undefined;
 	parameters: FractalParameters;
 
 	hasCacheBeenVoided: boolean;
@@ -43,7 +51,7 @@ export interface FractalState {
 
 const DEFAULT_VALUE = {
 	parametersResetWithFractalChange: false,
-	parametersLastUpdated: os.clock(),
+	parametersLastUpdated: undefined,
 	parameters: DEFAULT_FRACTAL_PARAMETERS,
 
 	hasCacheBeenVoided: false,
@@ -103,13 +111,25 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 		return {
 			...state,
 			partsFolder,
-			interfaceMode: partsFolder !== undefined ? InterfaceMode.Shown : InterfaceMode.Hidden,
+		};
+	},
+
+	changeViewingStatus: (state, { isViewed }) => {
+		return {
+			...state,
+			interfaceMode: isViewed ? InterfaceMode.Shown : InterfaceMode.Hidden,
+		};
+	},
+
+	requestRender: (state) => {
+		return {
+			...state,
 			parametersLastUpdated: os.clock(),
 		};
 	},
 
 	toggleFullPictureMode: (state) => {
-		if (state.partsFolder === undefined) return state;
+		if (state.interfaceMode === InterfaceMode.Hidden) return state;
 
 		return {
 			...state,

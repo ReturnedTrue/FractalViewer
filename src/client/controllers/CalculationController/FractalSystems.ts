@@ -1,4 +1,4 @@
-import { MAX_SECONDS_BEFORE_WAIT, MAX_STABLE } from "shared/constants/fractal";
+import { MAX_TIME_PER_CALCULATION_SEGMENT, MAX_STABLE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { fractalCalculators } from "./FractalCalculators";
@@ -37,7 +37,7 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 
 		accumulatedTime += os.clock() - columnStartTime;
 
-		if (accumulatedTime > MAX_SECONDS_BEFORE_WAIT) {
+		if (accumulatedTime > MAX_TIME_PER_CALCULATION_SEGMENT) {
 			accumulatedTime = 0;
 
 			task.wait();
@@ -120,7 +120,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 				accumulatedTime += os.clock() - columnStartTime;
 
-				if (accumulatedTime > MAX_SECONDS_BEFORE_WAIT) {
+				if (accumulatedTime > MAX_TIME_PER_CALCULATION_SEGMENT) {
 					accumulatedTime = 0;
 
 					task.wait();

@@ -2,7 +2,10 @@ import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
-export const MAX_SECONDS_BEFORE_WAIT = 5;
+export const MAX_TIME_PER_CALCULATION_SEGMENT = 5;
+export const MAX_PARTS_PER_CREATION_SEGMENT = 20000;
+export const MAX_PARTS_PER_DELETION_SEGMENT = 20000;
+
 export const MAX_STABLE = 2;
 
 export const WASD_MOVEMENT_INCREMENT = 50;
@@ -13,7 +16,7 @@ export const CAMERA_FOV = 70;
 export const NEWTON_TOLERANCE = 0.000001;
 
 export const DEFAULT_FRACTAL_PARAMETERS = {
-	fractalId: FractalId.Buddhabrot,
+	fractalId: FractalId.Mandelbrot,
 	maxIterations: 100,
 	axisSize: 500,
 
