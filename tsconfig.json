@@ -29,10 +29,6 @@
 			},
 
 			{
-				"transform": "rbxts-transformer-t"
-			},
-
-			{
 				"transform": "rbxts-transformer-flamework",
 				"obfuscation": false
 			}

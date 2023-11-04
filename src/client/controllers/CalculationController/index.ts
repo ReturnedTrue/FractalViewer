@@ -6,7 +6,7 @@ import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 
-export function beginTimer() {
+function beginTimer() {
 	const startTime = os.clock();
 
 	return () => {
@@ -33,12 +33,13 @@ export class CalculationController implements OnStart {
 			const { parameters } = fractal;
 			const { parameters: oldParameters } = oldFractal;
 
+			const endTimer = beginTimer();
+			$print("begin render of", parameters.fractalId, "fractal");
+
 			let viewAfterApplication = false;
 
 			// First render
 			if (oldFractal.parametersLastUpdated === undefined) {
-				$print("beginning first render");
-
 				this.constructParts(parameters.axisSize);
 				viewAfterApplication = true;
 			}
@@ -65,6 +66,8 @@ export class CalculationController implements OnStart {
 			if (viewAfterApplication) {
 				clientStore.dispatch({ type: "changeViewingStatus", isViewed: true });
 			}
+
+			$print("complete render of", parameters.fractalId, endTimer(), "fractal\n");
 		});
 
 		clientStore.dispatch({ type: "setPartsFolder", partsFolder: this.containingFolder });
@@ -149,12 +152,20 @@ export class CalculationController implements OnStart {
 		for (const i of $range(0, axisSize - 1)) {
 			const xPosition = i + xOffset;
 
-			const cacheColumn = this.hueCache.get(xPosition);
+			const cacheColumn = this.hueCache.get(xPosition)!;
 			const partsColumn = this.partsGrid[i];
+
+			if (cacheColumn === undefined) {
+				print(`${xPosition} column is undefined`);
+			}
 
 			for (const j of $range(0, axisSize - 1)) {
 				const yPosition = j + yOffset;
-				const hue = (cacheColumn?.get(yPosition) ?? 0) + trueHueShift;
+				const hue = cacheColumn.get(yPosition)! + trueHueShift;
+
+				if (cacheColumn !== undefined && cacheColumn.get(yPosition) === undefined) {
+					print(`(${xPosition}, ${yPosition}) is undefined`);
+				}
 
 				const color = Color3.fromHSV(hue > 1 ? hue - 1 : hue, 1, 1);
 

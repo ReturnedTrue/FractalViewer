@@ -6,5 +6,5 @@ export enum NewtonFunction {
 	Cos = "cos(z)",
 
 	// Too elaborate currently
-	//Tan = "tan(z)",
+	Tan = "tan(z)",
 }

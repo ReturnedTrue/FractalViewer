@@ -1,10 +1,13 @@
 import Roact from "@rbxts/roact";
+import { GuiService } from "@rbxts/services";
 import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { NOTIFICATION_TIME } from "shared/constants/notification";
 import { NotifcationData } from "shared/types/NotificationData";
+
+const [guiInset] = GuiService.GetGuiInset();
 
 interface NotificationBarProps {
 	nextNotification: NotifcationData | undefined;
@@ -24,8 +27,8 @@ class BaseNotificationBar extends Roact.Component<NotificationBarProps> {
 			<frame
 				Key="NotificationBar"
 				BackgroundTransparency={1}
-				Position={new UDim2(0, 0, 0, -36)}
-				Size={new UDim2(1, 0, 0.015, 36)}
+				Position={new UDim2(0, 0, 0, -guiInset.Y)}
+				Size={new UDim2(1, 0, 0.015, guiInset.Y)}
 			>
 				<frame
 					Key="Notification"

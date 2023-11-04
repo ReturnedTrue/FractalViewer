@@ -1,12 +1,12 @@
-import { $terrify } from "rbxts-transformer-t";
 import Roact from "@rbxts/roact";
 import { HttpService } from "@rbxts/services";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { clientStore } from "client/rodux/store";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
+import { Flamework } from "@flamework/core";
 
-const isParameters = $terrify<Partial<FractalParameters>>();
+const isParameters = Flamework.createGuard<Partial<FractalParameters>>();
 
 interface PasteFractalProps {}
 

@@ -15,8 +15,8 @@ export const complexSquare = (real: number, imaginary: number) => {
 /* 
 	De Moivre's
 
-	( r * (cos(theta) + isin(theta)) ) ** n 
-		= (r ** n) * (cos(theta * n) + isin(theta * n))
+	( r * (cos(theta) + isin(theta)) ) ^ n 
+		= (r ^ n) * (cos(theta * n) + isin(theta * n))
 */
 export const complexPow = (real: number, imaginary: number, exponent: number) => {
 	const newMagnitude = modulus(real, imaginary) ** exponent;
@@ -59,7 +59,7 @@ export const complexCos = (real: number, imaginary: number) => {
 	return $tuple(math.cos(real) * math.cosh(imaginary), -1 * math.sin(real) * math.sinh(imaginary));
 };
 
-// tan z = sin z / cos z
+/*
 export const complexTan = (real: number, imaginary: number) => {
 	const sineX = math.sin(real);
 	const sinehY = math.sinh(imaginary);
@@ -68,4 +68,12 @@ export const complexTan = (real: number, imaginary: number) => {
 	const cosinehY = math.cosh(imaginary);
 
 	return complexDiv(sineX * cosinehY, cosineX * sinehY, cosineX * cosinehY, -1 * sineX * sinehY);
+};
+*/
+
+export const complexTan = (real: number, imaginary: number) => {
+	const realTan = math.tan(real);
+	const imaginaryTanh = math.tanh(imaginary);
+
+	return complexDiv(realTan, imaginaryTanh, 1, -1 * realTan * imaginaryTanh);
 };

@@ -5,7 +5,6 @@ import { PasteFractal } from "./PasteFractal";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
-import { propsInFullPicture } from "client/roact/util/functions/propsInFullPicture";
 
 interface ParametersClipboardProps {
 	parameters: FractalParameters;

@@ -59,15 +59,52 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 	[
 		FractalId.Buddhabrot,
 		(parameters, cache) => {
-			if (!cache.isEmpty()) return;
+			const { axisSize, xOffset, yOffset } = parameters;
 
-			const { axisSize, maxIterations, maxStable, magnification } = parameters;
+			// Buddhabrot may not generate values for points which are currently displayed
+			const fillInEmpty = () => {
+				for (const i of $range(0, axisSize - 1)) {
+					const xPosition = i + xOffset;
+					const cacheColumn = cache.get(xPosition);
+
+					// Knows that the whole column is empty so populates immediately
+					if (cacheColumn === undefined) {
+						const newColumn = new Map<number, number>();
+
+						for (const j of $range(0, axisSize - 1)) {
+							const yPosition = j + yOffset;
+							newColumn.set(yPosition, 0);
+						}
+
+						cache.set(xPosition, newColumn);
+
+						continue;
+					}
+
+					// Checks before populating
+					for (const j of $range(0, axisSize - 1)) {
+						const yPosition = j + yOffset;
+
+						if (!cacheColumn.has(yPosition)) {
+							cacheColumn.set(yPosition, 0);
+						}
+					}
+				}
+			};
+
+			if (!cache.isEmpty()) {
+				fillInEmpty();
+				return;
+			}
+
+			const { maxIterations, maxStable, magnification } = parameters;
 
 			const scaledAxis = axisSize * magnification;
 			const scaledIterationAxis = scaledAxis - 1;
 
 			let highestCount = 0;
 
+			// Values are stored in the format [real1, imaginary1, real2, imaginary2, ...]
 			const pointEscaped = (valuesIteratedOver: Array<number>) => {
 				for (const i of $range(0, valuesIteratedOver.size() - 1, 2)) {
 					const zReal = valuesIteratedOver[i];
@@ -137,6 +174,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				}
 			}
 
+			// Colored based upon the relative frequency of that point being unstable
 			for (const [x, xMap] of cache) {
 				const column = cache.get(x)!;
 
@@ -144,6 +182,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 					column.set(y, yValue / highestCount);
 				}
 			}
+
+			fillInEmpty();
 		},
 	],
 ]);
