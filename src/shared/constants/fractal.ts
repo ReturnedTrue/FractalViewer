@@ -30,6 +30,8 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 
 	hueShift: 0,
 
+	burningShipFacesLeft: true,
+
 	juliaRealConstant: 0.01,
 	juliaImaginaryConstant: 0.01,
 

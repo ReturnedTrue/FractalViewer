@@ -132,6 +132,15 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 						VerticalAlignment={Enum.VerticalAlignment.Top}
 					/>
 
+					{isCurrentlyFractal(FractalId.BurningShip) && (
+						<Roact.Fragment>
+							{createParameter(BooleanParameter, "burningShipFacesLeft", {
+								order: 1,
+								playerFacingName: "Ship Faces Left",
+							})}
+						</Roact.Fragment>
+					)}
+
 					{isCurrentlyFractal(FractalId.Julia) && (
 						<Roact.Fragment>
 							{createParameter(NumberParameter, "juliaRealConstant", {

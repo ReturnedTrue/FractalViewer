@@ -54,9 +54,10 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 	[
 		FractalId.BurningShip,
-		(x, y, axisSize, magnification, maxIterations, maxStable) => {
-			throw "testing error";
-			const cReal = (x / axisSize / magnification) * -4 + 2;
+		(x, y, axisSize, magnification, maxIterations, maxStable, { burningShipFacesLeft }) => {
+			const facingFactor = burningShipFacesLeft ? -1 : 1;
+
+			const cReal = (x / axisSize / magnification) * (4 * facingFactor) + -2 * facingFactor;
 			const cImaginary = (y / axisSize / magnification) * -4 + 2;
 
 			let zReal = cReal;

@@ -15,6 +15,8 @@ export interface FractalParameters {
 
 	hueShift: number;
 
+	burningShipFacesLeft: boolean;
+
 	juliaRealConstant: number;
 	juliaImaginaryConstant: number;
 
