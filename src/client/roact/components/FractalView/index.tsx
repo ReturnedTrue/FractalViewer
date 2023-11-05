@@ -9,7 +9,7 @@ import { FractalParameters } from "shared/types/FractalParameters";
 const playerCamera = Workspace.CurrentCamera!;
 
 interface FractalViewProps {
-	folder: Folder | undefined;
+	folder: Folder | false;
 	interfaceMode: InterfaceMode;
 	parameters: FractalParameters;
 }

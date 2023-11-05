@@ -1,10 +1,15 @@
 import { Controller, OnStart } from "@flamework/core";
-import { MAX_PARTS_PER_CREATION_SEGMENT, MAX_PARTS_PER_DELETION_SEGMENT } from "shared/constants/fractal";
+import {
+	MAX_PARTS_PER_CREATION_SEGMENT,
+	MAX_PARTS_PER_DELETION_SEGMENT,
+	MAX_TIME_PER_CALCULATION_ENTIRETY,
+} from "shared/constants/fractal";
 import { $print } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
 import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
+import { NotifcationData } from "shared/types/NotificationData";
 
 function beginTimer() {
 	const startTime = os.clock();
@@ -23,7 +28,7 @@ export class CalculationController implements OnStart {
 	private partsGrid = new Array<Array<Part>>();
 
 	// Stores the columns for each row, and each contained value is the calculated hue
-	// Cache can be voided by most parameters, all pixels must be recalculated
+	// Cache can be voided by most parameters, at which all pixels must be recalculated
 	private hueCache = new Map<number, Map<number, number>>();
 
 	onStart() {
@@ -39,19 +44,14 @@ export class CalculationController implements OnStart {
 			let viewAfterApplication = false;
 
 			// First render
-			if (oldFractal.parametersLastUpdated === undefined) {
+			if (oldFractal.parametersLastUpdated === false) {
 				this.constructParts(parameters.axisSize);
 				viewAfterApplication = true;
-			}
 
-			// If the parts are viewed and the axis size has changed, recreate the view
-			if (oldFractal.interfaceMode !== InterfaceMode.Hidden && oldParameters.axisSize !== parameters.axisSize) {
-				$print("axis size changed");
-
-				clientStore.dispatch({ type: "changeViewingStatus", isViewed: false });
-				this.clearParts(oldParameters.axisSize);
-
-				this.constructParts(parameters.axisSize);
+				// If the parts are viewed and the axis size has changed, recreate the view
+				// eslint-disable-next-line prettier/prettier
+			} else if (oldFractal.interfaceMode !== InterfaceMode.Hidden && oldParameters.axisSize !== parameters.axisSize) {
+				this.handleAxisSizeChange(oldParameters.axisSize, parameters.axisSize);
 				viewAfterApplication = true;
 			}
 
@@ -60,18 +60,41 @@ export class CalculationController implements OnStart {
 				this.hueCache.clear();
 			}
 
-			this.calculateFractal(parameters);
-			this.applyFractal(parameters);
+			const [calculationSuccess, calculationResponse] = this.calculateFractal(parameters);
+
+			// Errored, so override the results
+			if (!calculationSuccess) {
+				this.populateCacheAndApplyRed(parameters);
+			} else {
+				this.applyFractal(parameters);
+			}
 
 			if (viewAfterApplication) {
 				clientStore.dispatch({ type: "changeViewingStatus", isViewed: true });
 			}
 
-			$print("complete render of", parameters.fractalId, endTimer(), "fractal\n");
+			// Sends a notification after applying and viewing
+			if (!calculationSuccess) {
+				const errorMessage = this.handleCalculationError(calculationResponse);
+				$print("render of", parameters.fractalId, "fractal failed due to error:", errorMessage);
+
+				return;
+			}
+
+			$print("complete render of", parameters.fractalId, "fractal", endTimer(), "\n");
 		});
 
 		clientStore.dispatch({ type: "setPartsFolder", partsFolder: this.containingFolder });
 		clientStore.dispatch({ type: "requestRender" });
+	}
+
+	private handleAxisSizeChange(oldAxisSize: number, newAxisSize: number) {
+		$print("axis size changed");
+
+		clientStore.dispatch({ type: "changeViewingStatus", isViewed: false });
+		this.clearParts(oldAxisSize);
+
+		this.constructParts(newAxisSize);
 	}
 
 	private constructParts(axisSize: number) {
@@ -140,9 +163,33 @@ export class CalculationController implements OnStart {
 		const system = fractalSystems.get(parameters.fractalId) ?? defaultFractalSystem;
 		const endTimer = beginTimer();
 
-		system(parameters, this.hueCache);
+		const [success, response] = Promise.try(() => system(parameters, this.hueCache))
+			.timeout(MAX_TIME_PER_CALCULATION_ENTIRETY)
+			.await();
 
-		$print("complete fractal calculation", endTimer());
+		if (success) {
+			$print("complete fractal calculation", endTimer());
+		}
+
+		return $tuple(success, response);
+	}
+
+	private populateCacheAndApplyRed({ axisSize, xOffset, yOffset }: FractalParameters) {
+		for (const i of $range(0, axisSize - 1)) {
+			const xPosition = i + xOffset;
+
+			const cacheColumn = new Map<number, number>();
+			const partsColumn = this.partsGrid[i];
+
+			for (const j of $range(0, axisSize - 1)) {
+				const yPosition = j + yOffset;
+
+				cacheColumn.set(yPosition, 0);
+				partsColumn[j].Color = new Color3(1, 0, 0);
+			}
+
+			this.hueCache.set(xPosition, cacheColumn);
+		}
 	}
 
 	private applyFractal({ xOffset, yOffset, hueShift, axisSize }: FractalParameters) {
@@ -155,18 +202,10 @@ export class CalculationController implements OnStart {
 			const cacheColumn = this.hueCache.get(xPosition)!;
 			const partsColumn = this.partsGrid[i];
 
-			if (cacheColumn === undefined) {
-				print(`${xPosition} column is undefined`);
-			}
-
 			for (const j of $range(0, axisSize - 1)) {
 				const yPosition = j + yOffset;
+
 				const hue = cacheColumn.get(yPosition)! + trueHueShift;
-
-				if (cacheColumn !== undefined && cacheColumn.get(yPosition) === undefined) {
-					print(`(${xPosition}, ${yPosition}) is undefined`);
-				}
-
 				const color = Color3.fromHSV(hue > 1 ? hue - 1 : hue, 1, 1);
 
 				partsColumn[j].Color = color;
@@ -174,5 +213,30 @@ export class CalculationController implements OnStart {
 		}
 
 		$print("complete fractal application", endTimer());
+	}
+
+	private handleCalculationError(response: unknown) {
+		let errorMessage = "unknown error occured";
+
+		// Promise error API won't work, this is a fix
+		if (typeIs(response, "table")) {
+			const tableResponse = response as {
+				kind: Promise.Error.Kind;
+				error: string;
+			};
+
+			if (tableResponse.kind === Promise.Error.Kind.TimedOut) {
+				errorMessage = "fractal calculation timed out";
+			}
+
+			errorMessage = string.match(tableResponse.error, ":%d+: (.-)$")[0] as string;
+		}
+
+		const errorNotificationData = {
+			text: errorMessage,
+		} satisfies NotifcationData;
+
+		clientStore.dispatch({ type: "sendNotification", data: errorNotificationData });
+		return errorMessage;
 	}
 }

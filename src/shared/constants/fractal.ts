@@ -2,7 +2,9 @@ import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
-export const MAX_TIME_PER_CALCULATION_SEGMENT = 5;
+export const MAX_TIME_PER_CALCULATION_PART = 5;
+export const MAX_TIME_PER_CALCULATION_ENTIRETY = 10;
+
 export const MAX_PARTS_PER_CREATION_SEGMENT = 20000;
 export const MAX_PARTS_PER_DELETION_SEGMENT = 25000;
 

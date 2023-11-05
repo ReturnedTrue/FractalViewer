@@ -1,22 +1,50 @@
-import { MAX_TIME_PER_CALCULATION_SEGMENT } from "shared/constants/fractal";
+import { MAX_TIME_PER_CALCULATION_ENTIRETY, MAX_TIME_PER_CALCULATION_PART } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { fractalCalculators } from "./FractalCalculators";
-import { $error } from "rbxts-transform-debug";
+import { $warn } from "rbxts-transform-debug";
 import { modulus } from "client/controllers/CalculationController/ComplexMath";
+
+class SystemTimeAccumulator {
+	private currentAccumulated = 0;
+
+	private startedSegmentAt: number | false = false;
+
+	public startSegment() {
+		this.startedSegmentAt = os.clock();
+	}
+
+	public finishSegment() {
+		if (this.startedSegmentAt === false) {
+			$warn("attempted to finish a segment after not starting one");
+			return;
+		}
+
+		const segmentTime = os.clock() - this.startedSegmentAt;
+		this.startedSegmentAt = false;
+
+		this.currentAccumulated = segmentTime;
+
+		if (this.currentAccumulated >= MAX_TIME_PER_CALCULATION_PART) {
+			this.currentAccumulated = 0;
+			task.wait();
+		}
+	}
+}
 
 type FractalSystem = (parameters: FractalParameters, cache: Map<number, Map<number, number>>) => void;
 
 export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	const calculator = fractalCalculators.get(parameters.fractalId);
-	if (!calculator) $error(`No system or calculator defined for fractal ${parameters.fractalId}`);
+	if (!calculator) {
+		$warn(`No system or calculator defined for fractal ${parameters.fractalId}`);
+		throw "Could not load fractal";
+	}
 
 	const { xOffset, yOffset, axisSize, magnification, maxIterations, maxStable } = parameters;
-
-	let accumulatedTime = 0;
+	const timeAccumulator = new SystemTimeAccumulator();
 
 	for (const i of $range(0, axisSize - 1)) {
-		const columnStartTime = os.clock();
 		const xPosition = i + xOffset;
 
 		let cacheColumn = cache.get(xPosition);
@@ -25,6 +53,8 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 			cacheColumn = new Map();
 			cache.set(xPosition, cacheColumn);
 		}
+
+		timeAccumulator.startSegment();
 
 		for (const j of $range(0, axisSize - 1)) {
 			const yPosition = j + yOffset;
@@ -45,13 +75,7 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 			}
 		}
 
-		accumulatedTime += os.clock() - columnStartTime;
-
-		if (accumulatedTime > MAX_TIME_PER_CALCULATION_SEGMENT) {
-			accumulatedTime = 0;
-
-			task.wait();
-		}
+		timeAccumulator.finishSegment();
 	}
 };
 
@@ -62,7 +86,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 			const { axisSize, xOffset, yOffset } = parameters;
 
 			// Buddhabrot may not generate values for points which are currently displayed
-			const fillInEmpty = () => {
+			const fillInMissedPoints = () => {
 				for (const i of $range(0, axisSize - 1)) {
 					const xPosition = i + xOffset;
 					const cacheColumn = cache.get(xPosition);
@@ -93,7 +117,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 			};
 
 			if (!cache.isEmpty()) {
-				fillInEmpty();
+				fillInMissedPoints();
 				return;
 			}
 
@@ -156,22 +180,16 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				}
 			};
 
-			let accumulatedTime = 0;
+			const timeAccumulator = new SystemTimeAccumulator();
 
 			for (const i of $range(0, scaledIterationAxis)) {
-				const columnStartTime = os.clock();
+				timeAccumulator.startSegment();
 
 				for (const j of $range(0, scaledIterationAxis)) {
 					solveMandelbrotForPoint(i, j);
 				}
 
-				accumulatedTime += os.clock() - columnStartTime;
-
-				if (accumulatedTime > MAX_TIME_PER_CALCULATION_SEGMENT) {
-					accumulatedTime = 0;
-
-					task.wait();
-				}
+				timeAccumulator.finishSegment();
 			}
 
 			// Colored based upon the relative frequency of that point being unstable
@@ -183,7 +201,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				}
 			}
 
-			fillInEmpty();
+			fillInMissedPoints();
 		},
 	],
 ]);

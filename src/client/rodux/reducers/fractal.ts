@@ -40,22 +40,22 @@ export type FractalActions =
 
 export interface FractalState {
 	parametersResetWithFractalChange: boolean;
-	parametersLastUpdated: number | undefined;
+	parametersLastUpdated: number | false;
 	parameters: FractalParameters;
 
 	hasCacheBeenVoided: boolean;
-	partsFolder: Folder | undefined;
+	partsFolder: Folder | false;
 
 	interfaceMode: InterfaceMode;
 }
 
 const DEFAULT_VALUE = {
 	parametersResetWithFractalChange: false,
-	parametersLastUpdated: undefined,
+	parametersLastUpdated: false,
 	parameters: DEFAULT_FRACTAL_PARAMETERS,
 
 	hasCacheBeenVoided: false,
-	partsFolder: undefined,
+	partsFolder: false,
 
 	interfaceMode: InterfaceMode.Hidden,
 } satisfies FractalState;

@@ -3,7 +3,7 @@ import { NEWTON_TOLERANCE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { newtonFunctionData } from "./NewtonFunctionData";
-import { $error, $warn } from "rbxts-transform-debug";
+import { $error } from "rbxts-transform-debug";
 
 type FractalCalculator = (
 	x: number,
