@@ -44,6 +44,7 @@ class BaseNotificationBar extends Roact.Component<NotificationBarProps> {
 						BackgroundTransparency={1}
 						Font={Enum.Font.SourceSans}
 						Size={new UDim2(1, 0, 1, 0)}
+						RichText={true}
 						Text={text}
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}

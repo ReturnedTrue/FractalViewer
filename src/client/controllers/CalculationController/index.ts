@@ -64,7 +64,7 @@ export class CalculationController implements OnStart {
 
 			// Errored, so override the results
 			if (!calculationSuccess) {
-				this.populateCacheAndApplyRed(parameters);
+				this.clearCacheApplyRed(parameters);
 			} else {
 				this.applyFractal(parameters);
 			}
@@ -174,21 +174,15 @@ export class CalculationController implements OnStart {
 		return $tuple(success, response);
 	}
 
-	private populateCacheAndApplyRed({ axisSize, xOffset, yOffset }: FractalParameters) {
-		for (const i of $range(0, axisSize - 1)) {
-			const xPosition = i + xOffset;
+	private clearCacheApplyRed({ axisSize }: FractalParameters) {
+		this.hueCache.clear();
 
-			const cacheColumn = new Map<number, number>();
+		for (const i of $range(0, axisSize - 1)) {
 			const partsColumn = this.partsGrid[i];
 
 			for (const j of $range(0, axisSize - 1)) {
-				const yPosition = j + yOffset;
-
-				cacheColumn.set(yPosition, 0);
 				partsColumn[j].Color = new Color3(1, 0, 0);
 			}
-
-			this.hueCache.set(xPosition, cacheColumn);
 		}
 	}
 
@@ -216,7 +210,7 @@ export class CalculationController implements OnStart {
 	}
 
 	private handleCalculationError(response: unknown) {
-		let errorMessage = "unknown error occured";
+		let errorMessage = "unknown error";
 
 		// Promise error API won't work, this is a fix
 		if (typeIs(response, "table")) {
@@ -233,7 +227,7 @@ export class CalculationController implements OnStart {
 		}
 
 		const errorNotificationData = {
-			text: errorMessage,
+			text: `<font color="rgb(255, 51, 0)">error occurred:</font> ${errorMessage}`,
 		} satisfies NotifcationData;
 
 		clientStore.dispatch({ type: "sendNotification", data: errorNotificationData });

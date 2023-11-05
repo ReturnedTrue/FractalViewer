@@ -55,6 +55,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 	[
 		FractalId.BurningShip,
 		(x, y, axisSize, magnification, maxIterations, maxStable) => {
+			throw "testing error";
 			const cReal = (x / axisSize / magnification) * -4 + 2;
 			const cImaginary = (y / axisSize / magnification) * -4 + 2;
 
@@ -147,7 +148,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				const closestRoot = data.determineClosestRoot(size);
 				if (math.abs(size - closestRoot) >= NEWTON_TOLERANCE) continue;
 
-				/// NaN occured
+				/// NaN occurred
 				if (closestRoot !== closestRoot) {
 					return 0;
 				}
