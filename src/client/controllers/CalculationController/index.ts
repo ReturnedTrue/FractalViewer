@@ -4,7 +4,7 @@ import {
 	MAX_PARTS_PER_DELETION_SEGMENT,
 	MAX_TIME_PER_CALCULATION_ENTIRETY,
 } from "shared/constants/fractal";
-import { $print } from "rbxts-transform-debug";
+import { $print, $warn } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
 import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
@@ -76,7 +76,7 @@ export class CalculationController implements OnStart {
 			// Sends a notification after applying and viewing
 			if (!calculationSuccess) {
 				const errorMessage = this.handleCalculationError(calculationResponse);
-				$print("render of", parameters.fractalId, "fractal failed due to error:", errorMessage);
+				$warn("render of", parameters.fractalId, "fractal failed due to error:", errorMessage);
 
 				return;
 			}

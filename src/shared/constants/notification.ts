@@ -1,1 +1,1 @@
-export const NOTIFICATION_TIME = 1;
+export const NOTIFICATION_TIME = 2;

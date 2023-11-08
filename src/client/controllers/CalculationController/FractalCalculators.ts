@@ -1,9 +1,8 @@
-import { modulus, complexDiv, complexMul } from "client/controllers/CalculationController/ComplexMath";
+import { modulus, complexDiv, complexMul, complexPow } from "client/controllers/CalculationController/ComplexMath";
 import { NEWTON_TOLERANCE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { newtonFunctionData } from "./NewtonFunctionData";
-import { $error } from "rbxts-transform-debug";
 
 type FractalCalculator = (
 	x: number,
@@ -36,8 +35,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			const cReal = (x / axisSize / magnification) * 4 - 2;
 			const cImaginary = (y / axisSize / magnification) * 4 - 2;
 
-			let zReal = cReal;
-			let zImaginary = cImaginary;
+			let zReal = 0;
+			let zImaginary = 0;
 
 			for (const iteration of $range(1, maxIterations)) {
 				if (modulus(zReal, zImaginary) > maxStable) return iteration / maxIterations;
@@ -107,7 +106,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			{ newtonFunction, newtonPreferRootBasisHue, newtonCoefficientReal, newtonCoefficientImaginary },
 		) => {
 			const data = newtonFunctionData.get(newtonFunction);
-			if (!data) $error(`No data found for newton function ${data}`);
+			if (!data) throw `no data found for newton function ${newtonFunction}`;
 
 			const hasDefinedRoots = "roots" in data;
 

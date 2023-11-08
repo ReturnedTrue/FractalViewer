@@ -37,8 +37,7 @@ type FractalSystem = (parameters: FractalParameters, cache: Map<number, Map<numb
 export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	const calculator = fractalCalculators.get(parameters.fractalId);
 	if (!calculator) {
-		$warn(`No system or calculator defined for fractal ${parameters.fractalId}`);
-		throw "Could not load fractal";
+		throw "fractal not defined in code";
 	}
 
 	const { xOffset, yOffset, axisSize, magnification, maxIterations, maxStable } = parameters;
