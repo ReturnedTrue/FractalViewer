@@ -1,28 +1,68 @@
-import { getAvailableFunctionNames } from "./AvailableFunctions";
+import { DefinedFunction, DefinedOperator } from "./SyntaxDefinitions";
 import { ExpressionToken, ExpressionTokenCategory } from "./ExpressionToken";
-
-type GetTokenResponse = { token: ExpressionToken; nextPosition: number };
+import { stringEnumToArray } from "shared/enums/enumToArray";
 
 interface ExpressionTokenCapture {
 	patterns: Array<string>;
 	consumes: boolean;
-	category: ExpressionTokenCategory;
+	category: ExpressionTokenCategory | ((content: string) => ExpressionTokenCategory);
 }
+
+const reservedCharacters = ["+", "-"];
+
+const definedOperatorNames = stringEnumToArray(DefinedOperator);
+const definedFunctionNames = stringEnumToArray(DefinedFunction);
+
+const tokenCaptures: Array<ExpressionTokenCapture> = [
+	{ patterns: ["%s"], consumes: true, category: ExpressionTokenCategory.Whitespace },
+	{ patterns: ["%d", "%."], consumes: true, category: ExpressionTokenCategory.Number },
+	{
+		patterns: definedOperatorNames.map((value) => {
+			for (const reserved of reservedCharacters) {
+				value = string.gsub(value, reserved, "%%" + reserved)[0];
+			}
+
+			return value;
+		}),
+		consumes: false,
+		category: ExpressionTokenCategory.Operator,
+	},
+	{
+		patterns: ["%w"],
+		consumes: true,
+		category: (content) => {
+			if (definedFunctionNames.includes(content)) {
+				return ExpressionTokenCategory.Function;
+			}
+
+			if (content === "i") {
+				return ExpressionTokenCategory.ImaginaryConstant;
+			}
+
+			return ExpressionTokenCategory.Variable;
+		},
+	},
+	{
+		patterns: [","],
+		consumes: false,
+		category: ExpressionTokenCategory.Comma,
+	},
+	{
+		patterns: ["%(", "%)"],
+		consumes: false,
+		category: ExpressionTokenCategory.Parenthesis,
+	},
+];
 
 export class ExpressionLexer {
 	private position = 1;
-	private tokenCaptures: Array<ExpressionTokenCapture> = [
-		{ patterns: ["%s"], consumes: true, category: ExpressionTokenCategory.Whitespace },
-		{ patterns: ["%d", "%."], consumes: true, category: ExpressionTokenCategory.Number },
-		{ patterns: ["%+", "%-"], consumes: false, category: ExpressionTokenCategory.Operator },
-	];
 
 	constructor(private expression: string) {}
 
 	public getNextToken(): ExpressionToken | false {
 		if (this.position > this.expression.size()) return false;
 
-		for (const capture of this.tokenCaptures) {
+		for (const capture of tokenCaptures) {
 			if (this.matchesAtPosition(capture, this.position)) {
 				const token = this.pullAllOfCapture(capture);
 
@@ -67,6 +107,9 @@ export class ExpressionLexer {
 
 		this.position++;
 
-		return { content: fullContent, category: capture.category };
+		return {
+			content: fullContent,
+			category: typeIs(capture.category, "function") ? capture.category(fullContent) : capture.category,
+		};
 	}
 }

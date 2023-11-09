@@ -14,6 +14,7 @@ import { clientStore } from "client/rodux/store";
 import { BooleanParameter } from "./BooleanParameter";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
+import { enumToArray } from "shared/enums/enumToArray";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -21,16 +22,6 @@ export interface CoreParameterProps<T> {
 
 	currentValue: FractalParameterValueForType<T>;
 	onNewValue: (value: T) => void;
-}
-
-function enumToArray<V>(enumGiven: Record<string, V>) {
-	const arr = [];
-
-	for (const [_, value] of pairs(enumGiven)) {
-		arr.push(value);
-	}
-
-	return arr;
 }
 
 interface ParametersEditorProps {

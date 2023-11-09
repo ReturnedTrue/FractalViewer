@@ -1,9 +1,12 @@
 export enum ExpressionTokenCategory {
-	Whitespace,
-	Number,
-	Operator,
-	Function,
-	Parenthesis,
+	Whitespace = "whitespace",
+	Number = "number",
+	Operator = "operator",
+	Variable = "variable",
+	ImaginaryConstant = "imaginary constant",
+	Function = "function",
+	Parenthesis = "parenthesis",
+	Comma = "comma",
 }
 
 export interface ExpressionToken {
