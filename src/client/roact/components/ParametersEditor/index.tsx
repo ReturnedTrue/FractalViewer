@@ -1,7 +1,7 @@
 import Roact, { createElement } from "@rbxts/roact";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { NumberParameter } from "./NumberParameter";
-import { StringParameter } from "./StringParameter";
+import { StringOptionParameter } from "./StringOptionParameter";
 import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 import {
@@ -15,6 +15,7 @@ import { BooleanParameter } from "./BooleanParameter";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
 import { enumToArray } from "shared/enums/enumToArray";
+import { StringInputParameter } from "./StringInputParameter";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -72,7 +73,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 						VerticalAlignment={Enum.VerticalAlignment.Top}
 					/>
 
-					{createParameter(StringParameter, "fractalId", {
+					{createParameter(StringOptionParameter, "fractalId", {
 						order: 1,
 						playerFacingName: "Fractal",
 						options: this.fractalOptions,
@@ -148,7 +149,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 
 					{isCurrentlyFractal(FractalId.Newton) && (
 						<Roact.Fragment>
-							{createParameter(StringParameter, "newtonFunction", {
+							{createParameter(StringOptionParameter, "newtonFunction", {
 								order: 1,
 								playerFacingName: "Function",
 								options: this.newtonFunctionOptions,
@@ -168,6 +169,15 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 							{createParameter(NumberParameter, "newtonCoefficientImaginary", {
 								order: 4,
 								playerFacingName: "Coefficient Imaginary",
+							})}
+						</Roact.Fragment>
+					)}
+
+					{isCurrentlyFractal(FractalId.Custom) && (
+						<Roact.Fragment>
+							{createParameter(StringInputParameter, "customExpression", {
+								order: 1,
+								playerFacingName: "Expression",
 							})}
 						</Roact.Fragment>
 					)}

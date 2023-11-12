@@ -7,19 +7,19 @@ import { OptionFrame } from "./OptionFrame";
 import { PixelScrollingFrame } from "client/roact/util/components/PixelScrollingFrame";
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 
-interface StringParameterProps extends CoreParameterProps<string> {
+interface StringOptionParameterProps extends CoreParameterProps<string> {
 	options: Array<FractalParameterValueForType<string>>;
 	appearOnRight: boolean;
 }
 
-interface StringParameterState {
+interface StringOptionParameterState {
 	optionSize?: UDim2;
 
 	isOpen: boolean;
 }
 
-export class StringParameter extends Roact.Component<StringParameterProps, StringParameterState> {
-	state = identity<StringParameterState>({
+export class StringOptionParameter extends Roact.Component<StringOptionParameterProps, StringOptionParameterState> {
+	state = identity<StringOptionParameterState>({
 		isOpen: false,
 	});
 
@@ -128,7 +128,7 @@ export class StringParameter extends Roact.Component<StringParameterProps, Strin
 		currentOption.GetPropertyChangedSignal("AbsoluteSize").Connect(setSize);
 	}
 
-	protected didUpdate(previousProps: StringParameterProps, previousState: StringParameterState): void {
+	protected didUpdate(previousProps: StringOptionParameterProps, previousState: StringOptionParameterState): void {
 		// Close when new option selected
 		if (previousProps.currentValue !== this.props.currentValue && this.state.isOpen) {
 			this.setState({ isOpen: false });

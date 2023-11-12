@@ -1,5 +1,5 @@
-import { modulus } from "../CalculationController/ComplexMath";
-import { ExpressionTerm, term } from "./ExpressionTerm";
+import { complexPow, modulus } from "../CalculationController/ComplexMath";
+import { ExpressionNodeValue } from "./ExpressionNode";
 
 export enum DefinedFunction {
 	Mod = "mod",
@@ -9,7 +9,7 @@ export enum DefinedFunction {
 }
 
 export interface DefinedFunctionData {
-	execute: (...args: Array<ExpressionTerm>) => ExpressionTerm;
+	execute: (...args: Array<ExpressionNodeValue>) => ExpressionNodeValue;
 	argumentsExpected: number;
 }
 
@@ -18,15 +18,15 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 		DefinedFunction.Mod,
 		{
 			execute: (arg) => {
-				if (arg.isComplex) return term(modulus(...arg.value));
+				if (arg.isComplex) return { data: modulus(...arg.data), isComplex: false };
 
-				return term(math.abs(arg.value));
+				return { data: math.abs(arg.data), isComplex: false };
 			},
 
 			argumentsExpected: 1,
 		},
 	],
-	[
+	/*[
 		DefinedFunction.Floor,
 		{
 			execute: (arg) => {
@@ -63,37 +63,61 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 
 			argumentsExpected: 1,
 		},
-	],
+	],*/
 ]);
 
 export enum DefinedOperator {
 	Plus = "+",
 	Subtract = "-",
+	Power = "^",
 }
 
-export type DefinedOperatorData = (leftHand: ExpressionTerm, rightHand: ExpressionTerm) => ExpressionTerm;
+export type DefinedOperatorData = (
+	leftHand: ExpressionNodeValue,
+	rightHand: ExpressionNodeValue,
+) => ExpressionNodeValue;
 
 export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>([
 	[
 		DefinedOperator.Plus,
-		// TODO clean up
+
 		(leftHand, rightHand) => {
 			if (leftHand.isComplex) {
 				if (rightHand.isComplex) {
 					return {
-						value: [leftHand.value[0] + rightHand.value[0], leftHand.value[1] + rightHand.value[1]],
+						data: [leftHand.data[0] + rightHand.data[0], leftHand.data[1] + rightHand.data[1]],
 						isComplex: true,
 					};
 				}
 
-				return { value: [leftHand.value[0] + rightHand.value, leftHand.value[1]], isComplex: true };
+				return { data: [leftHand.data[0] + rightHand.data, leftHand.data[1]], isComplex: true };
 			}
 
 			if (rightHand.isComplex) {
-				return { value: [leftHand.value + rightHand.value[0], rightHand.value[1]], isComplex: true };
+				return { data: [leftHand.data + rightHand.data[0], rightHand.data[1]], isComplex: true };
 			}
 
-			return { value: leftHand.value + rightHand.value, isComplex: false };
+			return { data: leftHand.data + rightHand.data, isComplex: false };
+		},
+	],
+
+	[
+		DefinedOperator.Power,
+
+		(leftHand, rightHand) => {
+			if (leftHand.isComplex) {
+				if (rightHand.isComplex) {
+					throw "complex to complex power is not supported";
+				}
+
+				return { data: complexPow(leftHand.data[0], leftHand.data[1], rightHand.data), isComplex: true };
+			}
+
+			if (rightHand.isComplex) {
+				throw "soon to support real to complex powers";
+			}
+
+			return { data: leftHand.data ** rightHand.data, isComplex: false };
 		},
 	],
 	/*[

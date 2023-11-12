@@ -4,6 +4,8 @@ import { FractalParameters } from "shared/types/FractalParameters";
 import { fractalCalculators } from "./FractalCalculators";
 import { $warn } from "rbxts-transform-debug";
 import { modulus } from "client/controllers/CalculationController/ComplexMath";
+import { Dependency } from "@flamework/core";
+import { InterpretController } from "../InterpretController";
 
 class SystemTimeAccumulator {
 	private currentAccumulated = 0;
@@ -79,6 +81,71 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 };
 
 export const fractalSystems = new Map<FractalId, FractalSystem>([
+	[
+		FractalId.Custom,
+		(parameters, cache) => {
+			const evaluator = Dependency<InterpretController>().interpret(parameters.customExpression);
+
+			const { xOffset, yOffset, axisSize, magnification, maxIterations, maxStable } = parameters;
+			const timeAccumulator = new SystemTimeAccumulator();
+
+			const calculateAtPoint = (x: number, y: number) => {
+				const cReal = (x / axisSize / magnification) * 4 - 2;
+				const cImaginary = (y / axisSize / magnification) * 4 - 2;
+
+				let zReal = 0;
+				let zImaginary = 0;
+
+				for (const iteration of $range(1, maxIterations)) {
+					if (modulus(zReal, zImaginary) > maxStable) {
+						return iteration / maxIterations;
+					}
+
+					const result = evaluator(
+						new Map([
+							["z", { data: [zReal, zImaginary], isComplex: true }],
+							["c", { data: [cReal, cImaginary], isComplex: true }],
+							["n", { data: iteration, isComplex: false }],
+						]),
+					);
+
+					if (!result.isComplex) {
+						throw "non complex value returned";
+					}
+
+					[zReal, zImaginary] = result.data;
+				}
+
+				return 0;
+			};
+
+			for (const i of $range(0, axisSize - 1)) {
+				const xPosition = i + xOffset;
+
+				let cacheColumn = cache.get(xPosition);
+
+				if (cacheColumn === undefined) {
+					cacheColumn = new Map();
+					cache.set(xPosition, cacheColumn);
+				}
+
+				timeAccumulator.startSegment();
+
+				for (const j of $range(0, axisSize - 1)) {
+					const yPosition = j + yOffset;
+
+					if (!cacheColumn.has(yPosition)) {
+						const value = calculateAtPoint(xPosition, yPosition);
+
+						cacheColumn.set(yPosition, value);
+					}
+				}
+
+				timeAccumulator.finishSegment();
+			}
+		},
+	],
+
 	[
 		FractalId.Buddhabrot,
 		(parameters, cache) => {
@@ -159,8 +226,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				const cReal = (x / axisSize / magnification) * 4 - 2;
 				const cImaginary = (y / axisSize / magnification) * 4 - 2;
 
-				let zReal = cReal;
-				let zImaginary = cImaginary;
+				let zReal = 0;
+				let zImaginary = 0;
 
 				const valuesIteratedOver = new Array<number>();
 

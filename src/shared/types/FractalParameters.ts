@@ -24,6 +24,8 @@ export interface FractalParameters {
 	newtonPreferRootBasisHue: boolean;
 	newtonCoefficientReal: number;
 	newtonCoefficientImaginary: number;
+
+	customExpression: string;
 }
 
 export type FractalParameterName = keyof FractalParameters;

@@ -3,28 +3,17 @@ import { CoreParameterProps } from ".";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 
-interface NumberParameterProps extends CoreParameterProps<number> {
-	newValueConstraint?: (newValue: number) => number;
-}
+interface StringInputParameterProps extends CoreParameterProps<string> {}
 
-export class NumberParameter extends Roact.Component<NumberParameterProps> {
+export class StringInputParameter extends Roact.Component<StringInputParameterProps> {
 	render() {
-		const { order, currentValue, playerFacingName, newValueConstraint, onNewValue } = this.props;
+		const { order, currentValue, playerFacingName, onNewValue } = this.props;
 
 		const onFocusLost = (box: TextBox) => {
-			let newValue = tonumber(box.Text);
+			const newValue = box.Text;
 
-			if (newValue === undefined) {
-				box.Text = tostring(currentValue);
-				return;
-			}
-
-			if (newValueConstraint) {
-				newValue = newValueConstraint(newValue);
-			}
-
-			if (currentValue === newValue) {
-				box.Text = tostring(currentValue);
+			if (newValue === undefined || currentValue === newValue) {
+				box.Text = currentValue;
 				return;
 			}
 

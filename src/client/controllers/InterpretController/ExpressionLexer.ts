@@ -8,8 +8,6 @@ interface ExpressionTokenCapture {
 	category: ExpressionTokenCategory | ((content: string) => ExpressionTokenCategory);
 }
 
-const reservedCharacters = ["+", "-"];
-
 const definedOperatorNames = stringEnumToArray(DefinedOperator);
 const definedFunctionNames = stringEnumToArray(DefinedFunction);
 
@@ -17,13 +15,8 @@ const tokenCaptures: Array<ExpressionTokenCapture> = [
 	{ patterns: ["%s"], consumes: true, category: ExpressionTokenCategory.Whitespace },
 	{ patterns: ["%d", "%."], consumes: true, category: ExpressionTokenCategory.Number },
 	{
-		patterns: definedOperatorNames.map((value) => {
-			for (const reserved of reservedCharacters) {
-				value = string.gsub(value, reserved, "%%" + reserved)[0];
-			}
-
-			return value;
-		}),
+		// TODO find suitable way to convert operator names into patterns
+		patterns: ["%+", "%-", "%^"],
 		consumes: false,
 		category: ExpressionTokenCategory.Operator,
 	},
@@ -59,22 +52,32 @@ export class ExpressionLexer {
 
 	constructor(private expression: string) {}
 
-	public getNextToken(): ExpressionToken | false {
-		if (this.position > this.expression.size()) return false;
+	public getAllTokens() {
+		const tokens = new Array<ExpressionToken>();
+		const expressionSize = this.expression.size();
 
-		for (const capture of tokenCaptures) {
-			if (this.matchesAtPosition(capture, this.position)) {
-				const token = this.pullAllOfCapture(capture);
+		while (this.position <= expressionSize) {
+			let isUnexpected = true;
 
-				if (token.category !== ExpressionTokenCategory.Whitespace) {
-					return token;
+			for (const capture of tokenCaptures) {
+				if (this.matchesAtPosition(capture, this.position)) {
+					const token = this.pullAllOfCapture(capture);
+
+					if (token.category !== ExpressionTokenCategory.Whitespace) {
+						tokens.push(token);
+					}
+
+					isUnexpected = false;
+					break;
 				}
+			}
 
-				if (this.position > this.expression.size()) return false;
+			if (isUnexpected) {
+				throw `unexpected character: ${this.getCharacterAt(this.position)}`;
 			}
 		}
 
-		throw "unexpected character";
+		return tokens;
 	}
 
 	private getCharacterAt(position: number) {
