@@ -1,6 +1,6 @@
-import { DefinedFunction, DefinedOperator } from "./SyntaxDefinitions";
+import { DefinedFunction, DefinedOperator, definedOperatorData } from "./SyntaxDefinitions";
 import { ExpressionToken, ExpressionTokenCategory } from "./ExpressionToken";
-import { stringEnumToArray } from "shared/enums/enumToArray";
+import { enumToArray } from "shared/enums/enumToArray";
 
 interface ExpressionTokenCapture {
 	patterns: Array<string>;
@@ -8,15 +8,20 @@ interface ExpressionTokenCapture {
 	category: ExpressionTokenCategory | ((content: string) => ExpressionTokenCategory);
 }
 
-const definedOperatorNames = stringEnumToArray(DefinedOperator);
-const definedFunctionNames = stringEnumToArray(DefinedFunction);
+const definedOperatorNames = enumToArray(DefinedOperator);
+const definedFunctionNames = enumToArray(DefinedFunction);
 
 const tokenCaptures: Array<ExpressionTokenCapture> = [
 	{ patterns: ["%s"], consumes: true, category: ExpressionTokenCategory.Whitespace },
 	{ patterns: ["%d", "%."], consumes: true, category: ExpressionTokenCategory.Number },
 	{
-		// TODO find suitable way to convert operator names into patterns
-		patterns: ["%+", "%-", "%^"],
+		patterns: definedOperatorNames.mapFiltered((operator) => {
+			const operatorData = definedOperatorData.get(operator);
+			if (!operatorData) return;
+
+			return operatorData.matchingPattern;
+		}),
+
 		consumes: false,
 		category: ExpressionTokenCategory.Operator,
 	},
@@ -24,7 +29,7 @@ const tokenCaptures: Array<ExpressionTokenCapture> = [
 		patterns: ["%w"],
 		consumes: true,
 		category: (content) => {
-			if (definedFunctionNames.includes(content)) {
+			if (definedFunctionNames.includes(content as DefinedFunction)) {
 				return ExpressionTokenCategory.Function;
 			}
 

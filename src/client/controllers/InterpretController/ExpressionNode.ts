@@ -1,4 +1,4 @@
-import { DefinedFunction, DefinedOperator } from "./SyntaxDefinitions";
+import { DefinedFunction, DefinedFunctionData, DefinedOperator, DefinedOperatorData } from "./SyntaxDefinitions";
 
 type Real = { data: number; isComplex: false };
 type Complex = { data: [number, number]; isComplex: true };
@@ -14,17 +14,17 @@ export enum ExpressionNodeCategory {
 
 export interface ConstantExpressionNode {
 	category: ExpressionNodeCategory.Constant;
-	value: ExpressionNodeValue;
+	constantValue: ExpressionNodeValue;
 }
 
 export interface VariableExpressionNode {
 	category: ExpressionNodeCategory.Variable;
-	variable: string;
+	variableName: string;
 }
 
 export interface OperationExpressionNode {
 	category: ExpressionNodeCategory.Operation;
-	operator: DefinedOperator;
+	operatorData: DefinedOperatorData;
 
 	left: ExpressionNode;
 	right: ExpressionNode;
@@ -32,7 +32,7 @@ export interface OperationExpressionNode {
 
 export interface FunctionExpressionNode {
 	category: ExpressionNodeCategory.Function;
-	func: DefinedFunction;
+	functionData: DefinedFunctionData;
 
 	arguments: Array<ExpressionNode>;
 }

@@ -12,7 +12,7 @@ export class StringInputParameter extends Roact.Component<StringInputParameterPr
 		const onFocusLost = (box: TextBox) => {
 			const newValue = box.Text;
 
-			if (newValue === undefined || currentValue === newValue) {
+			if (newValue === "" || currentValue === newValue) {
 				box.Text = currentValue;
 				return;
 			}
@@ -65,6 +65,7 @@ export class StringInputParameter extends Roact.Component<StringInputParameterPr
 						Key="EditBox"
 						Active={false}
 						BackgroundTransparency={1}
+						ClearTextOnFocus={false}
 						Font={Enum.Font.Ubuntu}
 						Position={new UDim2(0.1, 0, 0.1, 0)}
 						Selectable={false}

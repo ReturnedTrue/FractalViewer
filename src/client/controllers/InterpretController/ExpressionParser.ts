@@ -31,28 +31,29 @@ export class ExpressionParser {
 		const evaluate = (node: ExpressionNode, variables: ExpressionVariableMap): ExpressionNodeValue => {
 			switch (node.category) {
 				case ExpressionNodeCategory.Constant:
-					return node.value;
+					return node.constantValue;
 
 				case ExpressionNodeCategory.Variable:
-					const value = variables.get(node.variable);
+					const value = variables.get(node.variableName);
 
-					if (value === undefined) throw `could not get variable ${node.variable}`;
+					if (value === undefined) throw `could not get variable: ${node.variableName}`;
 
 					return value;
 
-				// TODO: get operator data and function data in the parsing stage
 				case ExpressionNodeCategory.Operation:
-					const operatorData = definedOperatorData.get(node.operator);
-
-					if (!operatorData) throw `could not get data for operator ${node.operator}`;
-
 					const lhs = evaluate(node.left, variables);
 					const rhs = evaluate(node.right, variables);
 
-					return operatorData(lhs, rhs);
+					return node.operatorData.execute(lhs, rhs);
 
 				case ExpressionNodeCategory.Function:
-					throw "not handled";
+					const argumentsEvaluated = new Array<ExpressionNodeValue>();
+
+					for (const argument of node.arguments) {
+						argumentsEvaluated.push(evaluate(argument, variables));
+					}
+
+					return node.functionData.execute(...argumentsEvaluated);
 			}
 		};
 
@@ -70,14 +71,17 @@ export class ExpressionParser {
 				return leftHand;
 			}
 
-			const operation = currentToken.content;
+			const operator = currentToken.content;
+			const operatorData = definedOperatorData.get(operator as DefinedOperator);
+			if (!operatorData) throw `no data set for operator: ${operator}`;
+
 			this.consumeCurrentToken();
 
 			const rightHand = this.parseTerm();
 
 			leftHand = {
 				category: ExpressionNodeCategory.Operation,
-				operator: operation as DefinedOperator,
+				operatorData,
 				left: leftHand,
 				right: rightHand,
 			} satisfies OperationExpressionNode;
@@ -92,15 +96,18 @@ export class ExpressionParser {
 
 		switch (category) {
 			case ExpressionTokenCategory.Number:
-				const value = tonumber(content);
-				if (value === undefined) throw "malformed number received";
+				const castedContent = tonumber(content);
+				if (castedContent === undefined) throw "malformed number received";
 
 				this.consumeCurrentToken();
-				return { category: ExpressionNodeCategory.Constant, value: { data: value, isComplex: false } };
+				return {
+					category: ExpressionNodeCategory.Constant,
+					constantValue: { data: castedContent, isComplex: false },
+				};
 
 			case ExpressionTokenCategory.ImaginaryConstant:
 				this.consumeCurrentToken();
-				return { category: ExpressionNodeCategory.Constant, value: { data: [0, 1], isComplex: true } };
+				return { category: ExpressionNodeCategory.Constant, constantValue: { data: [0, 1], isComplex: true } };
 
 			case ExpressionTokenCategory.Parenthesis:
 				this.consumeCurrentToken({ category: ExpressionTokenCategory.Parenthesis, content: "(" });
@@ -113,7 +120,7 @@ export class ExpressionParser {
 			case ExpressionTokenCategory.Variable:
 				this.consumeCurrentToken();
 
-				return { category: ExpressionNodeCategory.Variable, variable: content };
+				return { category: ExpressionNodeCategory.Variable, variableName: content };
 
 			case ExpressionTokenCategory.Function:
 				const functionData = definedFunctionData.get(content as DefinedFunction);
@@ -125,7 +132,7 @@ export class ExpressionParser {
 				this.consumeCurrentToken();
 				this.consumeCurrentToken({ category: ExpressionTokenCategory.Parenthesis, content: "(" });
 
-				const argumentsCollected = [];
+				const argumentsCollected = new Array<ExpressionNode>();
 
 				for (const i of $range(1, functionData.argumentsExpected)) {
 					if (i !== 1) {
@@ -139,7 +146,7 @@ export class ExpressionParser {
 
 				return {
 					category: ExpressionNodeCategory.Function,
-					func: content as DefinedFunction,
+					functionData,
 					arguments: argumentsCollected,
 				};
 

@@ -72,52 +72,60 @@ export enum DefinedOperator {
 	Power = "^",
 }
 
-export type DefinedOperatorData = (
-	leftHand: ExpressionNodeValue,
-	rightHand: ExpressionNodeValue,
-) => ExpressionNodeValue;
+export type DefinedOperatorData = {
+	matchingPattern: string;
+	execute: (leftHand: ExpressionNodeValue, rightHand: ExpressionNodeValue) => ExpressionNodeValue;
+};
 
 export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>([
 	[
 		DefinedOperator.Plus,
 
-		(leftHand, rightHand) => {
-			if (leftHand.isComplex) {
-				if (rightHand.isComplex) {
-					return {
-						data: [leftHand.data[0] + rightHand.data[0], leftHand.data[1] + rightHand.data[1]],
-						isComplex: true,
-					};
+		{
+			matchingPattern: "%+",
+
+			execute: (leftHand, rightHand) => {
+				if (leftHand.isComplex) {
+					if (rightHand.isComplex) {
+						return {
+							data: [leftHand.data[0] + rightHand.data[0], leftHand.data[1] + rightHand.data[1]],
+							isComplex: true,
+						};
+					}
+
+					return { data: [leftHand.data[0] + rightHand.data, leftHand.data[1]], isComplex: true };
 				}
 
-				return { data: [leftHand.data[0] + rightHand.data, leftHand.data[1]], isComplex: true };
-			}
+				if (rightHand.isComplex) {
+					return { data: [leftHand.data + rightHand.data[0], rightHand.data[1]], isComplex: true };
+				}
 
-			if (rightHand.isComplex) {
-				return { data: [leftHand.data + rightHand.data[0], rightHand.data[1]], isComplex: true };
-			}
-
-			return { data: leftHand.data + rightHand.data, isComplex: false };
+				return { data: leftHand.data + rightHand.data, isComplex: false };
+			},
 		},
 	],
 
 	[
 		DefinedOperator.Power,
 
-		(leftHand, rightHand) => {
-			if (leftHand.isComplex) {
-				if (rightHand.isComplex) {
-					throw "complex to complex power is not supported";
+		{
+			matchingPattern: "%^",
+
+			execute: (leftHand, rightHand) => {
+				if (leftHand.isComplex) {
+					if (rightHand.isComplex) {
+						throw "complex to complex power is not supported";
+					}
+
+					return { data: complexPow(leftHand.data[0], leftHand.data[1], rightHand.data), isComplex: true };
 				}
 
-				return { data: complexPow(leftHand.data[0], leftHand.data[1], rightHand.data), isComplex: true };
-			}
+				if (rightHand.isComplex) {
+					throw "soon to support real to complex powers";
+				}
 
-			if (rightHand.isComplex) {
-				throw "soon to support real to complex powers";
-			}
-
-			return { data: leftHand.data ** rightHand.data, isComplex: false };
+				return { data: leftHand.data ** rightHand.data, isComplex: false };
+			},
 		},
 	],
 	/*[
