@@ -1,9 +1,17 @@
-import { DefinedFunction, DefinedFunctionData, DefinedOperator, DefinedOperatorData } from "./SyntaxDefinitions";
+import { DefinedFunctionData, DefinedOperatorData } from "./SyntaxDefinitions";
 
 type Real = { data: number; isComplex: false };
 type Complex = { data: [number, number]; isComplex: true };
 
 export type ExpressionNodeValue = Real | Complex;
+
+export function nodeValue(data: number | [number, number]): ExpressionNodeValue {
+	if (typeIs(data, "table")) {
+		return { data, isComplex: true };
+	}
+
+	return { data, isComplex: false };
+}
 
 export enum ExpressionNodeCategory {
 	Constant = "constant",

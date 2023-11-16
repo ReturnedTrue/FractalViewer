@@ -6,6 +6,7 @@ import { $warn } from "rbxts-transform-debug";
 import { modulus } from "client/controllers/CalculationController/ComplexMath";
 import { Dependency } from "@flamework/core";
 import { InterpretController } from "../InterpretController";
+import { nodeValue } from "../InterpretController/ExpressionNode";
 
 class SystemTimeAccumulator {
 	private currentAccumulated = 0;
@@ -93,8 +94,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				const cReal = (x / axisSize / magnification) * 4 - 2;
 				const cImaginary = (y / axisSize / magnification) * 4 - 2;
 
-				let zReal = 0;
-				let zImaginary = 0;
+				let zReal = cReal;
+				let zImaginary = cImaginary;
 
 				for (const iteration of $range(1, maxIterations)) {
 					if (modulus(zReal, zImaginary) > maxStable) {
@@ -103,9 +104,9 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 					const result = evaluator(
 						new Map([
-							["z", { data: [zReal, zImaginary], isComplex: true }],
-							["c", { data: [cReal, cImaginary], isComplex: true }],
-							["n", { data: iteration, isComplex: false }],
+							["z", nodeValue([zReal, zImaginary])],
+							["c", nodeValue([cReal, cImaginary])],
+							["n", nodeValue(iteration)],
 						]),
 					);
 

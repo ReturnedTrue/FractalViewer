@@ -35,7 +35,6 @@ export class ExpressionParser {
 
 				case ExpressionNodeCategory.Variable:
 					const value = variables.get(node.variableName);
-
 					if (value === undefined) throw `could not get variable: ${node.variableName}`;
 
 					return value;
@@ -100,6 +99,7 @@ export class ExpressionParser {
 				if (castedContent === undefined) throw "malformed number received";
 
 				this.consumeCurrentToken();
+
 				return {
 					category: ExpressionNodeCategory.Constant,
 					constantValue: { data: castedContent, isComplex: false },
