@@ -102,12 +102,12 @@ export class ExpressionParser {
 
 				return {
 					category: ExpressionNodeCategory.Constant,
-					constantValue: { data: castedContent, isComplex: false },
+					constantValue: castedContent,
 				};
 
 			case ExpressionTokenCategory.ImaginaryConstant:
 				this.consumeCurrentToken();
-				return { category: ExpressionNodeCategory.Constant, constantValue: { data: [0, 1], isComplex: true } };
+				return { category: ExpressionNodeCategory.Constant, constantValue: [0, 1] };
 
 			case ExpressionTokenCategory.Parenthesis:
 				this.consumeCurrentToken({ category: ExpressionTokenCategory.Parenthesis, content: "(" });

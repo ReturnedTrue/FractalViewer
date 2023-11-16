@@ -1,16 +1,12 @@
 import { DefinedFunctionData, DefinedOperatorData } from "./SyntaxDefinitions";
 
-type Real = { data: number; isComplex: false };
-type Complex = { data: [number, number]; isComplex: true };
+type Real = number;
+type Complex = [number, number];
 
 export type ExpressionNodeValue = Real | Complex;
 
-export function nodeValue(data: number | [number, number]): ExpressionNodeValue {
-	if (typeIs(data, "table")) {
-		return { data, isComplex: true };
-	}
-
-	return { data, isComplex: false };
+export function isValueComplex(value: ExpressionNodeValue): value is Complex {
+	return typeIs(value, "table");
 }
 
 export enum ExpressionNodeCategory {

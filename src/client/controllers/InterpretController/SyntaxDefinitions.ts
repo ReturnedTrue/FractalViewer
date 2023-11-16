@@ -1,5 +1,5 @@
 import { complexCos, complexPow, complexSine, complexTan, modulus } from "../CalculationController/ComplexMath";
-import { ExpressionNodeValue, nodeValue } from "./ExpressionNode";
+import { ExpressionNodeValue, isValueComplex } from "./ExpressionNode";
 
 export enum DefinedFunction {
 	Mod = "mod",
@@ -26,9 +26,9 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 			argumentsExpected: 1,
 
 			execute: (arg) => {
-				if (arg.isComplex) return nodeValue(modulus(...arg.data));
+				if (isValueComplex(arg)) return modulus(...arg);
 
-				return nodeValue(math.abs(arg.data));
+				return math.abs(arg);
 			},
 		},
 	],
@@ -39,9 +39,9 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 			argumentsExpected: 1,
 
 			execute: (arg) => {
-				if (arg.isComplex) throw "unexpected complex number to floor";
+				if (isValueComplex(arg)) throw "unexpected complex number to floor";
 
-				return nodeValue(math.floor(arg.data));
+				return math.floor(arg);
 			},
 		},
 	],
@@ -52,19 +52,18 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 			argumentsExpected: 1,
 
 			execute: (arg) => {
-				if (arg.isComplex) throw "unexpected complex number to fib";
+				if (isValueComplex(arg)) throw "unexpected complex number to fib";
 
-				const n = arg.data;
-				if (n <= 1) return nodeValue(n);
+				if (arg <= 1) return arg;
 
 				let a = 0;
 				let b = 1;
 
-				for (const _ of $range(2, n + 1)) {
+				for (const _ of $range(2, arg + 1)) {
 					[a, b] = [b, a + b];
 				}
 
-				return nodeValue(b);
+				return b;
 			},
 		},
 	],
@@ -75,9 +74,9 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 			argumentsExpected: 1,
 
 			execute: (arg) => {
-				if (arg.isComplex) throw "unexpected complex number to ln";
+				if (isValueComplex(arg)) throw "unexpected complex number to ln";
 
-				return nodeValue(math.log(arg.data));
+				return math.log(arg);
 			},
 		},
 	],
@@ -88,9 +87,9 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 			argumentsExpected: 1,
 
 			execute: (arg) => {
-				if (arg.isComplex) throw "unexpected complex number to exp";
+				if (isValueComplex(arg)) throw "unexpected complex number to exp";
 
-				return nodeValue(math.exp(arg.data));
+				return math.exp(arg);
 			},
 		},
 	],
@@ -101,13 +100,13 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 			argumentsExpected: 1,
 
 			execute: (arg) => {
-				if (arg.isComplex) {
-					const [real, imaginary] = complexSine(arg.data[0], arg.data[1]);
+				if (isValueComplex(arg)) {
+					const [real, imaginary] = complexSine(arg[0], arg[1]);
 
-					return nodeValue([real, imaginary]);
+					return [real, imaginary];
 				}
 
-				return nodeValue(math.sin(arg.data));
+				return math.sin(arg);
 			},
 		},
 	],
@@ -118,13 +117,13 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 			argumentsExpected: 1,
 
 			execute: (arg) => {
-				if (arg.isComplex) {
-					const [real, imaginary] = complexCos(arg.data[0], arg.data[1]);
+				if (isValueComplex(arg)) {
+					const [real, imaginary] = complexCos(arg[0], arg[1]);
 
-					return nodeValue([real, imaginary]);
+					return [real, imaginary];
 				}
 
-				return nodeValue(math.cos(arg.data));
+				return math.cos(arg);
 			},
 		},
 	],
@@ -132,17 +131,17 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Tan,
 		{
-			execute: (arg) => {
-				if (arg.isComplex) {
-					const [real, imaginary] = complexTan(arg.data[0], arg.data[1]);
+			argumentsExpected: 1,
 
-					return nodeValue([real, imaginary]);
+			execute: (arg) => {
+				if (isValueComplex(arg)) {
+					const [real, imaginary] = complexTan(arg[0], arg[1]);
+
+					return [real, imaginary];
 				}
 
-				return nodeValue(math.tan(arg.data));
+				return math.tan(arg);
 			},
-
-			argumentsExpected: 1,
 		},
 	],
 
@@ -150,9 +149,9 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 		DefinedFunction.Real,
 		{
 			execute: (arg) => {
-				if (!arg.isComplex) throw "unexpected real number to Re";
+				if (!isValueComplex(arg)) throw "unexpected real number to Re";
 
-				return nodeValue(arg.data[0]);
+				return arg[0];
 			},
 
 			argumentsExpected: 1,
@@ -163,9 +162,9 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 		DefinedFunction.Imaginary,
 		{
 			execute: (arg) => {
-				if (!arg.isComplex) throw "unexpected real number to Im";
+				if (!isValueComplex(arg)) throw "unexpected real number to Im";
 
-				return nodeValue(arg.data[1]);
+				return arg[1];
 			},
 
 			argumentsExpected: 1,
@@ -198,17 +197,17 @@ function withNodeValuesHandled(handlers: NodeValueHandlers) {
 	return (leftHand: ExpressionNodeValue, rightHand: ExpressionNodeValue) => {
 		let result: NodeValueHandlerResult;
 
-		if (leftHand.isComplex) {
-			if (rightHand.isComplex) {
-				result = handlers.bothComplex(leftHand.data, rightHand.data);
+		if (isValueComplex(leftHand)) {
+			if (isValueComplex(rightHand)) {
+				result = handlers.bothComplex(leftHand, rightHand);
 			} else {
-				result = handlers.leftComplex(leftHand.data, rightHand.data);
+				result = handlers.leftComplex(leftHand, rightHand);
 			}
 		} else {
-			if (rightHand.isComplex) {
-				result = handlers.rightComplex(leftHand.data, rightHand.data);
+			if (isValueComplex(rightHand)) {
+				result = handlers.rightComplex(leftHand, rightHand);
 			} else {
-				result = handlers.bothReal(leftHand.data, rightHand.data);
+				result = handlers.bothReal(leftHand, rightHand);
 			}
 		}
 
@@ -216,7 +215,7 @@ function withNodeValuesHandled(handlers: NodeValueHandlers) {
 			throw result;
 		}
 
-		return nodeValue(result);
+		return result;
 	};
 }
 

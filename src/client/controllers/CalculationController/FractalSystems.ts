@@ -6,7 +6,7 @@ import { $warn } from "rbxts-transform-debug";
 import { modulus } from "client/controllers/CalculationController/ComplexMath";
 import { Dependency } from "@flamework/core";
 import { InterpretController } from "../InterpretController";
-import { nodeValue } from "../InterpretController/ExpressionNode";
+import { ExpressionNodeValue, isValueComplex } from "../InterpretController/ExpressionNode";
 
 class SystemTimeAccumulator {
 	private currentAccumulated = 0;
@@ -85,7 +85,9 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 	[
 		FractalId.Custom,
 		(parameters, cache) => {
-			const evaluator = Dependency<InterpretController>().interpret(parameters.customExpression);
+			const interpretController = Dependency<InterpretController>();
+
+			const evaluator = interpretController.interpret(parameters.customExpression);
 
 			const { xOffset, yOffset, axisSize, magnification, maxIterations, maxStable } = parameters;
 			const timeAccumulator = new SystemTimeAccumulator();
@@ -102,19 +104,19 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 						return iteration / maxIterations;
 					}
 
-					const result = evaluator(
-						new Map([
-							["z", nodeValue([zReal, zImaginary])],
-							["c", nodeValue([cReal, cImaginary])],
-							["n", nodeValue(iteration)],
-						]),
-					);
+					const variables = new Map<string, ExpressionNodeValue>([
+						["z", [zReal, zImaginary]],
+						["c", [cReal, cImaginary]],
+						["n", iteration],
+					]);
 
-					if (!result.isComplex) {
+					const result = evaluator(variables);
+
+					if (!isValueComplex(result)) {
 						throw "non complex value returned";
 					}
 
-					[zReal, zImaginary] = result.data;
+					[zReal, zImaginary] = result;
 				}
 
 				return 0;

@@ -8,6 +8,7 @@ import { ExpressionEvaluator, ExpressionParser, ExpressionVariableMap } from "./
  * z^fib(exp(mod(z)) - ln(n)) + c = reverse eye
  * z^(fib(tan(|z|))) + c = bomb
  * z^(fib(tan(n))) + c = butterfly
+ * z^2 + ln(mod(c)) = crosshair
  */
 
 @Controller()
