@@ -17,6 +17,8 @@ const getFunctionRootHueFromCache = (cache: Map<number, number>, closestRoot: nu
 	return hue;
 };
 
+const isNaN = (x: number) => x !== x;
+
 export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 	[
 		FractalId.Mandelbrot,
@@ -96,7 +98,16 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 			for (const iteration of $range(1, parameters.maxIterations)) {
 				const [functionReal, functionImaginary] = data.execute(zReal, zImaginary);
+
+				if (isNaN(functionReal) || isNaN(functionImaginary)) {
+					return 0;
+				}
+
 				const [derivativeReal, derivativeImaginary] = data.derivativeExecute(zReal, zImaginary);
+
+				if (isNaN(derivativeReal) || isNaN(derivativeImaginary)) {
+					return 0;
+				}
 
 				const [dividedReal, dividedImaginary] = complexDiv(
 					functionReal,
@@ -128,11 +139,6 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				const size = modulus(zReal, zImaginary);
 				const closestRoot = data.determineClosestRoot(size);
 				if (math.abs(size - closestRoot) >= NEWTON_TOLERANCE) continue;
-
-				/// NaN occurred
-				if (closestRoot !== closestRoot) {
-					return 0;
-				}
 
 				return parameters.newtonPreferRootBasisHue
 					? getFunctionRootHueFromCache(data.rootHueCache, closestRoot)

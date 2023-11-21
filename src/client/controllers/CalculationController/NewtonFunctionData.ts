@@ -4,7 +4,10 @@ import {
 	complexSine,
 	complexCos,
 	complexTan,
+	complexDiv,
+	modulus,
 } from "client/controllers/CalculationController/ComplexMath";
+import { NEWTON_TOLERANCE } from "shared/constants/fractal";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 
 type NewtonFunctionDefinedRoots = {
@@ -137,7 +140,9 @@ export const newtonFunctionData = new Map<NewtonFunction, NewtonFunctionData>([
 				const [cosineReal, cosineImaginary] = complexCos(real, imaginary);
 				const [squaredReal, squaredImaginary] = complexSquare(cosineReal, cosineImaginary);
 
-				return $tuple(1 / squaredReal, 1 / squaredImaginary);
+				const [reciprocalReal, reciprocalImaginary] = complexDiv(1, 0, squaredReal, squaredImaginary);
+
+				return $tuple(reciprocalReal, reciprocalImaginary);
 			},
 		},
 	],
