@@ -1,21 +1,10 @@
-import { modulus, complexDiv, complexMul, complexPow } from "client/controllers/CalculationController/ComplexMath";
+import { modulus, complexDiv, complexMul } from "client/controllers/CalculationController/ComplexMath";
 import { NEWTON_TOLERANCE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { newtonFunctionData } from "./NewtonFunctionData";
 
-type FractalCalculator = (
-	x: number,
-	y: number,
-	axisSize: number,
-	magnification: number,
-	maxIterations: number,
-	maxStable: number,
-	otherParameters: Omit<
-		FractalParameters,
-		"xOffset" | "yOffset" | "axisSize" | "magnification" | "maxIterations" | "maxStable"
-	>,
-) => number;
+type FractalCalculator = (x: number, y: number, parameters: Omit<FractalParameters, "xOffset" | "yOffset">) => number;
 
 const getFunctionRootHueFromCache = (cache: Map<number, number>, closestRoot: number) => {
 	let hue = cache.get(closestRoot);
@@ -31,15 +20,15 @@ const getFunctionRootHueFromCache = (cache: Map<number, number>, closestRoot: nu
 export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 	[
 		FractalId.Mandelbrot,
-		(x, y, axisSize, magnification, maxIterations, maxStable) => {
-			const cReal = (x / axisSize / magnification) * 4 - 2;
-			const cImaginary = (y / axisSize / magnification) * 4 - 2;
+		(x, y, parameters) => {
+			const cReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
+			const cImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
 			let zReal = 0;
 			let zImaginary = 0;
 
-			for (const iteration of $range(1, maxIterations)) {
-				if (modulus(zReal, zImaginary) > maxStable) return iteration / maxIterations;
+			for (const iteration of $range(1, parameters.maxIterations)) {
+				if (modulus(zReal, zImaginary) > parameters.maxStable) return iteration / parameters.maxIterations;
 
 				const zRealTemp = zReal;
 
@@ -53,17 +42,17 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 	[
 		FractalId.BurningShip,
-		(x, y, axisSize, magnification, maxIterations, maxStable, { burningShipFacesLeft }) => {
-			const facingFactor = burningShipFacesLeft ? -1 : 1;
+		(x, y, parameters) => {
+			const facingFactor = parameters.burningShipFacesLeft ? -1 : 1;
 
-			const cReal = (x / axisSize / magnification) * (4 * facingFactor) + -2 * facingFactor;
-			const cImaginary = (y / axisSize / magnification) * -4 + 2;
+			const cReal = (x / parameters.axisSize / parameters.magnification) * (4 * facingFactor) + -2 * facingFactor;
+			const cImaginary = (y / parameters.axisSize / parameters.magnification) * -4 + 2;
 
 			let zReal = cReal;
 			let zImaginary = cImaginary;
 
-			for (const iteration of $range(1, maxIterations)) {
-				if (modulus(zReal, zImaginary) > maxStable) return iteration / maxIterations;
+			for (const iteration of $range(1, parameters.maxIterations)) {
+				if (modulus(zReal, zImaginary) > parameters.maxStable) return iteration / parameters.maxIterations;
 
 				const zRealTemp = zReal;
 
@@ -77,17 +66,17 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 	[
 		FractalId.Julia,
-		(x, y, axisSize, magnification, maxIterations, maxStable, { juliaRealConstant, juliaImaginaryConstant }) => {
-			let zReal = (x / axisSize / magnification) * 4 - 2;
-			let zImaginary = (y / axisSize / magnification) * 4 - 2;
+		(x, y, parameters) => {
+			let zReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
+			let zImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
-			for (const iteration of $range(1, maxIterations)) {
-				if (modulus(zReal, zImaginary) > maxStable) return iteration / maxIterations;
+			for (const iteration of $range(1, parameters.maxIterations)) {
+				if (modulus(zReal, zImaginary) > parameters.maxStable) return iteration / parameters.maxIterations;
 
 				const zRealTemp = zReal;
 
-				zReal = zReal * zReal - zImaginary * zImaginary + juliaRealConstant;
-				zImaginary = zRealTemp * zImaginary * 2 + juliaImaginaryConstant;
+				zReal = zReal * zReal - zImaginary * zImaginary + parameters.juliaRealConstant;
+				zImaginary = zRealTemp * zImaginary * 2 + parameters.juliaImaginaryConstant;
 			}
 
 			return 0;
@@ -96,24 +85,16 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 	[
 		FractalId.Newton,
-		(
-			x,
-			y,
-			axisSize,
-			magnification,
-			maxIterations,
-			_maxStable,
-			{ newtonFunction, newtonPreferRootBasisHue, newtonCoefficientReal, newtonCoefficientImaginary },
-		) => {
-			const data = newtonFunctionData.get(newtonFunction);
-			if (!data) throw `no data found for newton function ${newtonFunction}`;
+		(x, y, parameters) => {
+			const data = newtonFunctionData.get(parameters.newtonFunction);
+			if (!data) throw `no data found for newton function ${parameters.newtonFunction}`;
 
 			const hasDefinedRoots = "roots" in data;
 
-			let zReal = (x / axisSize / magnification) * 4 - 2;
-			let zImaginary = (y / axisSize / magnification) * 4 - 2;
+			let zReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
+			let zImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
-			for (const iteration of $range(1, maxIterations)) {
+			for (const iteration of $range(1, parameters.maxIterations)) {
 				const [functionReal, functionImaginary] = data.execute(zReal, zImaginary);
 				const [derivativeReal, derivativeImaginary] = data.derivativeExecute(zReal, zImaginary);
 
@@ -127,8 +108,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				const [coefficientAppliedReal, coefficientAppliedImaginary] = complexMul(
 					dividedReal,
 					dividedImaginary,
-					newtonCoefficientReal,
-					newtonCoefficientImaginary,
+					parameters.newtonCoefficientReal,
+					parameters.newtonCoefficientImaginary,
 				);
 
 				zReal -= coefficientAppliedReal;
@@ -137,7 +118,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				if (hasDefinedRoots) {
 					for (const [rootReal, rootImaginary, rootHue] of data.roots) {
 						if (modulus(zReal - rootReal, zImaginary - rootImaginary) < NEWTON_TOLERANCE) {
-							return newtonPreferRootBasisHue ? rootHue : iteration / maxIterations;
+							return parameters.newtonPreferRootBasisHue ? rootHue : iteration / parameters.maxIterations;
 						}
 					}
 
@@ -153,9 +134,9 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 					return 0;
 				}
 
-				return newtonPreferRootBasisHue
+				return parameters.newtonPreferRootBasisHue
 					? getFunctionRootHueFromCache(data.rootHueCache, closestRoot)
-					: iteration / maxIterations;
+					: iteration / parameters.maxIterations;
 			}
 
 			return 0;

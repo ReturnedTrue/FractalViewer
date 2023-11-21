@@ -264,7 +264,7 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 
 					return [real, imaginary];
 				},
-				rightComplex: (leftHand, rightHand) => "real to complex power is not supported",
+				rightComplex: (_leftHand, _rightHand) => "real to complex power is not supported",
 			}),
 		},
 	],

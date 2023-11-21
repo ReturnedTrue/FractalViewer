@@ -32,11 +32,13 @@ export class CalculationController implements OnStart {
 	private hueCache = new Map<number, Map<number, number>>();
 
 	onStart() {
-		connectToStoreChange(({ fractal }, { fractal: oldFractal }) => {
+		connectToStoreChange((state, oldState) => {
+			const fractal = state.fractal;
+			const oldFractal = oldState.fractal;
 			if (fractal.parametersLastUpdated === oldFractal.parametersLastUpdated) return;
 
-			const { parameters } = fractal;
-			const { parameters: oldParameters } = oldFractal;
+			const parameters = fractal.parameters;
+			const oldParameters = oldFractal.parameters;
 
 			const endTimer = beginTimer();
 			$print("begin render of", parameters.fractalId, "fractal");

@@ -39,15 +39,15 @@ type FractalSystem = (parameters: FractalParameters, cache: Map<number, Map<numb
 
 export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	const calculator = fractalCalculators.get(parameters.fractalId);
+
 	if (!calculator) {
 		throw "fractal not defined in code";
 	}
 
-	const { xOffset, yOffset, axisSize, magnification, maxIterations, maxStable } = parameters;
 	const timeAccumulator = new SystemTimeAccumulator();
 
-	for (const i of $range(0, axisSize - 1)) {
-		const xPosition = i + xOffset;
+	for (const i of $range(0, parameters.axisSize - 1)) {
+		const xPosition = i + parameters.xOffset;
 
 		let cacheColumn = cache.get(xPosition);
 
@@ -58,21 +58,11 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 
 		timeAccumulator.startSegment();
 
-		for (const j of $range(0, axisSize - 1)) {
-			const yPosition = j + yOffset;
+		for (const j of $range(0, parameters.axisSize - 1)) {
+			const yPosition = j + parameters.yOffset;
 
 			if (!cacheColumn.has(yPosition)) {
-				// Most commonly used parameters are given like this for efficiency
-				const value = calculator(
-					xPosition,
-					yPosition,
-					axisSize,
-					magnification,
-					maxIterations,
-					maxStable,
-					parameters,
-				);
-
+				const value = calculator(xPosition, yPosition, parameters);
 				cacheColumn.set(yPosition, value);
 			}
 		}
@@ -88,20 +78,18 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 			const interpretController = Dependency<InterpretController>();
 
 			const evaluator = interpretController.interpret(parameters.customExpression);
-
-			const { xOffset, yOffset, axisSize, magnification, maxIterations, maxStable } = parameters;
 			const timeAccumulator = new SystemTimeAccumulator();
 
 			const calculateAtPoint = (x: number, y: number) => {
-				const cReal = (x / axisSize / magnification) * 4 - 2;
-				const cImaginary = (y / axisSize / magnification) * 4 - 2;
+				const cReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
+				const cImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
 				let zReal = cReal;
 				let zImaginary = cImaginary;
 
-				for (const iteration of $range(1, maxIterations)) {
-					if (modulus(zReal, zImaginary) > maxStable) {
-						return iteration / maxIterations;
+				for (const iteration of $range(1, parameters.maxIterations)) {
+					if (modulus(zReal, zImaginary) > parameters.maxStable) {
+						return iteration / parameters.maxIterations;
 					}
 
 					const variables = new Map<string, ExpressionNodeValue>([
@@ -122,8 +110,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				return 0;
 			};
 
-			for (const i of $range(0, axisSize - 1)) {
-				const xPosition = i + xOffset;
+			for (const i of $range(0, parameters.axisSize - 1)) {
+				const xPosition = i + parameters.xOffset;
 
 				let cacheColumn = cache.get(xPosition);
 
@@ -134,8 +122,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 				timeAccumulator.startSegment();
 
-				for (const j of $range(0, axisSize - 1)) {
-					const yPosition = j + yOffset;
+				for (const j of $range(0, parameters.axisSize - 1)) {
+					const yPosition = j + parameters.yOffset;
 
 					if (!cacheColumn.has(yPosition)) {
 						const value = calculateAtPoint(xPosition, yPosition);
@@ -152,20 +140,18 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 	[
 		FractalId.Buddhabrot,
 		(parameters, cache) => {
-			const { axisSize, xOffset, yOffset } = parameters;
-
 			// Buddhabrot may not generate values for points which are currently displayed
 			const fillInMissedPoints = () => {
-				for (const i of $range(0, axisSize - 1)) {
-					const xPosition = i + xOffset;
+				for (const i of $range(0, parameters.axisSize - 1)) {
+					const xPosition = i + parameters.xOffset;
 					const cacheColumn = cache.get(xPosition);
 
 					// Knows that the whole column is empty so populates immediately
 					if (cacheColumn === undefined) {
 						const newColumn = new Map<number, number>();
 
-						for (const j of $range(0, axisSize - 1)) {
-							const yPosition = j + yOffset;
+						for (const j of $range(0, parameters.axisSize - 1)) {
+							const yPosition = j + parameters.yOffset;
 							newColumn.set(yPosition, 0);
 						}
 
@@ -175,8 +161,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 					}
 
 					// Checks before populating
-					for (const j of $range(0, axisSize - 1)) {
-						const yPosition = j + yOffset;
+					for (const j of $range(0, parameters.axisSize - 1)) {
+						const yPosition = j + parameters.yOffset;
 
 						if (!cacheColumn.has(yPosition)) {
 							cacheColumn.set(yPosition, 0);
@@ -190,9 +176,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				return;
 			}
 
-			const { maxIterations, maxStable, magnification } = parameters;
-
-			const scaledAxis = axisSize * magnification;
+			const scaledAxis = parameters.axisSize * parameters.magnification;
 			const scaledIterationAxis = scaledAxis - 1;
 
 			let highestCount = 0;
@@ -226,16 +210,16 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 			};
 
 			const solveMandelbrotForPoint = (x: number, y: number) => {
-				const cReal = (x / axisSize / magnification) * 4 - 2;
-				const cImaginary = (y / axisSize / magnification) * 4 - 2;
+				const cReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
+				const cImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
 				let zReal = 0;
 				let zImaginary = 0;
 
 				const valuesIteratedOver = new Array<number>();
 
-				for (const _iteration of $range(1, maxIterations)) {
-					if (modulus(zReal, zImaginary) > maxStable) {
+				for (const _iteration of $range(1, parameters.maxIterations)) {
+					if (modulus(zReal, zImaginary) > parameters.maxStable) {
 						pointEscaped(valuesIteratedOver);
 						break;
 					}
