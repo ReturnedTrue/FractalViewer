@@ -38,8 +38,9 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private rightHandPosition = new TweenableNumberBinding(0.775, { time: 0.5 });
 
 	render() {
-		const { parameters, interfaceMode } = this.props;
-		if (interfaceMode === InterfaceMode.Hidden) return;
+		if (this.props.interfaceMode === InterfaceMode.Hidden) return;
+
+		const parameters = this.props.parameters;
 
 		function isCurrentlyFractal(fractal: FractalId) {
 			return parameters.fractalId === fractal;

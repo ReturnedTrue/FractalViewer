@@ -18,10 +18,8 @@ class BaseNotificationBar extends Roact.Component<NotificationBarProps> {
 	private notificationPosition = new TweenableNumberBinding(-1.2, { time: 0.5 });
 
 	render() {
-		const { nextNotification } = this.props;
-		if (!nextNotification) return;
-
-		const { text } = nextNotification;
+		const notif = this.props.nextNotification;
+		if (!notif) return;
 
 		return (
 			<frame
@@ -45,7 +43,7 @@ class BaseNotificationBar extends Roact.Component<NotificationBarProps> {
 						Font={Enum.Font.SourceSans}
 						Size={new UDim2(1, 0, 1, 0)}
 						RichText={true}
-						Text={text}
+						Text={notif.text}
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}
 						TextSize={14}

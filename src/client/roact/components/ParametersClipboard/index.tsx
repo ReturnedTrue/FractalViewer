@@ -15,8 +15,7 @@ class BaseParametersClipboard extends Roact.Component<ParametersClipboardProps> 
 	private clipboardPosition = new TweenableNumberBinding(0, { time: 0.5 });
 
 	render() {
-		const { parameters, interfaceMode } = this.props;
-		if (interfaceMode === InterfaceMode.Hidden) return;
+		if (this.props.interfaceMode === InterfaceMode.Hidden) return;
 
 		return (
 			<frame
@@ -25,7 +24,7 @@ class BaseParametersClipboard extends Roact.Component<ParametersClipboardProps> 
 				Position={this.clipboardPosition.binding.map((value) => UDim2.fromScale(0, value))}
 				Size={UDim2.fromScale(1, 1)}
 			>
-				<CopyFractal parameters={parameters} />
+				<CopyFractal parameters={this.props.parameters} />
 				<PasteFractal />
 			</frame>
 		);

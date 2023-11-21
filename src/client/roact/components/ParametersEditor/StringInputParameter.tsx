@@ -7,23 +7,21 @@ interface StringInputParameterProps extends CoreParameterProps<string> {}
 
 export class StringInputParameter extends Roact.Component<StringInputParameterProps> {
 	render() {
-		const { order, currentValue, playerFacingName, onNewValue } = this.props;
-
 		const onFocusLost = (box: TextBox) => {
 			const newValue = box.Text;
 
-			if (newValue === "" || currentValue === newValue) {
-				box.Text = currentValue;
+			if (newValue === "" || this.props.currentValue === newValue) {
+				box.Text = this.props.currentValue;
 				return;
 			}
 
-			onNewValue(newValue);
+			this.props.onNewValue(newValue);
 		};
 
 		return (
 			<frame
-				Key={playerFacingName}
-				LayoutOrder={order}
+				Key={this.props.playerFacingName}
+				LayoutOrder={this.props.order}
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
@@ -40,7 +38,7 @@ export class StringInputParameter extends Roact.Component<StringInputParameterPr
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(0.425, 0, 1, 0)}
-					Text={playerFacingName}
+					Text={this.props.playerFacingName}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}
@@ -70,7 +68,7 @@ export class StringInputParameter extends Roact.Component<StringInputParameterPr
 						Position={new UDim2(0.1, 0, 0.1, 0)}
 						Selectable={false}
 						Size={new UDim2(0.8, 0, 0.8, 0)}
-						Text={tostring(currentValue)}
+						Text={tostring(this.props.currentValue)}
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}
 						TextWrapped={true}

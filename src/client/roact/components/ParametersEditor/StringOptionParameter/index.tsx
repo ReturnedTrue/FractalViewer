@@ -6,6 +6,7 @@ import { CoreParameterProps } from "..";
 import { OptionFrame } from "./OptionFrame";
 import { PixelScrollingFrame } from "client/roact/util/components/PixelScrollingFrame";
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
+import { AppearFrame } from "./AppearFrame";
 
 interface StringOptionParameterProps extends CoreParameterProps<string> {
 	options: Array<FractalParameterValueForType<string>>;
@@ -26,13 +27,10 @@ export class StringOptionParameter extends Roact.Component<StringOptionParameter
 	private currentOptionRef = createRef<TextButton>();
 
 	render() {
-		const { order, currentValue, playerFacingName, options, appearOnRight, onNewValue } = this.props;
-		const { isOpen, optionSize } = this.state;
-
 		return (
 			<frame
-				Key={playerFacingName}
-				LayoutOrder={order}
+				Key={this.props.playerFacingName}
+				LayoutOrder={this.props.order}
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
@@ -49,7 +47,7 @@ export class StringOptionParameter extends Roact.Component<StringOptionParameter
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(0.425, 0, 1, 0)}
-					Text={playerFacingName}
+					Text={this.props.playerFacingName}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}
@@ -62,53 +60,18 @@ export class StringOptionParameter extends Roact.Component<StringOptionParameter
 					ref={this.currentOptionRef}
 					position={new UDim2(0.5, 0, 0, 0)}
 					size={new UDim2(0.5, 0, 1, 0)}
-					optionValue={currentValue}
-					onSelected={() => this.setState({ isOpen: !isOpen })}
+					optionValue={this.props.currentValue}
+					onSelected={() => this.setState({ isOpen: !this.state.isOpen })}
 				/>
 
-				{isOpen && optionSize !== undefined && (
-					<frame
-						Key="AppearFrame"
-						BackgroundColor3={Color3.fromRGB(68, 68, 68)}
-						BorderSizePixel={0}
-						ClipsDescendants={true}
-						Position={new UDim2(appearOnRight ? 1.1 : -0.7, 0, 0, 0)}
-						Size={new UDim2(0.6, 0, 2, 0)}
-					>
-						<uicorner />
-
-						<PixelScrollingFrame
-							Key="InnerFrame"
-							pixelsPerScroll={optionSize.Y.Offset * 1.2}
-							tweenData={{
-								time: 0.25,
-							}}
-							scrollingFrameProps={{
-								BackgroundTransparency: 1,
-								CanvasSize: new UDim2(0, 0, 0, (options.size() - 1) * (optionSize.Y.Offset * (4 / 3))),
-								ClipsDescendants: false,
-								Position: new UDim2(0.1, 0, 0.1, 0),
-								ScrollBarThickness: 0,
-								Selectable: false,
-								SelectionGroup: false,
-								Size: new UDim2(0.8, 0, 0.8, 0),
-							}}
-						>
-							<uigridlayout
-								CellPadding={new UDim2(0, 0, 0, optionSize.Y.Offset / 3)}
-								CellSize={optionSize}
-								FillDirectionMaxCells={1}
-								HorizontalAlignment={Enum.HorizontalAlignment.Center}
-								SortOrder={Enum.SortOrder.LayoutOrder}
-							/>
-
-							{options.mapFiltered((option) => {
-								if (option === currentValue) return;
-
-								return <OptionFrame optionValue={option} onSelected={onNewValue} />;
-							})}
-						</PixelScrollingFrame>
-					</frame>
+				{this.state.isOpen && this.state.optionSize !== undefined && (
+					<AppearFrame
+						optionSize={this.state.optionSize}
+						currentValue={this.props.currentValue}
+						onNewValue={this.props.onNewValue}
+						options={this.props.options}
+						appearOnRight={this.props.appearOnRight}
+					/>
 				)}
 			</frame>
 		);

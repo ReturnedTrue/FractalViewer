@@ -27,7 +27,8 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 	private cameraRef = createRef<Camera>();
 
 	render() {
-		const { xOffset, yOffset, axisSize } = this.props.parameters;
+		const parameters = this.props.parameters;
+		const axisSize = parameters.axisSize;
 
 		const inputBegan = (viewport: ViewportFrame, input: InputObject) => {
 			if (input.UserInputType !== Enum.UserInputType.MouseButton2) return;
@@ -38,8 +39,8 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 			const scaledX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * axisSize;
 			const scaledY = axisSize - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * axisSize;
 
-			const pivotX = math.round(scaledX + xOffset);
-			const pivotY = math.round(scaledY + yOffset);
+			const pivotX = math.round(scaledX + parameters.xOffset);
+			const pivotY = math.round(scaledY + parameters.yOffset);
 
 			clientStore.dispatch({
 				type: "updateParameter",
@@ -60,10 +61,8 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 			});
 		};*/
 
-		const { playerViewportSize } = this.state;
-
 		const inFullPicture = this.props.interfaceMode === InterfaceMode.FullPicture;
-		const calculatedViewSize = playerViewportSize.Y * (inFullPicture ? 0.9 : 0.75);
+		const calculatedViewSize = this.state.playerViewportSize.Y * (inFullPicture ? 0.9 : 0.75);
 
 		return (
 			<viewportframe
@@ -76,7 +75,12 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				BackgroundTransparency={1}
 				LightColor={new Color3(1, 1, 1)}
 				Position={
-					new UDim2(0, (playerViewportSize.X - calculatedViewSize) / 2, inFullPicture ? 0.025 : 0.05, 0)
+					new UDim2(
+						0,
+						(this.state.playerViewportSize.X - calculatedViewSize) / 2,
+						inFullPicture ? 0.025 : 0.05,
+						0,
+					)
 				}
 				Size={UDim2.fromOffset(calculatedViewSize, calculatedViewSize)}
 			>

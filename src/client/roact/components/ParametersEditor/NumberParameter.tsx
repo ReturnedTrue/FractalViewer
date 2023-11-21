@@ -9,9 +9,8 @@ interface NumberParameterProps extends CoreParameterProps<number> {
 
 export class NumberParameter extends Roact.Component<NumberParameterProps> {
 	render() {
-		const { order, currentValue, playerFacingName, newValueConstraint, onNewValue } = this.props;
-
 		const onFocusLost = (box: TextBox) => {
+			const currentValue = this.props.currentValue;
 			let newValue = tonumber(box.Text);
 
 			if (newValue === undefined) {
@@ -19,8 +18,10 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 				return;
 			}
 
-			if (newValueConstraint) {
-				newValue = newValueConstraint(newValue);
+			const constraint = this.props.newValueConstraint;
+
+			if (constraint) {
+				newValue = constraint(newValue);
 			}
 
 			if (currentValue === newValue) {
@@ -28,13 +29,13 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 				return;
 			}
 
-			onNewValue(newValue);
+			this.props.onNewValue(newValue);
 		};
 
 		return (
 			<frame
-				Key={playerFacingName}
-				LayoutOrder={order}
+				Key={this.props.playerFacingName}
+				LayoutOrder={this.props.order}
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				Size={new UDim2(0.2, 0, 0.05, 0)}
@@ -51,7 +52,7 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(0.425, 0, 1, 0)}
-					Text={playerFacingName}
+					Text={this.props.playerFacingName}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}
@@ -80,7 +81,7 @@ export class NumberParameter extends Roact.Component<NumberParameterProps> {
 						Position={new UDim2(0.1, 0, 0.1, 0)}
 						Selectable={false}
 						Size={new UDim2(0.8, 0, 0.8, 0)}
-						Text={tostring(currentValue)}
+						Text={tostring(this.props.currentValue)}
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}
 						TextWrapped={true}
