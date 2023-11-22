@@ -176,9 +176,14 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 
 					{isCurrentlyFractal(FractalId.Custom) && (
 						<Roact.Fragment>
-							{createParameter(StringInputParameter, "customExpression", {
+							{createParameter(StringInputParameter, "customInitialValueExpression", {
 								order: 1,
-								playerFacingName: "Expression",
+								playerFacingName: "Initial Value",
+							})}
+
+							{createParameter(StringInputParameter, "customCalculationExpression", {
+								order: 2,
+								playerFacingName: "Calculate",
 							})}
 						</Roact.Fragment>
 					)}

@@ -1,5 +1,7 @@
 import { Controller, OnStart } from "@flamework/core";
-import { ExpressionEvaluator, ExpressionParser, ExpressionVariableMap } from "./ExpressionParser";
+import { ExpressionParser } from "./ExpressionParser";
+import { ExpressionLexer } from "./ExpressionLexer";
+import { ExpressionEvaluator } from "./ExpressionEvaluator";
 
 /**
  * z^fib(mod(z)) + c = peanut
@@ -21,8 +23,9 @@ export class InterpretController implements OnStart {
 		const previousResult = this.interprettedExpressions.get(expression);
 		if (previousResult) return previousResult;
 
-		const parser = new ExpressionParser(expression);
-		const evaluator = parser.parse();
+		const lexer = new ExpressionLexer(expression);
+		const parser = new ExpressionParser(lexer.getAllTokens());
+		const evaluator = new ExpressionEvaluator(parser.getAllNodes());
 
 		this.interprettedExpressions.set(expression, evaluator);
 

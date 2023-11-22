@@ -7,6 +7,7 @@ import { modulus } from "client/controllers/CalculationController/ComplexMath";
 import { Dependency } from "@flamework/core";
 import { InterpretController } from "../InterpretController";
 import { ExpressionNodeValue, isValueComplex } from "../InterpretController/ExpressionNode";
+import { ExpressionVariableMap, ExpressionEvaluator } from "../InterpretController/ExpressionEvaluator";
 
 class SystemTimeAccumulator {
 	private currentAccumulated = 0;
@@ -77,34 +78,47 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 		(parameters, cache) => {
 			const interpretController = Dependency<InterpretController>();
 
-			const evaluator = interpretController.interpret(parameters.customExpression);
+			const initialEvaluator = interpretController.interpret(parameters.customInitialValueExpression);
+			const initialVariables: ExpressionVariableMap = new Map();
+
+			const calculationEvaluator = interpretController.interpret(parameters.customCalculationExpression);
+			const calculationVariables: ExpressionVariableMap = new Map();
+
 			const timeAccumulator = new SystemTimeAccumulator();
 
-			const calculateAtPoint = (x: number, y: number) => {
-				const cReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
-				const cImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
+			const evalComplex = (
+				evaluator: ExpressionEvaluator,
+				variables: ExpressionVariableMap,
+			): [number, number] => {
+				const result = evaluator.run(variables);
 
-				let zReal = cReal;
-				let zImaginary = cImaginary;
+				if (!isValueComplex(result)) {
+					return [result, 0];
+				}
+
+				return result;
+			};
+
+			const calculateAtPoint = (x: number, y: number) => {
+				const cValue: [number, number] = [
+					(x / parameters.axisSize / parameters.magnification) * 4 - 2,
+					(y / parameters.axisSize / parameters.magnification) * 4 - 2,
+				];
+
+				initialVariables.set("c", cValue);
+				calculationVariables.set("c", cValue);
+
+				let zValue = evalComplex(initialEvaluator, initialVariables);
 
 				for (const iteration of $range(1, parameters.maxIterations)) {
-					if (modulus(zReal, zImaginary) > parameters.maxStable) {
+					if (modulus(zValue[0], zValue[1]) > parameters.maxStable) {
 						return iteration / parameters.maxIterations;
 					}
 
-					const variables = new Map<string, ExpressionNodeValue>([
-						["z", [zReal, zImaginary]],
-						["c", [cReal, cImaginary]],
-						["n", iteration],
-					]);
+					calculationVariables.set("z", zValue);
+					calculationVariables.set("n", iteration);
 
-					const result = evaluator(variables);
-
-					if (!isValueComplex(result)) {
-						throw "non complex value returned";
-					}
-
-					[zReal, zImaginary] = result;
+					zValue = evalComplex(calculationEvaluator, calculationVariables);
 				}
 
 				return 0;

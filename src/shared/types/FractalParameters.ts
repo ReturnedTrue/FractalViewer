@@ -25,7 +25,8 @@ export interface FractalParameters {
 	newtonCoefficientReal: number;
 	newtonCoefficientImaginary: number;
 
-	customExpression: string;
+	customInitialValueExpression: string;
+	customCalculationExpression: string;
 }
 
 export type FractalParameterName = keyof FractalParameters;

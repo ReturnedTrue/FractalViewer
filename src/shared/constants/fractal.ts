@@ -40,7 +40,8 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 	newtonCoefficientReal: 1,
 	newtonCoefficientImaginary: 0,
 
-	customExpression: "z^2 + c",
+	customInitialValueExpression: "0",
+	customCalculationExpression: "z^2 + c",
 } satisfies FractalParameters;
 
 export const PARAMETERS_WHICH_RETAIN_CACHE = new Set<FractalParameterName>(["xOffset", "yOffset", "pivot", "hueShift"]);
