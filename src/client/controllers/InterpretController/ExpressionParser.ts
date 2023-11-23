@@ -1,11 +1,5 @@
 import { ExpressionLexer } from "./ExpressionLexer";
-import {
-	ExpressionNode,
-	ConstantExpressionNode,
-	ExpressionNodeCategory,
-	ExpressionNodeValue,
-	OperationExpressionNode,
-} from "./ExpressionNode";
+import { ExpressionNode, ExpressionNodeCategory } from "./ExpressionNode";
 import { ExpressionToken, ExpressionTokenCategory } from "./ExpressionToken";
 import { DefinedFunction, DefinedOperator, definedFunctionData, definedOperatorData } from "./SyntaxDefinitions";
 
@@ -19,6 +13,9 @@ export class ExpressionParser {
 	}
 
 	private parseExpression(): ExpressionNode {
+		const beginningToken = this.getCurrentToken();
+		if (!beginningToken) throw `expected expression`;
+
 		let leftHand = this.parseTerm();
 
 		while (true) {
@@ -39,16 +36,32 @@ export class ExpressionParser {
 
 			leftHand = {
 				category: ExpressionNodeCategory.Operation,
-				operatorData,
+				operatorExecute: operatorData.execute,
 				left: leftHand,
 				right: rightHand,
-			} satisfies OperationExpressionNode;
+			} satisfies ExpressionNode;
 		}
 	}
 
 	private parseTerm(): ExpressionNode {
 		const currentToken = this.getCurrentToken();
 		if (!currentToken) throw "next token expected";
+
+		if (currentToken.category === ExpressionTokenCategory.Operator) {
+			const operator = currentToken.content;
+			const operatorData = definedOperatorData.get(operator as DefinedOperator);
+			if (!operatorData) throw `no data set for operator: ${operator}`;
+			if (!operatorData.unaryExecute) throw `cannot use operator ${operator} in a unary fasion`;
+
+			this.consumeCurrentToken();
+
+			return {
+				category: ExpressionNodeCategory.EncirclingOperation,
+				encirclingExecute: operatorData.unaryExecute,
+
+				argument: this.parseTerm(),
+			} satisfies ExpressionNode;
+		}
 
 		const { content, category } = currentToken;
 
@@ -105,7 +118,7 @@ export class ExpressionParser {
 
 				return {
 					category: ExpressionNodeCategory.Function,
-					functionData,
+					functionExecute: functionData.execute,
 					arguments: argumentsCollected,
 				};
 

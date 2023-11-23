@@ -11,6 +11,8 @@ import { ExpressionEvaluator } from "./ExpressionEvaluator";
  * z^(fib(tan(|z|))) + c = bomb
  * z^(fib(tan(n))) + c = butterfly
  * z^2 + ln(mod(c)) = crosshair
+ *
+ * Re(z^2) + (mod(Im(z^2)) * -1 * i) + c = burning ship
  */
 
 @Controller()
@@ -24,8 +26,16 @@ export class InterpretController implements OnStart {
 		if (previousResult) return previousResult;
 
 		const lexer = new ExpressionLexer(expression);
-		const parser = new ExpressionParser(lexer.getAllTokens());
-		const evaluator = new ExpressionEvaluator(parser.getAllNodes());
+		const tokens = lexer.getAllTokens();
+
+		print("tokens:", tokens);
+
+		const parser = new ExpressionParser(tokens);
+		const nodes = parser.getAllNodes();
+
+		print("nodes:", nodes);
+
+		const evaluator = new ExpressionEvaluator(nodes);
 
 		this.interprettedExpressions.set(expression, evaluator);
 

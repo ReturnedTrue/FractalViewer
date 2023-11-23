@@ -1,4 +1,11 @@
-import { complexCos, complexPow, complexSine, complexTan, modulus } from "../CalculationController/ComplexMath";
+import {
+	complexCos,
+	complexMul,
+	complexPow,
+	complexSine,
+	complexTan,
+	modulus,
+} from "../CalculationController/ComplexMath";
 import { ExpressionNodeValue, isValueComplex } from "./ExpressionNode";
 
 export enum DefinedFunction {
@@ -175,13 +182,19 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 export enum DefinedOperator {
 	Plus = "+",
 	Subtract = "-",
+	Multiply = "*",
 	Power = "^",
 }
 
 export type DefinedOperatorData = {
 	matchingPattern: string;
 	execute: (leftHand: ExpressionNodeValue, rightHand: ExpressionNodeValue) => ExpressionNodeValue;
+
+	unaryExecute?: DefinedOperatorDataEncirculingExecute;
+	postfixExecute?: DefinedOperatorDataEncirculingExecute;
 };
+
+export type DefinedOperatorDataEncirculingExecute = (arg: ExpressionNodeValue) => ExpressionNodeValue;
 
 type NodeValueHandlerResult = number | [number, number] | string;
 
@@ -245,7 +258,31 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 				bothReal: (leftHand, rightHand) => leftHand - rightHand,
 				bothComplex: (leftHand, rightHand) => [leftHand[0] - rightHand[0], leftHand[1] - rightHand[1]],
 				leftComplex: (leftHand, rightHand) => [leftHand[0] - rightHand, leftHand[1]],
-				rightComplex: (leftHand, rightHand) => [leftHand - rightHand[0], rightHand[1]],
+				rightComplex: (leftHand, rightHand) => [leftHand - rightHand[0], -rightHand[1]],
+			}),
+
+			unaryExecute: (arg) => {
+				if (isValueComplex(arg)) return [-arg[0], -arg[1]];
+
+				return -arg;
+			},
+		},
+	],
+
+	[
+		DefinedOperator.Multiply,
+		{
+			matchingPattern: "*",
+
+			execute: withNodeValuesHandled({
+				bothReal: (leftHand, rightHand) => leftHand * rightHand,
+				bothComplex: (leftHand, rightHand) => {
+					const [real, imaginary] = complexMul(leftHand[0], leftHand[1], rightHand[0], rightHand[1]);
+
+					return [real, imaginary];
+				},
+				leftComplex: (leftHand, rightHand) => [leftHand[0] * rightHand, leftHand[1] * rightHand],
+				rightComplex: (leftHand, rightHand) => [rightHand[0] * leftHand, rightHand[1] * leftHand],
 			}),
 		},
 	],

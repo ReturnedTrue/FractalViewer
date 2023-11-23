@@ -24,7 +24,12 @@ export class ExpressionEvaluator {
 				const lhs = this.evaluate(node.left, variables);
 				const rhs = this.evaluate(node.right, variables);
 
-				return node.operatorData.execute(lhs, rhs);
+				return node.operatorExecute(lhs, rhs);
+
+			case ExpressionNodeCategory.EncirclingOperation:
+				const argument = this.evaluate(node.argument, variables);
+
+				return node.encirclingExecute(argument);
 
 			case ExpressionNodeCategory.Function:
 				const argumentsEvaluated = new Array<ExpressionNodeValue>();
@@ -33,7 +38,7 @@ export class ExpressionEvaluator {
 					argumentsEvaluated.push(this.evaluate(argument, variables));
 				}
 
-				return node.functionData.execute(...argumentsEvaluated);
+				return node.functionExecute(...argumentsEvaluated);
 		}
 	}
 }
