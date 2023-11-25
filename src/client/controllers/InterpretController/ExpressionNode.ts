@@ -30,7 +30,7 @@ export interface VariableExpressionNode extends BaseExpressionNode<ExpressionNod
 }
 
 export interface OperationExpressionNode extends BaseExpressionNode<ExpressionNodeCategory.Operation> {
-	operatorExecute: DefinedOperatorData["execute"];
+	operatorExecute: Exclude<DefinedOperatorData["execute"], undefined>;
 
 	left: ExpressionNode;
 	right: ExpressionNode;

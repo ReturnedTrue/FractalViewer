@@ -2,9 +2,11 @@
 export const modulus = (x: number, y: number) => math.sqrt(x * x + y * y);
 
 /*
-	More efficient than De Moivre's 
+	More efficient than De Moivre's
 
-	(x + yi)(x + yi)
+	z = x + yi
+
+	z^2 = (x + yi)(x + yi)
 		= x^2 + (2xy)i + (y^2)(i^2)
 		= (x^2 - y^2) + (2xy)i
 */
@@ -15,10 +17,14 @@ export const complexSquare = (real: number, imaginary: number) => {
 /* 
 	De Moivre's
 
-	( r * (cos(theta) + isin(theta)) ) ^ n 
-		= (r ^ n) * (cos(theta * n) + isin(theta * n))
+	z = r(cos(theta) + isin(theta))
+
+	z ^ n = (r ^ n) * (cos(theta * n) + isin(theta * n))
 */
 export const complexPow = (real: number, imaginary: number, exponent: number) => {
+	if (exponent === 0) return $tuple(1, 0);
+	if (imaginary === 0) return $tuple(real ** exponent, 0);
+
 	const newMagnitude = modulus(real, imaginary) ** exponent;
 	const newTheta = math.atan2(imaginary, real) * exponent;
 
@@ -26,29 +32,32 @@ export const complexPow = (real: number, imaginary: number, exponent: number) =>
 };
 
 /*
-	z1 = r1 * (cos(theta1) + isin(theta1))
-	z2 = r2 * (cos(theta2) + isin(theta2))
+	z1 = a + bi
+	z2 = c + di
 
-	z1 * z2 = (r1 * r2) * (cos(theta1 + theta2) * isin(theta1 + theta2))
+	z1 * z2 = (a * c - b * d) + (a * d + b * c)i
 */
 export const complexMul = (real1: number, imaginary1: number, real2: number, imaginary2: number) => {
-	const newMagnitude = modulus(real1, imaginary1) * modulus(real2, imaginary2);
-	const newTheta = math.atan2(imaginary1, real1) + math.atan2(imaginary2, real2);
+	const real = real1 * real2 - imaginary1 * imaginary2;
+	const imaginary = real1 * imaginary2 + imaginary1 * real2;
 
-	return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));
+	return $tuple(real, imaginary);
 };
 
 /*
-	z1 = r1 * (cos(theta1) + isin(theta1))
-	z2 = r2 * (cos(theta2) + isin(theta2))
+	z1 = a + bi
+	z2 = c + di
 
-	z1 / z2 = (r1 / r2) * (cos(theta1 - theta2) * isin(theta1 - theta2))
+	z1 / z2 = ( (a * c + b * d) / (c^2 + d^2) ) + ( (b * c - a * d) / (c^2 + d^2) )i
 */
 export const complexDiv = (real1: number, imaginary1: number, real2: number, imaginary2: number) => {
-	const newMagnitude = modulus(real1, imaginary1) / modulus(real2, imaginary2);
-	const newTheta = math.atan2(imaginary1, real1) - math.atan2(imaginary2, real2);
+	const denominator = real2 * real2 + imaginary2 * imaginary2;
+	if (denominator === 0) return $tuple(0, 0);
 
-	return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));
+	return $tuple(
+		(real1 * real2 + imaginary1 * imaginary2) / denominator,
+		(imaginary1 * real2 - real1 * imaginary2) / denominator,
+	);
 };
 
 export const complexSine = (real: number, imaginary: number) => {

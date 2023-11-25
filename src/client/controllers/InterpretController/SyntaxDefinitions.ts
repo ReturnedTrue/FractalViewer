@@ -184,11 +184,12 @@ export enum DefinedOperator {
 	Subtract = "-",
 	Multiply = "*",
 	Power = "^",
+	Factorial = "!",
 }
 
 export type DefinedOperatorData = {
 	matchingPattern: string;
-	execute: (leftHand: ExpressionNodeValue, rightHand: ExpressionNodeValue) => ExpressionNodeValue;
+	execute?: (leftHand: ExpressionNodeValue, rightHand: ExpressionNodeValue) => ExpressionNodeValue;
 
 	unaryExecute?: DefinedOperatorDataEncirculingExecute;
 	postfixExecute?: DefinedOperatorDataEncirculingExecute;
@@ -287,6 +288,8 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 		},
 	],
 
+	// TODO implment division
+
 	[
 		DefinedOperator.Power,
 
@@ -303,6 +306,31 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 				},
 				rightComplex: (_leftHand, _rightHand) => "real to complex power is not supported",
 			}),
+		},
+	],
+
+	[
+		DefinedOperator.Factorial,
+		{
+			matchingPattern: "!",
+
+			postfixExecute: (arg) => {
+				if (isValueComplex(arg)) throw "cannot use factorial on complex numbers";
+
+				const [_, fractional] = math.modf(arg);
+				if (fractional !== 0) throw "cannot use factorial on non-integers";
+
+				if (arg < 0) throw "cannot use factorial on negative integers";
+				if (arg < 3) return arg;
+
+				let result = 2;
+
+				for (const i of $range(2, arg)) {
+					result *= i;
+				}
+
+				return result;
+			},
 		},
 	],
 ]);

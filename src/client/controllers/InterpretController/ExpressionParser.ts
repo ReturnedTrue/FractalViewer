@@ -1,7 +1,20 @@
-import { ExpressionLexer } from "./ExpressionLexer";
 import { ExpressionNode, ExpressionNodeCategory } from "./ExpressionNode";
 import { ExpressionToken, ExpressionTokenCategory } from "./ExpressionToken";
 import { DefinedFunction, DefinedOperator, definedFunctionData, definedOperatorData } from "./SyntaxDefinitions";
+
+const getGuaranteedOperatorData = (operator: string) => {
+	const operatorData = definedOperatorData.get(operator as DefinedOperator);
+	if (!operatorData) throw `no data set for operator: ${operator}`;
+
+	return operatorData;
+};
+
+const getGuaranteedFunctionData = (func: string) => {
+	const functionData = definedFunctionData.get(func as DefinedFunction);
+	if (!functionData) throw `no data set for function: ${func}`;
+
+	return functionData;
+};
 
 export class ExpressionParser {
 	private currentTokenNumber = 0;
@@ -26,9 +39,8 @@ export class ExpressionParser {
 				return leftHand;
 			}
 
-			const operator = currentToken.content;
-			const operatorData = definedOperatorData.get(operator as DefinedOperator);
-			if (!operatorData) throw `no data set for operator: ${operator}`;
+			const operatorData = getGuaranteedOperatorData(currentToken.content);
+			if (!operatorData.execute) throw `cannot use operator ${currentToken.content} in a 2-argument fashion`;
 
 			this.consumeCurrentToken();
 
@@ -47,11 +59,10 @@ export class ExpressionParser {
 		const currentToken = this.getCurrentToken();
 		if (!currentToken) throw "next token expected";
 
+		// Unary operators
 		if (currentToken.category === ExpressionTokenCategory.Operator) {
-			const operator = currentToken.content;
-			const operatorData = definedOperatorData.get(operator as DefinedOperator);
-			if (!operatorData) throw `no data set for operator: ${operator}`;
-			if (!operatorData.unaryExecute) throw `cannot use operator ${operator} in a unary fasion`;
+			const operatorData = getGuaranteedOperatorData(currentToken.content);
+			if (!operatorData.unaryExecute) throw `cannot use operator ${currentToken.content} in a unary fashion`;
 
 			this.consumeCurrentToken();
 
@@ -63,8 +74,29 @@ export class ExpressionParser {
 			} satisfies ExpressionNode;
 		}
 
-		const { content, category } = currentToken;
+		const termNode = this.convertTermTokenToNode(currentToken);
+		const nextToken = this.getCurrentToken();
 
+		// Postfix operators
+		if (nextToken && nextToken.category === ExpressionTokenCategory.Operator) {
+			const operatorData = getGuaranteedOperatorData(nextToken.content);
+
+			if (operatorData.postfixExecute) {
+				this.consumeCurrentToken();
+
+				return {
+					category: ExpressionNodeCategory.EncirclingOperation,
+					encirclingExecute: operatorData.postfixExecute,
+
+					argument: termNode,
+				} satisfies ExpressionNode;
+			}
+		}
+
+		return termNode;
+	}
+
+	private convertTermTokenToNode({ category, content }: ExpressionToken): ExpressionNode {
 		switch (category) {
 			case ExpressionTokenCategory.Number:
 				const castedContent = tonumber(content);
@@ -95,11 +127,7 @@ export class ExpressionParser {
 				return { category: ExpressionNodeCategory.Variable, variableName: content };
 
 			case ExpressionTokenCategory.Function:
-				const functionData = definedFunctionData.get(content as DefinedFunction);
-
-				if (!functionData) {
-					throw `no data set for function: ${content}`;
-				}
+				const functionData = getGuaranteedFunctionData(content);
 
 				this.consumeCurrentToken();
 				this.consumeCurrentToken({ category: ExpressionTokenCategory.Parenthesis, content: "(" });
