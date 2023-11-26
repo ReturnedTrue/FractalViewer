@@ -6,6 +6,7 @@ import {
 	complexSine,
 	complexTan,
 	modulus,
+	realToComplexPow,
 } from "../CalculationController/ComplexMath";
 import { ExpressionNodeValue, isValueComplex } from "./ExpressionNode";
 
@@ -13,12 +14,13 @@ export enum DefinedFunction {
 	Mod = "mod",
 	Floor = "floor",
 	Fibonacci = "fib",
+	Weierstrass = "weir",
+	RiemannZeta = "zeta",
 	NaturalLog = "ln",
 	Exp = "exp",
 	Sine = "sin",
 	Cosine = "cos",
 	Tan = "tan",
-	Weierstrass = "weir",
 	Real = "Re",
 	Imaginary = "Im",
 }
@@ -73,6 +75,67 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 				}
 
 				return b;
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Weierstrass,
+		{
+			argumentsExpected: 3,
+
+			execute: (a, b, x) => {
+				if (isValueComplex(a) || isValueComplex(b) || isValueComplex(x))
+					throw "unexpected complex number to weir function";
+
+				if (!(a > 0 && a < 1)) throw "weir expects 0 < a < 1";
+				if (!(math.modf(b)[1] === 0 && b % 2 !== 0)) throw "weir expects b to be an odd integer";
+				if (a * b < 1 + 1.5 * math.pi) throw "weir expects ab > 1 + 3/2 pi";
+
+				let result = 0;
+
+				// n = 10
+				for (const r of $range(0, 10)) {
+					result += a ** r * math.cos(b ** r * math.pi * x);
+				}
+
+				return result;
+			},
+		},
+	],
+
+	[
+		DefinedFunction.RiemannZeta,
+		{
+			argumentsExpected: 1,
+
+			execute: (s) => {
+				const n = 10;
+
+				if (!isValueComplex(s)) {
+					//if (s < 1) throw "zeta expects s > 1";
+
+					let result = 0;
+
+					for (const r of $range(1, n)) {
+						result += 1 / r ** s;
+					}
+
+					return result;
+				}
+
+				//if (s[0] < 1) throw "zeta expects Re(s) > 1";
+
+				let result: [number, number] = [0, 0];
+
+				for (const r of $range(1, n)) {
+					let [real, imaginary] = realToComplexPow(r, s[0], s[1]);
+					[real, imaginary] = complexDiv(1, 0, real, imaginary);
+
+					result = [result[0] + real, result[1] + imaginary];
+				}
+
+				return result;
 			},
 		},
 	],
@@ -150,31 +213,6 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 				}
 
 				return math.tan(arg);
-			},
-		},
-	],
-
-	[
-		DefinedFunction.Weierstrass,
-		{
-			argumentsExpected: 3,
-
-			execute: (a, b, x) => {
-				if (isValueComplex(a) || isValueComplex(b) || isValueComplex(x))
-					throw "unexpected complex number to Weierstrass function";
-
-				if (!(a > 0 && a < 1)) throw "weir expects 0 < a < 1";
-				if (!(math.modf(b)[1] === 0 && b % 2 !== 0)) throw "weir expects b to be an odd integer";
-				if (a * b < 1 + 1.5 * math.pi) throw "weir expects ab > 1 + 3/2 pi";
-
-				let result = 0;
-
-				// n = 10
-				for (const r of $range(0, 10)) {
-					result += a ** r * math.cos(b ** r * math.pi * x);
-				}
-
-				return result;
 			},
 		},
 	],
@@ -350,7 +388,11 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 
 					return [real, imaginary];
 				},
-				rightComplex: (_leftHand, _rightHand) => "real to complex power is not supported",
+				rightComplex: (leftHand, rightHand) => {
+					const [real, imaginary] = realToComplexPow(leftHand, rightHand[0], rightHand[1]);
+
+					return [real, imaginary];
+				},
 			}),
 		},
 	],

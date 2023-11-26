@@ -32,6 +32,23 @@ export const complexPow = (real: number, imaginary: number, exponent: number) =>
 };
 
 /*
+	z = x + yi
+
+	a^z = a^x * a^yi
+
+	Since a^loga(b) = b, e^ln(a) = a
+
+	a^z = a^x * e^ln(a)yi
+		= a^x * ( r(cos(theta * ln(a)) + isin(theta * ln(a))) )
+*/
+export const realToComplexPow = (x: number, real: number, imaginary: number) => {
+	const newMagnitude = modulus(real, imaginary) * x ** real;
+	const newTheta = math.atan2(imaginary, real) * math.log(imaginary);
+
+	return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));
+};
+
+/*
 	z1 = a + bi
 	z2 = c + di
 
