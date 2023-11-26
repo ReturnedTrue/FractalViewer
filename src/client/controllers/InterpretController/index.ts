@@ -8,9 +8,10 @@ import { ExpressionEvaluator } from "./ExpressionEvaluator";
  * z^fib(mod(z) - n) + c = brain scan (works where initial z = c)
  * z^fib(mod(z) - ln(n)) + c = eye of cthulhu (more defined where initial z = c)
  * z^fib(exp(mod(z)) - ln(n)) + c = reverse eye
- * z^(fib(tan(|z|))) + c = bomb
+ * z^(fib(tan(mod(z)))) + c = bomb
  * z^(fib(tan(n))) + c = butterfly
  * z^2 + ln(mod(c)) = crosshair
+ * z^weir(0.5, 101, fib(mod(z))) + c = shuriken
  *
  * Re(z^2) + (mod(Im(z^2)) * -1 * i) + c = burning ship
  */

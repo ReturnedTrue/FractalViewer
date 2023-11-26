@@ -1,5 +1,6 @@
 import {
 	complexCos,
+	complexDiv,
 	complexMul,
 	complexPow,
 	complexSine,
@@ -17,6 +18,7 @@ export enum DefinedFunction {
 	Sine = "sin",
 	Cosine = "cos",
 	Tan = "tan",
+	Weierstrass = "weir",
 	Real = "Re",
 	Imaginary = "Im",
 }
@@ -153,6 +155,31 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	],
 
 	[
+		DefinedFunction.Weierstrass,
+		{
+			argumentsExpected: 3,
+
+			execute: (a, b, x) => {
+				if (isValueComplex(a) || isValueComplex(b) || isValueComplex(x))
+					throw "unexpected complex number to Weierstrass function";
+
+				if (!(a > 0 && a < 1)) throw "weir expects 0 < a < 1";
+				if (!(math.modf(b)[1] === 0 && b % 2 !== 0)) throw "weir expects b to be an odd integer";
+				if (a * b < 1 + 1.5 * math.pi) throw "weir expects ab > 1 + 3/2 pi";
+
+				let result = 0;
+
+				// n = 10
+				for (const r of $range(0, 10)) {
+					result += a ** r * math.cos(b ** r * math.pi * x);
+				}
+
+				return result;
+			},
+		},
+	],
+
+	[
 		DefinedFunction.Real,
 		{
 			execute: (arg) => {
@@ -183,6 +210,7 @@ export enum DefinedOperator {
 	Plus = "+",
 	Subtract = "-",
 	Multiply = "*",
+	Divide = "/",
 	Power = "^",
 	Factorial = "!",
 }
@@ -283,12 +311,30 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 					return [real, imaginary];
 				},
 				leftComplex: (leftHand, rightHand) => [leftHand[0] * rightHand, leftHand[1] * rightHand],
-				rightComplex: (leftHand, rightHand) => [rightHand[0] * leftHand, rightHand[1] * leftHand],
+				rightComplex: (leftHand, rightHand) => [leftHand * rightHand[0], leftHand * rightHand[1]],
 			}),
 		},
 	],
 
-	// TODO implment division
+	[
+		DefinedOperator.Divide,
+		{
+			matchingPattern: "/",
+
+			execute: withNodeValuesHandled({
+				bothReal: (leftHand, rightHand) => (rightHand === 0 ? 0 : leftHand / rightHand),
+				bothComplex: (leftHand, rightHand) => {
+					const [real, imaginary] = complexDiv(leftHand[0], leftHand[1], rightHand[0], rightHand[1]);
+
+					return [real, imaginary];
+				},
+				leftComplex: (leftHand, rightHand) =>
+					rightHand === 0 ? 0 : [leftHand[0] / rightHand, leftHand[1] / rightHand],
+
+				rightComplex: (leftHand, rightHand) => [leftHand / rightHand[0], leftHand / rightHand[1]],
+			}),
+		},
+	],
 
 	[
 		DefinedOperator.Power,
