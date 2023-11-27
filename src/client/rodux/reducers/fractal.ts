@@ -78,8 +78,8 @@ const parameterSideEffects: ParameterSideEffects = {
 
 		return {
 			pivot: [newPivotX, newPivotY],
-			xOffset: newPivotX - parameters.axisSize / 2,
-			yOffset: newPivotY - parameters.axisSize / 2,
+			offsetX: newPivotX - parameters.axisSize / 2,
+			offsetY: newPivotY - parameters.axisSize / 2,
 		};
 	},
 
@@ -89,8 +89,8 @@ const parameterSideEffects: ParameterSideEffects = {
 		const [pivotX, pivotY] = newPivot;
 
 		return {
-			xOffset: pivotX - parameters.axisSize / 2,
-			yOffset: pivotY - parameters.axisSize / 2,
+			offsetX: pivotX - parameters.axisSize / 2,
+			offsetY: pivotY - parameters.axisSize / 2,
 		};
 	},
 
@@ -98,8 +98,8 @@ const parameterSideEffects: ParameterSideEffects = {
 		if (!parametersResetWithFractalChange) return;
 
 		return {
-			xOffset: 0,
-			yOffset: 0,
+			offsetX: 0,
+			offsetY: 0,
 			magnification: 1,
 			pivot: false,
 		};

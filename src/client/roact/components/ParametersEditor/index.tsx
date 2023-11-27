@@ -16,6 +16,7 @@ import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
 import { enumToArray } from "shared/enums/enumToArray";
 import { StringInputParameter } from "./StringInputParameter";
+import { onFullPictureChange } from "client/roact/util/functions/onFullPictureChange";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -96,8 +97,8 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 						playerFacingName: "Max Stable",
 					})}
 
-					{createParameter(NumberParameter, "xOffset", { order: 5, playerFacingName: "X Offset" })}
-					{createParameter(NumberParameter, "yOffset", { order: 6, playerFacingName: "Y Offset" })}
+					{createParameter(NumberParameter, "offsetX", { order: 5, playerFacingName: "X Offset" })}
+					{createParameter(NumberParameter, "offsetY", { order: 6, playerFacingName: "Y Offset" })}
 
 					{createParameter(NumberParameter, "magnification", {
 						order: 7,
@@ -193,16 +194,18 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	}
 
 	didUpdate(previousProps: ParametersEditorProps) {
-		const nowInFull = this.props.interfaceMode === InterfaceMode.FullPicture;
-		const wasInFull = previousProps.interfaceMode === InterfaceMode.FullPicture;
-
-		if (nowInFull && !wasInFull) {
-			this.leftHandPosition.tween(-0.975);
-			this.rightHandPosition.tween(1.775);
-		} else if (!nowInFull && wasInFull) {
-			this.leftHandPosition.tween(0.025);
-			this.rightHandPosition.tween(0.775);
-		}
+		onFullPictureChange(
+			this.props.interfaceMode,
+			previousProps.interfaceMode,
+			() => {
+				this.leftHandPosition.tween(-0.975);
+				this.rightHandPosition.tween(1.775);
+			},
+			() => {
+				this.leftHandPosition.tween(0.025);
+				this.rightHandPosition.tween(0.775);
+			},
+		);
 	}
 }
 

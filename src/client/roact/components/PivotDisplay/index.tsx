@@ -3,6 +3,7 @@ import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumbe
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
+import { onFullPictureChange } from "client/roact/util/functions/onFullPictureChange";
 import { clientStore } from "client/rodux/store";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { PivotParameterData } from "shared/types/FractalParameters";
@@ -140,14 +141,12 @@ class BasePivotDisplay extends Roact.Component<PivotDisplayProps> {
 	}
 
 	didUpdate(previousProps: PivotDisplayProps) {
-		const nowInFull = this.props.interfaceMode === InterfaceMode.FullPicture;
-		const wasInFull = previousProps.interfaceMode === InterfaceMode.FullPicture;
-
-		if (nowInFull && !wasInFull) {
-			this.displayPosition.tween(1.775);
-		} else if (!nowInFull && wasInFull) {
-			this.displayPosition.tween(0.775);
-		}
+		onFullPictureChange(
+			this.props.interfaceMode,
+			previousProps.interfaceMode,
+			() => this.displayPosition.tween(1.775),
+			() => this.displayPosition.tween(0.775),
+		);
 	}
 }
 

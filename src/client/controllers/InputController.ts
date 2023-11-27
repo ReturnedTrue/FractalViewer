@@ -22,13 +22,13 @@ type FunctionControlData = () => NotifcationData | void;
 type InputControlData = ParameterEditingControlData | FunctionControlData;
 
 const inputControls = new Map<Enum.KeyCode, InputControlData>([
-	[Enum.KeyCode.D, { edits: "xOffset", by: WASD_MOVEMENT_INCREMENT, repeats: true }],
+	[Enum.KeyCode.D, { edits: "offsetX", by: WASD_MOVEMENT_INCREMENT, repeats: true }],
 
-	[Enum.KeyCode.A, { edits: "xOffset", by: -WASD_MOVEMENT_INCREMENT, repeats: true }],
+	[Enum.KeyCode.A, { edits: "offsetX", by: -WASD_MOVEMENT_INCREMENT, repeats: true }],
 
-	[Enum.KeyCode.W, { edits: "yOffset", by: WASD_MOVEMENT_INCREMENT, repeats: true }],
+	[Enum.KeyCode.W, { edits: "offsetY", by: WASD_MOVEMENT_INCREMENT, repeats: true }],
 
-	[Enum.KeyCode.S, { edits: "yOffset", by: -WASD_MOVEMENT_INCREMENT, repeats: true }],
+	[Enum.KeyCode.S, { edits: "offsetY", by: -WASD_MOVEMENT_INCREMENT, repeats: true }],
 
 	[Enum.KeyCode.E, { edits: "magnification", by: MAGNIFICATION_INCREMENT, repeats: true }],
 

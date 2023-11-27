@@ -4,7 +4,7 @@ import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { newtonFunctionData } from "./NewtonFunctionData";
 
-type FractalCalculator = (x: number, y: number, parameters: Omit<FractalParameters, "xOffset" | "yOffset">) => number;
+type FractalCalculator = (x: number, y: number, parameters: Omit<FractalParameters, "offsetX" | "offsetY">) => number;
 
 const getFunctionRootHueFromCache = (cache: Map<number, number>, closestRoot: number) => {
 	let hue = cache.get(closestRoot);

@@ -47,24 +47,24 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 
 	const timeAccumulator = new SystemTimeAccumulator();
 
-	for (const i of $range(0, parameters.axisSize - 1)) {
-		const xPosition = i + parameters.xOffset;
+	for (const baseX of $range(0, parameters.axisSize - 1)) {
+		const positionX = baseX + parameters.offsetX;
 
-		let cacheColumn = cache.get(xPosition);
+		let cacheColumn = cache.get(positionX);
 
 		if (cacheColumn === undefined) {
 			cacheColumn = new Map();
-			cache.set(xPosition, cacheColumn);
+			cache.set(positionX, cacheColumn);
 		}
 
 		timeAccumulator.startSegment();
 
-		for (const j of $range(0, parameters.axisSize - 1)) {
-			const yPosition = j + parameters.yOffset;
+		for (const baseY of $range(0, parameters.axisSize - 1)) {
+			const positionY = baseY + parameters.offsetY;
 
-			if (!cacheColumn.has(yPosition)) {
-				const value = calculator(xPosition, yPosition, parameters);
-				cacheColumn.set(yPosition, value);
+			if (!cacheColumn.has(positionY)) {
+				const value = calculator(positionX, positionY, parameters);
+				cacheColumn.set(positionY, value);
 			}
 		}
 
@@ -106,7 +106,12 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				];
 
 				initialVariables.set("c", cValue);
+				initialVariables.set("x", x);
+				initialVariables.set("y", y);
+
 				calculationVariables.set("c", cValue);
+				calculationVariables.set("x", x);
+				calculationVariables.set("y", y);
 
 				let zValue = evalComplex(initialEvaluator, initialVariables);
 
@@ -124,8 +129,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				return 0;
 			};
 
-			for (const i of $range(0, parameters.axisSize - 1)) {
-				const xPosition = i + parameters.xOffset;
+			for (const baseX of $range(0, parameters.axisSize - 1)) {
+				const xPosition = baseX + parameters.offsetX;
 
 				let cacheColumn = cache.get(xPosition);
 
@@ -136,13 +141,13 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 				timeAccumulator.startSegment();
 
-				for (const j of $range(0, parameters.axisSize - 1)) {
-					const yPosition = j + parameters.yOffset;
+				for (const baseY of $range(0, parameters.axisSize - 1)) {
+					const positionY = baseY + parameters.offsetY;
 
-					if (!cacheColumn.has(yPosition)) {
-						const value = calculateAtPoint(xPosition, yPosition);
+					if (!cacheColumn.has(positionY)) {
+						const value = calculateAtPoint(xPosition, positionY);
 
-						cacheColumn.set(yPosition, value);
+						cacheColumn.set(positionY, value);
 					}
 				}
 
@@ -157,7 +162,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 			// Buddhabrot may not generate values for points which are currently displayed
 			const fillInMissedPoints = () => {
 				for (const i of $range(0, parameters.axisSize - 1)) {
-					const xPosition = i + parameters.xOffset;
+					const xPosition = i + parameters.offsetX;
 					const cacheColumn = cache.get(xPosition);
 
 					// Knows that the whole column is empty so populates immediately
@@ -165,7 +170,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 						const newColumn = new Map<number, number>();
 
 						for (const j of $range(0, parameters.axisSize - 1)) {
-							const yPosition = j + parameters.yOffset;
+							const yPosition = j + parameters.offsetY;
 							newColumn.set(yPosition, 0);
 						}
 
@@ -176,7 +181,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 					// Checks before populating
 					for (const j of $range(0, parameters.axisSize - 1)) {
-						const yPosition = j + parameters.yOffset;
+						const yPosition = j + parameters.offsetY;
 
 						if (!cacheColumn.has(yPosition)) {
 							cacheColumn.set(yPosition, 0);
@@ -249,11 +254,11 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 			const timeAccumulator = new SystemTimeAccumulator();
 
-			for (const i of $range(0, scaledIterationAxis)) {
+			for (const x of $range(0, scaledIterationAxis)) {
 				timeAccumulator.startSegment();
 
-				for (const j of $range(0, scaledIterationAxis)) {
-					solveMandelbrotForPoint(i, j);
+				for (const y of $range(0, scaledIterationAxis)) {
+					solveMandelbrotForPoint(x, y);
 				}
 
 				timeAccumulator.finishSegment();

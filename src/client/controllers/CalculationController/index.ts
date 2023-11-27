@@ -188,18 +188,18 @@ export class CalculationController implements OnStart {
 		}
 	}
 
-	private applyFractal({ xOffset, yOffset, hueShift, axisSize }: FractalParameters) {
+	private applyFractal({ offsetX, offsetY, hueShift, axisSize }: FractalParameters) {
 		const trueHueShift = hueShift / 360;
 		const endTimer = beginTimer();
 
 		for (const i of $range(0, axisSize - 1)) {
-			const xPosition = i + xOffset;
+			const xPosition = i + offsetX;
 
 			const cacheColumn = this.hueCache.get(xPosition)!;
 			const partsColumn = this.partsGrid[i];
 
 			for (const j of $range(0, axisSize - 1)) {
-				const yPosition = j + yOffset;
+				const yPosition = j + offsetY;
 
 				const hue = cacheColumn.get(yPosition)! + trueHueShift;
 				const color = Color3.fromHSV(hue > 1 ? hue - 1 : hue, 1, 1);

@@ -24,8 +24,8 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 
 	pivot: false,
 
-	xOffset: 0,
-	yOffset: 0,
+	offsetX: 0,
+	offsetY: 0,
 	magnification: 1,
 
 	hueShift: 0,
@@ -44,4 +44,4 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 	customCalculationExpression: "z^2 + c",
 } satisfies FractalParameters;
 
-export const PARAMETERS_WHICH_RETAIN_CACHE = new Set<FractalParameterName>(["xOffset", "yOffset", "pivot", "hueShift"]);
+export const PARAMETERS_WHICH_RETAIN_CACHE = new Set<FractalParameterName>(["offsetX", "offsetY", "pivot", "hueShift"]);

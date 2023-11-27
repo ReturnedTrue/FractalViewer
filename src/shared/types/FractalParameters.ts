@@ -9,8 +9,8 @@ export interface FractalParameters {
 
 	pivot: [number, number] | false;
 
-	xOffset: number;
-	yOffset: number;
+	offsetX: number;
+	offsetY: number;
 	magnification: number;
 
 	hueShift: number;

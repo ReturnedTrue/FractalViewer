@@ -5,6 +5,7 @@ import { PasteFractal } from "./PasteFractal";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { InterfaceMode } from "shared/enums/InterfaceMode";
 import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
+import { onFullPictureChange } from "client/roact/util/functions/onFullPictureChange";
 
 interface ParametersClipboardProps {
 	parameters: FractalParameters;
@@ -31,14 +32,12 @@ class BaseParametersClipboard extends Roact.Component<ParametersClipboardProps> 
 	}
 
 	didUpdate(previousProps: ParametersClipboardProps) {
-		const nowInFull = this.props.interfaceMode === InterfaceMode.FullPicture;
-		const wasInFull = previousProps.interfaceMode === InterfaceMode.FullPicture;
-
-		if (nowInFull && !wasInFull) {
-			this.clipboardPosition.tween(1);
-		} else if (!nowInFull && wasInFull) {
-			this.clipboardPosition.tween(0);
-		}
+		onFullPictureChange(
+			this.props.interfaceMode,
+			previousProps.interfaceMode,
+			() => this.clipboardPosition.tween(1),
+			() => this.clipboardPosition.tween(0),
+		);
 	}
 }
 

@@ -39,8 +39,8 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 			const scaledX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * axisSize;
 			const scaledY = axisSize - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * axisSize;
 
-			const pivotX = math.round(scaledX + parameters.xOffset);
-			const pivotY = math.round(scaledY + parameters.yOffset);
+			const pivotX = math.round(scaledX + parameters.offsetX);
+			const pivotY = math.round(scaledY + parameters.offsetY);
 
 			clientStore.dispatch({
 				type: "updateParameter",
@@ -117,7 +117,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 		const folder = this.props.folder;
 		if (!(viewport && camera && folder)) return;
 
-		// Viewed before mount
+		// Viewed before mount, therefore display immediately
 		if (this.props.interfaceMode !== InterfaceMode.Hidden) {
 			folder.Parent = viewport;
 			viewport.CurrentCamera = camera;
