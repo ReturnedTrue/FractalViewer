@@ -4,8 +4,8 @@ import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumbe
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
-import { NOTIFICATION_TIME } from "shared/constants/notification";
-import { NotifcationData } from "shared/types/NotificationData";
+import { NOTIFICATION_TIME } from "client/constants/notification";
+import { NotifcationData } from "client/types/NotificationData";
 
 const [guiInset] = GuiService.GetGuiInset();
 

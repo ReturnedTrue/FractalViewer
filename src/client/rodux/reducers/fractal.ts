@@ -1,6 +1,6 @@
 import { Action, createReducer } from "@rbxts/rodux";
 import { DEFAULT_FRACTAL_PARAMETERS, PARAMETERS_WHICH_RETAIN_CACHE } from "shared/constants/fractal";
-import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 interface SetPartsFolder extends Action<"setPartsFolder"> {

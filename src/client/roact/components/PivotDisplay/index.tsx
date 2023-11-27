@@ -5,7 +5,7 @@ import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScale
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { onFullPictureChange } from "client/roact/util/functions/onFullPictureChange";
 import { clientStore } from "client/rodux/store";
-import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { InterfaceMode } from "client/enums/InterfaceMode";
 import { PivotParameterData } from "shared/types/FractalParameters";
 
 interface PivotDisplayProps {

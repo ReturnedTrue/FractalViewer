@@ -1,5 +1,5 @@
 import { Action, createReducer } from "@rbxts/rodux";
-import { NotifcationData } from "shared/types/NotificationData";
+import { NotifcationData } from "client/types/NotificationData";
 
 interface SendNotification extends Action<"sendNotification"> {
 	data: NotifcationData;

@@ -12,9 +12,9 @@ import {
 } from "shared/types/FractalParameters";
 import { clientStore } from "client/rodux/store";
 import { BooleanParameter } from "./BooleanParameter";
-import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { InterfaceMode } from "client/enums/InterfaceMode";
 import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
-import { enumToArray } from "shared/enums/enumToArray";
+import { enumToArray } from "client/enums/enumToArray";
 import { StringInputParameter } from "./StringInputParameter";
 import { onFullPictureChange } from "client/roact/util/functions/onFullPictureChange";
 

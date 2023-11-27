@@ -3,7 +3,7 @@ import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { CopyFractal } from "./CopyFractal";
 import { PasteFractal } from "./PasteFractal";
 import { FractalParameters } from "shared/types/FractalParameters";
-import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { InterfaceMode } from "client/enums/InterfaceMode";
 import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
 import { onFullPictureChange } from "client/roact/util/functions/onFullPictureChange";
 

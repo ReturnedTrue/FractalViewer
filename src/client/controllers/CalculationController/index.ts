@@ -7,9 +7,9 @@ import {
 import { $print, $warn } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
 import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
-import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
-import { NotifcationData } from "shared/types/NotificationData";
+import { NotifcationData } from "client/types/NotificationData";
 
 function beginTimer() {
 	const startTime = os.clock();

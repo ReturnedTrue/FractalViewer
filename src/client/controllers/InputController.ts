@@ -6,9 +6,9 @@ import {
 	MAGNIFICATION_INCREMENT,
 	WASD_MOVEMENT_INCREMENT,
 } from "shared/constants/fractal";
-import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameterNameForType, FractalParameters } from "shared/types/FractalParameters";
-import { NotifcationData } from "shared/types/NotificationData";
+import { NotifcationData } from "client/types/NotificationData";
 
 type ParameterEditingControlData = {
 	edits: FractalParameterNameForType<number>;

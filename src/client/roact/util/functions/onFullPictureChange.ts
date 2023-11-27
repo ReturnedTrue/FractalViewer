@@ -1,4 +1,4 @@
-import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { InterfaceMode } from "client/enums/InterfaceMode";
 
 export function onFullPictureChange(
 	currentInterfaceMode: InterfaceMode,

@@ -3,7 +3,7 @@ import { UserInputService, Workspace } from "@rbxts/services";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
 import { CAMERA_FOV } from "shared/constants/fractal";
-import { InterfaceMode } from "shared/enums/InterfaceMode";
+import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 
 const playerCamera = Workspace.CurrentCamera!;

@@ -1,6 +1,6 @@
 import { DefinedFunction, DefinedOperator, definedOperatorData } from "./SyntaxDefinitions";
 import { ExpressionToken, ExpressionTokenCategory } from "./ExpressionToken";
-import { enumToArray } from "shared/enums/enumToArray";
+import { enumToArray } from "client/enums/enumToArray";
 
 interface ExpressionTokenCapture {
 	patterns: Array<string>;
