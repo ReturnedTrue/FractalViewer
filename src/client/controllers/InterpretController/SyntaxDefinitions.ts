@@ -23,6 +23,7 @@ export enum DefinedFunction {
 	Tan = "tan",
 	Real = "Re",
 	Imaginary = "Im",
+	Conjugate = "Conjugate",
 }
 
 export interface DefinedFunctionData {
@@ -237,6 +238,19 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 				if (!isValueComplex(arg)) throw "unexpected real number to Im";
 
 				return arg[1];
+			},
+
+			argumentsExpected: 1,
+		},
+	],
+
+	[
+		DefinedFunction.Conjugate,
+		{
+			execute: (arg) => {
+				if (!isValueComplex(arg)) throw "unexpected real number to Conjugate";
+
+				return [arg[0], -arg[1]];
 			},
 
 			argumentsExpected: 1,

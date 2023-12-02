@@ -43,6 +43,28 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 	],
 
 	[
+		FractalId.Mandelbar,
+		(x, y, parameters) => {
+			const cReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
+			const cImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
+
+			let zReal = 0;
+			let zImaginary = 0;
+
+			for (const iteration of $range(1, parameters.maxIterations)) {
+				if (modulus(zReal, zImaginary) > parameters.maxStable) return iteration / parameters.maxIterations;
+
+				const zRealTemp = zReal;
+
+				zReal = zReal * zReal - zImaginary * zImaginary + cReal;
+				zImaginary = zRealTemp * zImaginary * -2 + cImaginary;
+			}
+
+			return 0;
+		},
+	],
+
+	[
 		FractalId.BurningShip,
 		(x, y, parameters) => {
 			const facingFactor = parameters.burningShipFacesLeft ? -1 : 1;
