@@ -140,11 +140,13 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 							{createParameter(NumberParameter, "juliaRealConstant", {
 								order: 1,
 								playerFacingName: "Julia Real",
+								newValueConstraint: (value) => math.clamp(value, -2, 2),
 							})}
 
 							{createParameter(NumberParameter, "juliaImaginaryConstant", {
 								order: 2,
 								playerFacingName: "Julia Imaginary",
+								newValueConstraint: (value) => math.clamp(value, -2, 2),
 							})}
 						</Roact.Fragment>
 					)}

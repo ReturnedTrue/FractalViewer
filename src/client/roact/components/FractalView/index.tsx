@@ -1,10 +1,11 @@
 import Roact, { createRef } from "@rbxts/roact";
-import { UserInputService, Workspace } from "@rbxts/services";
+import { RunService, UserInputService, Workspace } from "@rbxts/services";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
 import { CAMERA_FOV } from "shared/constants/fractal";
 import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
+import { FractalId } from "shared/enums/FractalId";
 
 const playerCamera = Workspace.CurrentCamera!;
 
@@ -30,23 +31,71 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 		const parameters = this.props.parameters;
 		const axisSize = parameters.axisSize;
 
-		const inputBegan = (viewport: ViewportFrame, input: InputObject) => {
-			if (input.UserInputType !== Enum.UserInputType.MouseButton2) return;
-
+		const getClickUnitIntervals = (viewport: ViewportFrame) => {
 			const absolutePos = viewport.AbsolutePosition;
 			const absoluteSize = viewport.AbsoluteSize;
 
-			const scaledX = ((input.Position.X - absolutePos.X) / absoluteSize.X) * axisSize;
-			const scaledY = axisSize - ((input.Position.Y - absolutePos.Y) / absoluteSize.Y) * axisSize;
+			const inputPosition = UserInputService.GetMouseLocation();
 
-			const pivotX = math.round(scaledX + parameters.offsetX);
-			const pivotY = math.round(scaledY + parameters.offsetY);
+			const unitX = (inputPosition.X - absolutePos.X) / absoluteSize.X;
+			const unitY = (inputPosition.Y - absolutePos.Y) / absoluteSize.Y;
+
+			return $tuple(unitX, 1 - unitY);
+		};
+
+		const setPivot = (viewport: ViewportFrame) => {
+			const [unitX, unitY] = getClickUnitIntervals(viewport);
+
+			const pivotX = math.round(unitX * axisSize + parameters.offsetX);
+			const pivotY = math.round(unitY * axisSize + parameters.offsetY);
 
 			clientStore.dispatch({
 				type: "updateParameter",
 				name: "pivot",
 				value: [pivotX, pivotY],
 			});
+		};
+
+		const toSigFig = (x: number, sigFig: number) => {
+			const precision = 10 ** sigFig;
+
+			return math.round(x * precision) / precision;
+		};
+
+		const assignJuliaConstants = (viewport: ViewportFrame) => {
+			if (parameters.fractalId !== FractalId.Julia) return;
+
+			do {
+				const [unitX, unitY] = getClickUnitIntervals(viewport);
+
+				const complexOffsetX = (parameters.offsetX / parameters.magnification / axisSize) * 4;
+				const complexOffsetY = (parameters.offsetY / parameters.magnification / axisSize) * 4;
+
+				const realConstant = toSigFig((unitX / parameters.magnification) * 4 - 2 + complexOffsetX, 3);
+				const imaginaryConstant = toSigFig((unitY / parameters.magnification) * 4 - 2 + complexOffsetY, 3);
+
+				if (realConstant < -2 || imaginaryConstant < -2 || realConstant > 2 || imaginaryConstant > 2) {
+					return;
+				}
+
+				clientStore.dispatch({
+					type: "setParameters",
+					parameters: {
+						juliaRealConstant: realConstant,
+						juliaImaginaryConstant: imaginaryConstant,
+					},
+				});
+
+				RunService.RenderStepped.Wait();
+			} while (UserInputService.IsMouseButtonPressed(Enum.UserInputType.MouseButton3));
+		};
+
+		const inputBegan = (viewport: ViewportFrame, input: InputObject) => {
+			if (input.UserInputType === Enum.UserInputType.MouseButton2) {
+				setPivot(viewport);
+			} else if (input.UserInputType === Enum.UserInputType.MouseButton3) {
+				assignJuliaConstants(viewport);
+			}
 		};
 
 		/*const inputChanged = (_viewport: ViewportFrame, input: InputObject) => {
