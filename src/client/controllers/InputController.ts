@@ -23,13 +23,9 @@ type InputControlData = ParameterEditingControlData | FunctionControlData;
 
 const inputControls = new Map<Enum.KeyCode, InputControlData>([
 	[Enum.KeyCode.D, { edits: "offsetX", by: WASD_MOVEMENT_INCREMENT, repeats: true }],
-
 	[Enum.KeyCode.A, { edits: "offsetX", by: -WASD_MOVEMENT_INCREMENT, repeats: true }],
-
 	[Enum.KeyCode.W, { edits: "offsetY", by: WASD_MOVEMENT_INCREMENT, repeats: true }],
-
 	[Enum.KeyCode.S, { edits: "offsetY", by: -WASD_MOVEMENT_INCREMENT, repeats: true }],
-
 	[Enum.KeyCode.E, { edits: "magnification", by: MAGNIFICATION_INCREMENT, repeats: true }],
 
 	[
@@ -68,9 +64,10 @@ const inputControls = new Map<Enum.KeyCode, InputControlData>([
 			clientStore.dispatch({ type: "toggleFullPictureMode" });
 
 			const { interfaceMode } = clientStore.getState().fractal;
+			const innerText = interfaceMode === InterfaceMode.FullPicture ? "Entered" : "Left";
 
 			return {
-				text: `${interfaceMode === InterfaceMode.FullPicture ? "Entered" : "Left"} full picture mode`,
+				text: `${innerText} full picture mode`,
 			};
 		},
 	],
@@ -114,16 +111,7 @@ export class InputController implements OnStart {
 		this.runParameterEditingData(parameters, controlData);
 
 		if (controlData.repeats && UserInputService.IsKeyDown(keyCode)) {
-			const controlThread = task.spawn(() => {
-				while (true) {
-					task.wait(HELD_INPUT_SECONDS_INTERVAL);
-
-					const { parameters: parametersNow } = clientStore.getState().fractal;
-					this.runParameterEditingData(parametersNow, controlData);
-				}
-			});
-
-			this.controlThreads.set(keyCode, controlThread);
+			this.connectControlThread(keyCode, controlData);
 		}
 	}
 
@@ -133,6 +121,19 @@ export class InputController implements OnStart {
 		if (notificationData) {
 			clientStore.dispatch({ type: "sendNotification", data: notificationData });
 		}
+	}
+
+	private connectControlThread(keyCode: Enum.KeyCode, controlData: ParameterEditingControlData) {
+		const controlThread = task.spawn(() => {
+			while (true) {
+				task.wait(HELD_INPUT_SECONDS_INTERVAL);
+
+				const parametersNow = clientStore.getState().fractal.parameters;
+				this.runParameterEditingData(parametersNow, controlData);
+			}
+		});
+
+		this.controlThreads.set(keyCode, controlThread);
 	}
 
 	private runParameterEditingData(parameters: FractalParameters, data: ParameterEditingControlData) {

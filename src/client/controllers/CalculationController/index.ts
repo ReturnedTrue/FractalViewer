@@ -32,6 +32,8 @@ export class CalculationController implements OnStart {
 	private hueCache = new Map<number, Map<number, number>>();
 
 	onStart() {
+		clientStore.dispatch({ type: "setPartsFolder", partsFolder: this.containingFolder });
+
 		connectToStoreChange((state, oldState) => {
 			const fractal = state.fractal;
 			const oldFractal = oldState.fractal;
@@ -85,9 +87,6 @@ export class CalculationController implements OnStart {
 
 			$print("complete render of", parameters.fractalId, "fractal", endTimer(), "\n");
 		});
-
-		clientStore.dispatch({ type: "setPartsFolder", partsFolder: this.containingFolder });
-		clientStore.dispatch({ type: "requestRender" });
 	}
 
 	private handleAxisSizeChange(oldAxisSize: number, newAxisSize: number) {

@@ -6,7 +6,7 @@ import { FractalParameters } from "shared/types/FractalParameters";
 import { CornerAndPadding } from "client/roact/util/components/CornerAndPadding";
 import { Flamework } from "@flamework/core";
 
-const isParameters = Flamework.createGuard<Partial<FractalParameters>>();
+const isPartialParameters = Flamework.createGuard<Partial<FractalParameters>>();
 
 interface PasteFractalProps {}
 
@@ -17,7 +17,7 @@ export class PasteFractal extends Roact.Component<PasteFractalProps> {
 
 			if (text !== "") {
 				const [success, response] = pcall(() => HttpService.JSONDecode(rbx.Text));
-				const hasCorrectFormat = success && isParameters(response);
+				const hasCorrectFormat = success && isPartialParameters(response);
 
 				if (!hasCorrectFormat) {
 					rbx.Text = "Incorrect Format";
