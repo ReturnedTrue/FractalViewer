@@ -13,7 +13,13 @@ const definedFunctionNames = enumToArray(DefinedFunction);
 
 const tokenCaptures: Array<ExpressionTokenCapture> = [
 	{ patterns: ["%s"], consumes: true, category: ExpressionTokenCategory.Whitespace },
-	{ patterns: ["%d", "%."], consumes: true, category: ExpressionTokenCategory.Number },
+
+	{
+		patterns: ["%d", "%."],
+		consumes: true,
+		category: ExpressionTokenCategory.Number,
+	},
+
 	{
 		patterns: definedOperatorNames.mapFiltered((operator) => {
 			const operatorData = definedOperatorData.get(operator);
@@ -25,6 +31,7 @@ const tokenCaptures: Array<ExpressionTokenCapture> = [
 		consumes: false,
 		category: ExpressionTokenCategory.Operator,
 	},
+
 	{
 		patterns: ["%w"],
 		consumes: true,
@@ -40,58 +47,70 @@ const tokenCaptures: Array<ExpressionTokenCapture> = [
 			return ExpressionTokenCategory.Variable;
 		},
 	},
+
 	{
 		patterns: [","],
 		consumes: false,
 		category: ExpressionTokenCategory.Comma,
 	},
+
 	{
 		patterns: ["%(", "%)"],
 		consumes: false,
 		category: ExpressionTokenCategory.Parenthesis,
 	},
+
+	{
+		patterns: ["|"],
+		consumes: false,
+		category: ExpressionTokenCategory.Pipe,
+	},
 ];
 
 export class ExpressionLexer {
-	private position = 1;
+	private position = 0;
 
-	constructor(private expression: string) {}
+	private characters: Array<string>;
+	private numberOfCharacters: number;
+
+	constructor(expression: string) {
+		this.characters = expression.split("");
+		this.numberOfCharacters = this.characters.size();
+	}
 
 	public getAllTokens() {
 		const tokens = new Array<ExpressionToken>();
-		const expressionSize = this.expression.size();
 
-		while (this.position <= expressionSize) {
+		while (this.position < this.numberOfCharacters) {
 			let isUnexpected = true;
 
+			let currentCharacter = "";
+
 			for (const capture of tokenCaptures) {
-				if (this.matchesAtPosition(capture, this.position)) {
-					const token = this.pullAllOfCapture(capture);
+				currentCharacter = this.characters[this.position];
+				if (!this.captureMatchesWithCharacter(capture, currentCharacter)) continue;
 
-					if (token.category !== ExpressionTokenCategory.Whitespace) {
-						tokens.push(token);
-					}
+				const token = this.pullAllOfCapture(capture, currentCharacter);
 
-					isUnexpected = false;
-					break;
+				if (token.category !== ExpressionTokenCategory.Whitespace) {
+					tokens.push(token);
 				}
+
+				isUnexpected = false;
+				break;
 			}
 
 			if (isUnexpected) {
-				throw `unexpected character: ${this.getCharacterAt(this.position)}`;
+				throw `unexpected character: ${currentCharacter}`;
 			}
 		}
 
 		return tokens;
 	}
 
-	private getCharacterAt(position: number) {
-		return this.expression.sub(position, position);
-	}
-
-	private matchesAtPosition(capture: ExpressionTokenCapture, position: number) {
+	private captureMatchesWithCharacter(capture: ExpressionTokenCapture, character: string) {
 		for (const pattern of capture.patterns) {
-			const result = string.match(this.getCharacterAt(position), pattern)[0];
+			const result = string.match(character, pattern)[0];
 
 			if (result !== undefined) {
 				return true;
@@ -101,15 +120,14 @@ export class ExpressionLexer {
 		return false;
 	}
 
-	private pullAllOfCapture(capture: ExpressionTokenCapture): ExpressionToken {
-		let fullContent = this.getCharacterAt(this.position);
+	private pullAllOfCapture(capture: ExpressionTokenCapture, firstCharacter: string): ExpressionToken {
+		let fullContent = firstCharacter;
 
-		while (
-			capture.consumes &&
-			this.position + 1 < this.expression.size() &&
-			this.matchesAtPosition(capture, this.position + 1)
-		) {
-			fullContent += this.getCharacterAt(this.position + 1);
+		while (capture.consumes && this.position + 1 < this.numberOfCharacters) {
+			const nextCharacter = this.characters[this.position + 1];
+			if (!this.captureMatchesWithCharacter(capture, nextCharacter)) break;
+
+			fullContent += nextCharacter;
 			this.position++;
 		}
 

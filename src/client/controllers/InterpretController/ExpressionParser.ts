@@ -113,18 +113,33 @@ export class ExpressionParser {
 				this.consumeCurrentToken();
 				return { category: ExpressionNodeCategory.Constant, constantValue: [0, 1] };
 
-			case ExpressionTokenCategory.Parenthesis:
-				this.consumeCurrentToken({ category: ExpressionTokenCategory.Parenthesis, content: "(" });
-
-				const result = this.parseExpression();
-				this.consumeCurrentToken({ category: ExpressionTokenCategory.Parenthesis, content: ")" });
-
-				return result;
-
 			case ExpressionTokenCategory.Variable:
 				this.consumeCurrentToken();
 
 				return { category: ExpressionNodeCategory.Variable, variableName: content };
+
+			case ExpressionTokenCategory.Parenthesis:
+				this.consumeCurrentToken({ category: ExpressionTokenCategory.Parenthesis, content: "(" });
+
+				const parenthesisResult = this.parseExpression();
+				this.consumeCurrentToken({ category: ExpressionTokenCategory.Parenthesis, content: ")" });
+
+				return parenthesisResult;
+
+			case ExpressionTokenCategory.Pipe:
+				this.consumeCurrentToken({ category: ExpressionTokenCategory.Pipe, content: "|" });
+
+				const pipeResult = this.parseExpression();
+				this.consumeCurrentToken({ category: ExpressionTokenCategory.Pipe, content: "|" });
+
+				const modulusFunctionData = definedFunctionData.get(DefinedFunction.Mod);
+				if (!modulusFunctionData) throw "could not get modulus function data";
+
+				return {
+					category: ExpressionNodeCategory.Function,
+					functionExecute: modulusFunctionData.execute,
+					arguments: [pipeResult],
+				};
 
 			case ExpressionTokenCategory.Function:
 				const functionData = getGuaranteedFunctionData(content);

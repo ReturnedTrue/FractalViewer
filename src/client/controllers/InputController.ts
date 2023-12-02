@@ -39,7 +39,7 @@ const inputControls = new Map<Enum.KeyCode, InputControlData>([
 			clientStore.dispatch({ type: "resetParameters" });
 
 			return {
-				text: "Fractal parameters were reset",
+				text: "fractal parameters were reset",
 			};
 		},
 	],

@@ -6,6 +6,7 @@ export enum ExpressionTokenCategory {
 	ImaginaryConstant = "imaginary constant",
 	Function = "function",
 	Parenthesis = "parenthesis",
+	Pipe = "pipe",
 	Comma = "comma",
 }
 
