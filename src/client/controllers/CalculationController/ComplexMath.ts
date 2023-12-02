@@ -39,7 +39,7 @@ export const complexPow = (real: number, imaginary: number, exponent: number) =>
 	Since a^loga(b) = b, e^ln(a) = a
 
 	a^z = a^x * e^ln(a)yi
-		= a^x * ( r(cos(theta * ln(a)) + isin(theta * ln(a))) )
+		= a^x * [ r( cos(theta * ln(a)) + isin(theta * ln(a)) ) ]
 */
 export const realToComplexPow = (x: number, real: number, imaginary: number) => {
 	const newMagnitude = modulus(real, imaginary) * x ** real;

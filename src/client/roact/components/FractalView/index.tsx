@@ -1,5 +1,5 @@
 import Roact, { createRef } from "@rbxts/roact";
-import { GuiService, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { UserInputService, Workspace } from "@rbxts/services";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
 import { CAMERA_FOV } from "shared/constants/fractal";
@@ -7,7 +7,6 @@ import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { FractalId } from "shared/enums/FractalId";
 
-const [guiInset] = GuiService.GetGuiInset();
 const playerCamera = Workspace.CurrentCamera!;
 
 interface FractalViewProps {

@@ -5,7 +5,7 @@ import {
 	PARAMETERS_WHICH_RETAIN_CACHE,
 } from "shared/constants/fractal";
 import { InterfaceMode } from "client/enums/InterfaceMode";
-import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
+import { FractalParameterName, FractalParameters, PivotParameterData } from "shared/types/FractalParameters";
 
 interface SetPartsFolder extends Action<"setPartsFolder"> {
 	partsFolder: Folder;
@@ -88,8 +88,8 @@ const parameterSideEffects: ParameterSideEffects = {
 
 		return {
 			pivot: [newPivotX, newPivotY],
-			offsetX: newPivotX - parameters.axisSize / 2,
-			offsetY: newPivotY - parameters.axisSize / 2,
+			offsetX: newPivotX - math.round(parameters.axisSize / 2),
+			offsetY: newPivotY - math.round(parameters.axisSize / 2),
 		};
 	},
 
@@ -99,8 +99,23 @@ const parameterSideEffects: ParameterSideEffects = {
 		const [pivotX, pivotY] = newPivot;
 
 		return {
-			offsetX: pivotX - parameters.axisSize / 2,
-			offsetY: pivotY - parameters.axisSize / 2,
+			offsetX: pivotX - math.round(parameters.axisSize / 2),
+			offsetY: pivotY - math.round(parameters.axisSize / 2),
+		};
+	},
+
+	axisSize: (newAxisSize, oldAxisSize, { parameters }) => {
+		const factor = newAxisSize / oldAxisSize;
+
+		const oldPivot = parameters.pivot;
+		const newPivot: PivotParameterData = oldPivot
+			? [math.round(oldPivot[0] * factor), math.round(oldPivot[1] * factor)]
+			: false;
+
+		return {
+			offsetX: math.round(parameters.offsetX * factor),
+			offsetY: math.round(parameters.offsetY * factor),
+			pivot: newPivot,
 		};
 	},
 
