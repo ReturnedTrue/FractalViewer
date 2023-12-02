@@ -2,6 +2,7 @@ import { Controller, OnStart } from "@flamework/core";
 import { ExpressionParser } from "./ExpressionParser";
 import { ExpressionLexer } from "./ExpressionLexer";
 import { ExpressionEvaluator } from "./ExpressionEvaluator";
+import { $print } from "rbxts-transform-debug";
 
 /**
  * z^fib(mod(z)) + c = peanut
@@ -29,15 +30,17 @@ export class InterpretController implements OnStart {
 		const previousResult = this.interprettedExpressions.get(expression);
 		if (previousResult) return previousResult;
 
+		$print("interpretting expression:", expression);
+
 		const lexer = new ExpressionLexer(expression);
 		const tokens = lexer.getAllTokens();
 
-		print("tokens:", tokens);
+		$print("tokens:", tokens);
 
 		const parser = new ExpressionParser(tokens);
 		const nodes = parser.getAllNodes();
 
-		print("nodes:", nodes);
+		$print("nodes:", nodes);
 
 		const evaluator = new ExpressionEvaluator(nodes);
 

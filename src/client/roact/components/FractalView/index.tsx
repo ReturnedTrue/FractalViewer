@@ -1,5 +1,5 @@
 import Roact, { createRef } from "@rbxts/roact";
-import { RunService, UserInputService, Workspace } from "@rbxts/services";
+import { GuiService, RunService, UserInputService, Workspace } from "@rbxts/services";
 import { connectComponent } from "client/roact/util/functions/connectComponent";
 import { clientStore } from "client/rodux/store";
 import { CAMERA_FOV } from "shared/constants/fractal";
@@ -7,6 +7,7 @@ import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { FractalId } from "shared/enums/FractalId";
 
+const [guiInset] = GuiService.GetGuiInset();
 const playerCamera = Workspace.CurrentCamera!;
 
 interface FractalViewProps {
@@ -28,26 +29,27 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 	private cameraRef = createRef<Camera>();
 
 	render() {
-		const parameters = this.props.parameters;
-		const axisSize = parameters.axisSize;
-
-		const getClickUnitIntervals = (viewport: ViewportFrame) => {
+		const getClickUnitIntervals = (viewport: ViewportFrame, inputPosition: Vector3) => {
 			const absolutePos = viewport.AbsolutePosition;
 			const absoluteSize = viewport.AbsoluteSize;
 
-			const inputPosition = UserInputService.GetMouseLocation();
+			//const inputPosition = UserInputService.GetMouseLocation();
+
+			//const unitInset = guiInset.Y / absoluteSize.Y;
 
 			const unitX = (inputPosition.X - absolutePos.X) / absoluteSize.X;
-			const unitY = (inputPosition.Y - absolutePos.Y) / absoluteSize.Y;
+			const unitY = 1 - (inputPosition.Y - absolutePos.Y) / absoluteSize.Y;
 
-			return $tuple(unitX, 1 - unitY);
+			return $tuple(unitX, unitY);
 		};
 
-		const setPivot = (viewport: ViewportFrame) => {
-			const [unitX, unitY] = getClickUnitIntervals(viewport);
+		const setPivot = (viewport: ViewportFrame, inputPosition: Vector3) => {
+			const [unitX, unitY] = getClickUnitIntervals(viewport, inputPosition);
 
-			const pivotX = math.round(unitX * axisSize + parameters.offsetX);
-			const pivotY = math.round(unitY * axisSize + parameters.offsetY);
+			const parameters = this.props.parameters;
+
+			const pivotX = math.round(unitX * parameters.axisSize + parameters.offsetX);
+			const pivotY = math.round(unitY * parameters.axisSize + parameters.offsetY);
 
 			clientStore.dispatch({
 				type: "updateParameter",
@@ -62,53 +64,54 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 			return math.round(x * precision) / precision;
 		};
 
-		const assignJuliaConstants = (viewport: ViewportFrame) => {
-			if (parameters.fractalId !== FractalId.Julia) return;
+		const assignJuliaConstants = (viewport: ViewportFrame, inputPosition: Vector3) => {
+			if (this.props.parameters.fractalId !== FractalId.Julia) return;
 
-			do {
-				const [unitX, unitY] = getClickUnitIntervals(viewport);
+			const [unitX, unitY] = getClickUnitIntervals(viewport, inputPosition);
 
-				const complexOffsetX = (parameters.offsetX / parameters.magnification / axisSize) * 4;
-				const complexOffsetY = (parameters.offsetY / parameters.magnification / axisSize) * 4;
+			const parameters = this.props.parameters;
 
-				const realConstant = toSigFig((unitX / parameters.magnification) * 4 - 2 + complexOffsetX, 3);
-				const imaginaryConstant = toSigFig((unitY / parameters.magnification) * 4 - 2 + complexOffsetY, 3);
+			const complexOffsetX = (parameters.offsetX / parameters.magnification / parameters.axisSize) * 4;
+			const complexOffsetY = (parameters.offsetY / parameters.magnification / parameters.axisSize) * 4;
 
-				if (realConstant < -2 || imaginaryConstant < -2 || realConstant > 2 || imaginaryConstant > 2) {
-					return;
-				}
+			const realConstant = toSigFig((unitX / parameters.magnification) * 4 - 2 + complexOffsetX, 3);
+			const imaginaryConstant = toSigFig((unitY / parameters.magnification) * 4 - 2 + complexOffsetY, 3);
 
-				clientStore.dispatch({
-					type: "setParameters",
-					parameters: {
-						juliaRealConstant: realConstant,
-						juliaImaginaryConstant: imaginaryConstant,
-					},
-				});
+			if (realConstant < -2 || imaginaryConstant < -2 || realConstant > 2 || imaginaryConstant > 2) {
+				return;
+			}
 
-				RunService.RenderStepped.Wait();
-			} while (UserInputService.IsMouseButtonPressed(Enum.UserInputType.MouseButton3));
+			clientStore.dispatch({
+				type: "setParameters",
+				parameters: {
+					juliaRealConstant: realConstant,
+					juliaImaginaryConstant: imaginaryConstant,
+				},
+			});
 		};
 
 		const inputBegan = (viewport: ViewportFrame, input: InputObject) => {
 			if (input.UserInputType === Enum.UserInputType.MouseButton2) {
-				setPivot(viewport);
+				setPivot(viewport, input.Position);
+				//
 			} else if (input.UserInputType === Enum.UserInputType.MouseButton3) {
-				assignJuliaConstants(viewport);
+				assignJuliaConstants(viewport, input.Position);
 			}
 		};
 
-		/*const inputChanged = (_viewport: ViewportFrame, input: InputObject) => {
-			if (input.UserInputType !== Enum.UserInputType.MouseWheel) return;
+		const inputChanged = (viewport: ViewportFrame, input: InputObject) => {
+			const middleMouseDown = UserInputService.IsMouseButtonPressed(Enum.UserInputType.MouseButton3);
 
-			const { magnification } = clientStore.getState().fractal.parameters;
+			if (input.UserInputType === Enum.UserInputType.MouseMovement && middleMouseDown) {
+				assignJuliaConstants(viewport, input.Position);
+			}
+		};
 
-			clientStore.dispatch({
-				type: "updateParameter",
-				name: "magnification",
-				value: math.max(magnification + MAGNIFICATION_INCREMENT * input.Position.Z, 1),
-			});
-		};*/
+		const getCameraCFrame = () => {
+			const axisSize = this.props.parameters.axisSize;
+
+			return new CFrame(axisSize / 2, axisSize / 2, axisSize / 2 / math.tan(math.rad(CAMERA_FOV / 2)));
+		};
 
 		const inFullPicture = this.props.interfaceMode === InterfaceMode.FullPicture;
 		const calculatedViewSize = this.state.playerViewportSize.Y * (inFullPicture ? 0.9 : 0.75);
@@ -118,7 +121,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				Key="FractalView"
 				Event={{
 					InputBegan: inputBegan,
-					//InputChanged: inputChanged,
+					InputChanged: inputChanged,
 				}}
 				Ref={this.viewportRef}
 				BackgroundTransparency={1}
@@ -133,11 +136,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				}
 				Size={UDim2.fromOffset(calculatedViewSize, calculatedViewSize)}
 			>
-				<camera
-					Ref={this.cameraRef}
-					FieldOfView={CAMERA_FOV}
-					CFrame={new CFrame(axisSize / 2, axisSize / 2, axisSize / 2 / math.tan(math.rad(CAMERA_FOV / 2)))}
-				/>
+				<camera Ref={this.cameraRef} FieldOfView={CAMERA_FOV} CFrame={getCameraCFrame()} />
 
 				{this.props.interfaceMode === InterfaceMode.Hidden && (
 					<textlabel
