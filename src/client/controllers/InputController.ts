@@ -50,10 +50,10 @@ const inputControls = new Map<Enum.KeyCode, InputControlData>([
 			clientStore.dispatch({ type: "toggleResetOnFractalChange" });
 
 			const { parametersResetWithFractalChange } = clientStore.getState().fractal;
-			const innerText = parametersResetWithFractalChange ? "" : "no longer ";
+			const innerText = parametersResetWithFractalChange ? "now" : "no longer";
 
 			return {
-				text: `Main parameters will ${innerText}reset on fractal change`,
+				text: `parameters will ${innerText} reset on fractal change`,
 			};
 		},
 	],
@@ -64,7 +64,7 @@ const inputControls = new Map<Enum.KeyCode, InputControlData>([
 			clientStore.dispatch({ type: "toggleFullPictureMode" });
 
 			const { interfaceMode } = clientStore.getState().fractal;
-			const innerText = interfaceMode === InterfaceMode.FullPicture ? "Entered" : "Left";
+			const innerText = interfaceMode === InterfaceMode.FullPicture ? "entered" : "left";
 
 			return {
 				text: `${innerText} full picture mode`,

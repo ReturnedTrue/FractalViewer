@@ -1,5 +1,9 @@
 import { Action, createReducer } from "@rbxts/rodux";
-import { DEFAULT_FRACTAL_PARAMETERS, PARAMETERS_WHICH_RETAIN_CACHE } from "shared/constants/fractal";
+import {
+	DEFAULT_FRACTAL_PARAMETERS,
+	PARAMETERS_WHICH_ARE_RESET,
+	PARAMETERS_WHICH_RETAIN_CACHE,
+} from "shared/constants/fractal";
 import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
@@ -60,6 +64,12 @@ const DEFAULT_VALUE = {
 	interfaceMode: InterfaceMode.Hidden,
 } satisfies FractalState;
 
+const resetPart: Partial<FractalParameters> = {};
+
+for (const parameterToReset of PARAMETERS_WHICH_ARE_RESET) {
+	resetPart[parameterToReset] = DEFAULT_FRACTAL_PARAMETERS[parameterToReset] as never;
+}
+
 type ParameterSideEffects = {
 	[key in FractalParameterName]?: (
 		value: FractalParameters[key],
@@ -97,12 +107,7 @@ const parameterSideEffects: ParameterSideEffects = {
 	fractalId: (_newFractal, _oldFractal, { parametersResetWithFractalChange }) => {
 		if (!parametersResetWithFractalChange) return;
 
-		return {
-			offsetX: 0,
-			offsetY: 0,
-			magnification: 1,
-			pivot: false,
-		};
+		return resetPart;
 	},
 };
 
@@ -180,9 +185,8 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 			...state,
 			parametersLastUpdated: os.clock(),
 			parameters: {
-				...DEFAULT_FRACTAL_PARAMETERS,
-				fractalId: state.parameters.fractalId,
-				axisSize: state.parameters.axisSize,
+				...state.parameters,
+				...resetPart,
 			},
 			hasCacheBeenVoided: true,
 		};

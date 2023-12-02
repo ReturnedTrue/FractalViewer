@@ -19,7 +19,7 @@ export const NEWTON_TOLERANCE = 0.000001;
 export const DEFAULT_FRACTAL_PARAMETERS = {
 	fractalId: FractalId.Custom,
 	maxIterations: 100,
-	maxStable: 4,
+	maxStable: 2,
 	axisSize: 100,
 
 	pivot: false,
@@ -45,3 +45,11 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 } satisfies FractalParameters;
 
 export const PARAMETERS_WHICH_RETAIN_CACHE = new Set<FractalParameterName>(["offsetX", "offsetY", "pivot", "hueShift"]);
+
+export const PARAMETERS_WHICH_ARE_RESET = new Set<FractalParameterName>([
+	"offsetX",
+	"offsetY",
+	"magnification",
+	"pivot",
+	"hueShift",
+]);
