@@ -5,5 +5,6 @@ export enum FractalId {
 	Julia = "Julia",
 	Buddhabrot = "Buddhabrot",
 	Newton = "Newton",
+	BarnsleyFern = "Barnsley Fern",
 	Custom = "Custom",
 }

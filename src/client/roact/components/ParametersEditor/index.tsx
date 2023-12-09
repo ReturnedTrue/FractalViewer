@@ -17,6 +17,7 @@ import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumbe
 import { enumToArray } from "client/enums/enumToArray";
 import { StringInputParameter } from "./StringInputParameter";
 import { onFullPictureChange } from "client/roact/util/functions/onFullPictureChange";
+import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -34,6 +35,7 @@ interface ParametersEditorProps {
 class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private fractalOptions = enumToArray(FractalId);
 	private newtonFunctionOptions = enumToArray(NewtonFunction);
+	private barnsleyNameOptions = enumToArray(BarnsleyFernName);
 
 	private leftHandPosition = new TweenableNumberBinding(0.025, { time: 0.5 });
 	private rightHandPosition = new TweenableNumberBinding(0.775, { time: 0.5 });
@@ -42,10 +44,6 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 		if (this.props.interfaceMode === InterfaceMode.Hidden) return;
 
 		const parameters = this.props.parameters;
-
-		function isCurrentlyFractal(fractal: FractalId) {
-			return parameters.fractalId === fractal;
-		}
 
 		function createParameter<P>(
 			parameterComponent: Roact.ComponentConstructor<P>,
@@ -59,6 +57,84 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 				...props,
 			} as never);
 		}
+
+		const getEditorsForCurrentFractal = () => {
+			switch (parameters.fractalId) {
+				case FractalId.BurningShip:
+					return [
+						createParameter(BooleanParameter, "burningShipFacesLeft", {
+							order: 1,
+							playerFacingName: "Ship Faces Left",
+						}),
+					];
+
+				case FractalId.Julia:
+					return [
+						createParameter(NumberParameter, "juliaRealConstant", {
+							order: 1,
+							playerFacingName: "Julia Real",
+							newValueConstraint: (value) => math.clamp(value, -2, 2),
+						}),
+
+						createParameter(NumberParameter, "juliaImaginaryConstant", {
+							order: 2,
+							playerFacingName: "Julia Imaginary",
+							newValueConstraint: (value) => math.clamp(value, -2, 2),
+						}),
+					];
+
+				case FractalId.Newton:
+					return [
+						createParameter(StringOptionParameter, "newtonFunction", {
+							order: 1,
+							playerFacingName: "Function",
+							options: this.newtonFunctionOptions,
+							appearOnRight: false,
+						}),
+
+						createParameter(BooleanParameter, "newtonPreferRootBasisHue", {
+							order: 2,
+							playerFacingName: "Prefer Per Root Basis Colors",
+						}),
+
+						createParameter(NumberParameter, "newtonCoefficientReal", {
+							order: 3,
+							playerFacingName: "Coefficient Real",
+						}),
+
+						createParameter(NumberParameter, "newtonCoefficientImaginary", {
+							order: 4,
+							playerFacingName: "Coefficient Imaginary",
+						}),
+					];
+
+				case FractalId.BarnsleyFern:
+					return [
+						createParameter(StringOptionParameter, "barnsleyFernName", {
+							order: 1,
+							playerFacingName: "Fern",
+							options: this.barnsleyNameOptions,
+							appearOnRight: false,
+						}),
+					];
+
+				case FractalId.Custom:
+					return [
+						createParameter(StringInputParameter, "customInitialValueExpression", {
+							order: 1,
+							playerFacingName: "Initial Value",
+						}),
+
+						createParameter(StringInputParameter, "customCalculationExpression", {
+							order: 2,
+							playerFacingName: "Calculate",
+						}),
+					];
+
+				default:
+					return;
+			}
+		};
 
 		return (
 			<Roact.Fragment>
@@ -126,70 +202,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 						VerticalAlignment={Enum.VerticalAlignment.Top}
 					/>
 
-					{isCurrentlyFractal(FractalId.BurningShip) && (
-						<Roact.Fragment>
-							{createParameter(BooleanParameter, "burningShipFacesLeft", {
-								order: 1,
-								playerFacingName: "Ship Faces Left",
-							})}
-						</Roact.Fragment>
-					)}
-
-					{isCurrentlyFractal(FractalId.Julia) && (
-						<Roact.Fragment>
-							{createParameter(NumberParameter, "juliaRealConstant", {
-								order: 1,
-								playerFacingName: "Julia Real",
-								newValueConstraint: (value) => math.clamp(value, -2, 2),
-							})}
-
-							{createParameter(NumberParameter, "juliaImaginaryConstant", {
-								order: 2,
-								playerFacingName: "Julia Imaginary",
-								newValueConstraint: (value) => math.clamp(value, -2, 2),
-							})}
-						</Roact.Fragment>
-					)}
-
-					{isCurrentlyFractal(FractalId.Newton) && (
-						<Roact.Fragment>
-							{createParameter(StringOptionParameter, "newtonFunction", {
-								order: 1,
-								playerFacingName: "Function",
-								options: this.newtonFunctionOptions,
-								appearOnRight: false,
-							})}
-
-							{createParameter(BooleanParameter, "newtonPreferRootBasisHue", {
-								order: 2,
-								playerFacingName: "Prefer Per Root Basis Colors",
-							})}
-
-							{createParameter(NumberParameter, "newtonCoefficientReal", {
-								order: 3,
-								playerFacingName: "Coefficient Real",
-							})}
-
-							{createParameter(NumberParameter, "newtonCoefficientImaginary", {
-								order: 4,
-								playerFacingName: "Coefficient Imaginary",
-							})}
-						</Roact.Fragment>
-					)}
-
-					{isCurrentlyFractal(FractalId.Custom) && (
-						<Roact.Fragment>
-							{createParameter(StringInputParameter, "customInitialValueExpression", {
-								order: 1,
-								playerFacingName: "Initial Value",
-							})}
-
-							{createParameter(StringInputParameter, "customCalculationExpression", {
-								order: 2,
-								playerFacingName: "Calculate",
-							})}
-						</Roact.Fragment>
-					)}
+					{getEditorsForCurrentFractal()}
 				</frame>
 			</Roact.Fragment>
 		);

@@ -1,7 +1,7 @@
 import ProfileService from "@rbxts/profileservice";
 import { OnStart, Service } from "@flamework/core";
 import { Players } from "@rbxts/services";
-import { DEFAULT_PLAYER_DATA, PROFILE_KEY_FORMAT, PROFILE_STORE_NAME } from "shared/constants/data";
+import { DEFAULT_PLAYER_DATA, PROFILE_KEY_FORMAT, PROFILE_STORE_NAME, RESET_PROFILE_DATA } from "shared/constants/data";
 import { Profile } from "@rbxts/profileservice/globals";
 import { PlayerData } from "shared/types/PlayerData";
 import { Events, Functions } from "server/remotes";
@@ -51,7 +51,13 @@ export class PlayerDataService implements OnStart {
 		}
 
 		profile.AddUserId(player.UserId);
-		profile.Reconcile();
+
+		if (RESET_PROFILE_DATA) {
+			profile.Data = DEFAULT_PLAYER_DATA;
+			//
+		} else {
+			profile.Reconcile();
+		}
 
 		this.profiles.set(player, profile);
 

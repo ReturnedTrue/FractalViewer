@@ -8,6 +8,50 @@ import { Dependency } from "@flamework/core";
 import { InterpretController } from "../InterpretController";
 import { ExpressionNodeValue, isValueComplex } from "../InterpretController/ExpressionNode";
 import { ExpressionVariableMap, ExpressionEvaluator } from "../InterpretController/ExpressionEvaluator";
+import { barnsleyFernData } from "./BarnsleyFernData";
+
+type FractalCache = Map<number, Map<number, number>>;
+
+const fillInMissedPoints = (parameters: FractalParameters, cache: FractalCache) => {
+	for (const i of $range(0, parameters.axisSize - 1)) {
+		const xPosition = i + parameters.offsetX;
+		const cacheColumn = cache.get(xPosition);
+
+		// Knows that the whole column is empty so populates immediately
+		if (cacheColumn === undefined) {
+			const newColumn = new Map<number, number>();
+
+			for (const j of $range(0, parameters.axisSize - 1)) {
+				const yPosition = j + parameters.offsetY;
+				newColumn.set(yPosition, 0);
+			}
+
+			cache.set(xPosition, newColumn);
+
+			continue;
+		}
+
+		// Checks before populating
+		for (const j of $range(0, parameters.axisSize - 1)) {
+			const yPosition = j + parameters.offsetY;
+
+			if (!cacheColumn.has(yPosition)) {
+				cacheColumn.set(yPosition, 0);
+			}
+		}
+	}
+};
+
+const getCacheColumn = (cache: FractalCache, x: number) => {
+	let cacheColumn = cache.get(x);
+
+	if (cacheColumn === undefined) {
+		cacheColumn = new Map();
+		cache.set(x, cacheColumn);
+	}
+
+	return cacheColumn;
+};
 
 class SystemTimeAccumulator {
 	private currentAccumulated = 0;
@@ -36,7 +80,7 @@ class SystemTimeAccumulator {
 	}
 }
 
-type FractalSystem = (parameters: FractalParameters, cache: Map<number, Map<number, number>>) => void;
+type FractalSystem = (parameters: FractalParameters, cache: FractalCache) => void;
 
 export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	const calculator = fractalCalculators.get(parameters.fractalId);
@@ -50,12 +94,7 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	for (const baseX of $range(0, parameters.axisSize - 1)) {
 		const positionX = baseX + parameters.offsetX;
 
-		let cacheColumn = cache.get(positionX);
-
-		if (cacheColumn === undefined) {
-			cacheColumn = new Map();
-			cache.set(positionX, cacheColumn);
-		}
+		const cacheColumn = getCacheColumn(cache, positionX);
 
 		timeAccumulator.startSegment();
 
@@ -130,14 +169,9 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 			};
 
 			for (const baseX of $range(0, parameters.axisSize - 1)) {
-				const xPosition = baseX + parameters.offsetX;
+				const positionX = baseX + parameters.offsetX;
 
-				let cacheColumn = cache.get(xPosition);
-
-				if (cacheColumn === undefined) {
-					cacheColumn = new Map();
-					cache.set(xPosition, cacheColumn);
-				}
+				const cacheColumn = getCacheColumn(cache, positionX);
 
 				timeAccumulator.startSegment();
 
@@ -145,7 +179,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 					const positionY = baseY + parameters.offsetY;
 
 					if (!cacheColumn.has(positionY)) {
-						const value = calculateAtPoint(xPosition, positionY);
+						const value = calculateAtPoint(positionX, positionY);
 
 						cacheColumn.set(positionY, value);
 					}
@@ -159,39 +193,9 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 	[
 		FractalId.Buddhabrot,
 		(parameters, cache) => {
-			// Buddhabrot may not generate values for points which are currently displayed
-			const fillInMissedPoints = () => {
-				for (const i of $range(0, parameters.axisSize - 1)) {
-					const xPosition = i + parameters.offsetX;
-					const cacheColumn = cache.get(xPosition);
-
-					// Knows that the whole column is empty so populates immediately
-					if (cacheColumn === undefined) {
-						const newColumn = new Map<number, number>();
-
-						for (const j of $range(0, parameters.axisSize - 1)) {
-							const yPosition = j + parameters.offsetY;
-							newColumn.set(yPosition, 0);
-						}
-
-						cache.set(xPosition, newColumn);
-
-						continue;
-					}
-
-					// Checks before populating
-					for (const j of $range(0, parameters.axisSize - 1)) {
-						const yPosition = j + parameters.offsetY;
-
-						if (!cacheColumn.has(yPosition)) {
-							cacheColumn.set(yPosition, 0);
-						}
-					}
-				}
-			};
-
 			if (!cache.isEmpty()) {
-				fillInMissedPoints();
+				fillInMissedPoints(parameters, cache);
+
 				return;
 			}
 
@@ -212,12 +216,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 					if (x < 0 || x > scaledAxis) continue;
 					if (y < 0 || y > scaledAxis) continue;
 
-					let cacheColumn = cache.get(x);
-
-					if (cacheColumn === undefined) {
-						cacheColumn = new Map();
-						cache.set(x, cacheColumn);
-					}
+					const cacheColumn = getCacheColumn(cache, x);
 
 					const count = (cacheColumn.get(y) ?? 0) + 1;
 					if (count > highestCount) {
@@ -273,7 +272,53 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				}
 			}
 
-			fillInMissedPoints();
+			fillInMissedPoints(parameters, cache);
+		},
+	],
+
+	[
+		FractalId.BarnsleyFern,
+		(parameters, cache) => {
+			if (!cache.isEmpty()) {
+				fillInMissedPoints(parameters, cache);
+
+				return;
+			}
+
+			const fernData = barnsleyFernData.get(parameters.barnsleyFernName);
+			if (!fernData) throw `could not find data for fern: ${parameters.barnsleyFernName}`;
+
+			let x = 0;
+			let y = 0;
+
+			for (const _iteration of $range(1, parameters.maxIterations * parameters.axisSize)) {
+				const selectedProbability = math.random();
+
+				let accumulatedProbability = 0;
+
+				for (const terms of fernData.possibleTerms) {
+					accumulatedProbability += terms.probability;
+					if (accumulatedProbability < selectedProbability) continue;
+
+					x = terms.a * x + terms.b * y + terms.e;
+					y = terms.c * x + terms.d * y + terms.f;
+
+					break;
+				}
+
+				const correctedX = (x + fernData.correctionalX) / 10;
+				const correctedY = (y + fernData.correctionalY) / 10;
+
+				const centeringX = (parameters.axisSize * parameters.magnification) / 2;
+
+				const screenX = math.round(correctedX * parameters.magnification * parameters.axisSize) + centeringX;
+				const screenY = math.round(correctedY * parameters.magnification * parameters.axisSize);
+
+				const cacheColumn = getCacheColumn(cache, screenX);
+				cacheColumn.set(screenY, 0.33);
+			}
+
+			fillInMissedPoints(parameters, cache);
 		},
 	],
 ]);

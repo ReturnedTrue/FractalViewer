@@ -1,3 +1,4 @@
+import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
 import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 
@@ -24,6 +25,8 @@ export interface FractalParameters {
 	newtonPreferRootBasisHue: boolean;
 	newtonCoefficientReal: number;
 	newtonCoefficientImaginary: number;
+
+	barnsleyFernName: BarnsleyFernName;
 
 	customInitialValueExpression: string;
 	customCalculationExpression: string;
