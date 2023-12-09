@@ -11,6 +11,9 @@ import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { NotifcationData } from "client/types/NotificationData";
 
+const BLACK = new Color3();
+const WHITE = new Color3(1, 1, 1);
+
 function beginTimer() {
 	const startTime = os.clock();
 
@@ -200,14 +203,23 @@ export class CalculationController implements OnStart {
 			for (const j of $range(0, axisSize - 1)) {
 				const yPosition = j + offsetY;
 
-				const hue = cacheColumn.get(yPosition)! + trueHueShift;
-				const color = Color3.fromHSV(hue > 1 ? hue - 1 : hue, 1, 1);
+				const hue = cacheColumn.get(yPosition)!;
+				const color = this.getColorFromHue(hue, trueHueShift);
 
 				partsColumn[j].Color = color;
 			}
 		}
 
 		$print("complete fractal application", endTimer());
+	}
+
+	private getColorFromHue(hue: number, trueHueShift: number) {
+		if (hue === -1) return BLACK;
+		if (hue === -2) return WHITE;
+
+		hue += trueHueShift;
+
+		return Color3.fromHSV(hue > 1 ? hue - 1 : hue, 1, 1);
 	}
 
 	private handleCalculationError(response: unknown) {

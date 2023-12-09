@@ -38,7 +38,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				zImaginary = zRealTemp * zImaginary * 2 + cImaginary;
 			}
 
-			return 0;
+			return -1;
 		},
 	],
 
@@ -60,7 +60,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				zImaginary = zRealTemp * zImaginary * -2 + cImaginary;
 			}
 
-			return 0;
+			return -1;
 		},
 	],
 
@@ -84,7 +84,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				zImaginary = math.abs(zRealTemp * zImaginary * 2) + cImaginary;
 			}
 
-			return 0;
+			return -1;
 		},
 	],
 
@@ -103,7 +103,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				zImaginary = zRealTemp * zImaginary * 2 + parameters.juliaImaginaryConstant;
 			}
 
-			return 0;
+			return -1;
 		},
 	],
 
@@ -122,13 +122,13 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				const [functionReal, functionImaginary] = data.execute(zReal, zImaginary);
 
 				if (isNaN(functionReal) || isNaN(functionImaginary)) {
-					return 0;
+					return -1;
 				}
 
 				const [derivativeReal, derivativeImaginary] = data.derivativeExecute(zReal, zImaginary);
 
 				if (isNaN(derivativeReal) || isNaN(derivativeImaginary)) {
-					return 0;
+					return -1;
 				}
 
 				const [dividedReal, dividedImaginary] = complexDiv(
@@ -167,7 +167,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 					: iteration / parameters.maxIterations;
 			}
 
-			return 0;
+			return -1;
 		},
 	],
 ]);

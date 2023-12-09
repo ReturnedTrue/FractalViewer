@@ -12,7 +12,7 @@ import { barnsleyFernData } from "./BarnsleyFernData";
 
 type FractalCache = Map<number, Map<number, number>>;
 
-const fillInMissedPoints = (parameters: FractalParameters, cache: FractalCache) => {
+const fillInMissedPoints = (parameters: FractalParameters, cache: FractalCache, value: number) => {
 	for (const i of $range(0, parameters.axisSize - 1)) {
 		const xPosition = i + parameters.offsetX;
 		const cacheColumn = cache.get(xPosition);
@@ -23,7 +23,7 @@ const fillInMissedPoints = (parameters: FractalParameters, cache: FractalCache) 
 
 			for (const j of $range(0, parameters.axisSize - 1)) {
 				const yPosition = j + parameters.offsetY;
-				newColumn.set(yPosition, 0);
+				newColumn.set(yPosition, value);
 			}
 
 			cache.set(xPosition, newColumn);
@@ -36,7 +36,7 @@ const fillInMissedPoints = (parameters: FractalParameters, cache: FractalCache) 
 			const yPosition = j + parameters.offsetY;
 
 			if (!cacheColumn.has(yPosition)) {
-				cacheColumn.set(yPosition, 0);
+				cacheColumn.set(yPosition, value);
 			}
 		}
 	}
@@ -165,7 +165,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 					zValue = evalComplex(calculationEvaluator, calculationVariables);
 				}
 
-				return 0;
+				return -1;
 			};
 
 			for (const baseX of $range(0, parameters.axisSize - 1)) {
@@ -194,7 +194,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 		FractalId.Buddhabrot,
 		(parameters, cache) => {
 			if (!cache.isEmpty()) {
-				fillInMissedPoints(parameters, cache);
+				fillInMissedPoints(parameters, cache, -1);
 
 				return;
 			}
@@ -272,7 +272,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				}
 			}
 
-			fillInMissedPoints(parameters, cache);
+			fillInMissedPoints(parameters, cache, -1);
 		},
 	],
 
@@ -280,7 +280,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 		FractalId.BarnsleyFern,
 		(parameters, cache) => {
 			if (!cache.isEmpty()) {
-				fillInMissedPoints(parameters, cache);
+				fillInMissedPoints(parameters, cache, -2);
 
 				return;
 			}
@@ -318,7 +318,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				cacheColumn.set(screenY, 0.33);
 			}
 
-			fillInMissedPoints(parameters, cache);
+			fillInMissedPoints(parameters, cache, -2);
 		},
 	],
 ]);
