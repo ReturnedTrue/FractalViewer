@@ -1,5 +1,5 @@
 import { Controller, OnStart } from "@flamework/core";
-import { UserInputService } from "@rbxts/services";
+import { ContextActionService, ReplicatedStorage, UserInputService } from "@rbxts/services";
 import { clientStore } from "client/rodux/store";
 import {
 	HELD_INPUT_SECONDS_INTERVAL,
@@ -9,6 +9,14 @@ import {
 import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameterNameForType, FractalParameters } from "shared/types/FractalParameters";
 import { NotifcationData } from "client/types/NotificationData";
+
+const PLAYER_MOVEMENT_ACTIONS = [
+	"moveForwardAction",
+	"moveBackwardAction",
+	"moveLeftAction",
+	"moveRightAction",
+	"jumpAction",
+];
 
 type ParameterEditingControlData = {
 	edits: FractalParameterNameForType<number>;
@@ -88,12 +96,19 @@ export class InputController implements OnStart {
 			if (processed) return;
 
 			const ongoingControlThread = this.controlThreads.get(input.KeyCode);
+			if (!ongoingControlThread) return;
 
-			if (ongoingControlThread) {
-				task.cancel(ongoingControlThread);
-				this.controlThreads.delete(input.KeyCode);
-			}
+			task.cancel(ongoingControlThread);
+			this.controlThreads.delete(input.KeyCode);
 		});
+
+		for (const action of PLAYER_MOVEMENT_ACTIONS) {
+			do {
+				task.wait();
+			} while (!(action in ContextActionService.GetAllBoundActionInfo()));
+
+			ContextActionService.UnbindAction(action);
+		}
 	}
 
 	private handleControl(keyCode: Enum.KeyCode) {
