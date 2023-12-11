@@ -10,7 +10,7 @@ import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameterNameForType, FractalParameters } from "shared/types/FractalParameters";
 import { NotifcationData } from "client/types/NotificationData";
 
-const PLAYER_MOVEMENT_ACTIONS = [
+const playerMovementActions = [
 	"moveForwardAction",
 	"moveBackwardAction",
 	"moveLeftAction",
@@ -102,7 +102,7 @@ export class InputController implements OnStart {
 			this.controlThreads.delete(input.KeyCode);
 		});
 
-		for (const action of PLAYER_MOVEMENT_ACTIONS) {
+		for (const action of playerMovementActions) {
 			do {
 				task.wait();
 			} while (!(action in ContextActionService.GetAllBoundActionInfo()));

@@ -306,8 +306,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 					break;
 				}
 
-				const correctedX = (x + fernData.correctionalX) / 10;
-				const correctedY = (y + fernData.correctionalY) / 10;
+				const correctedX = (x + fernData.correctionalX) / fernData.correctionalDenominator;
+				const correctedY = (y + fernData.correctionalY) / fernData.correctionalDenominator;
 
 				const centeringX = (parameters.axisSize * parameters.magnification) / 2;
 

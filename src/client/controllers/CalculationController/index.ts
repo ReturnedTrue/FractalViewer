@@ -11,8 +11,8 @@ import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { NotifcationData } from "client/types/NotificationData";
 
-const BLACK = new Color3();
-const WHITE = new Color3(1, 1, 1);
+const blackColor = new Color3();
+const whiteColor = new Color3(1, 1, 1);
 
 function beginTimer() {
 	const startTime = os.clock();
@@ -214,8 +214,8 @@ export class CalculationController implements OnStart {
 	}
 
 	private getColorFromHue(hue: number, trueHueShift: number) {
-		if (hue === -1) return BLACK;
-		if (hue === -2) return WHITE;
+		if (hue === -1) return blackColor;
+		if (hue === -2) return whiteColor;
 
 		hue += trueHueShift;
 
