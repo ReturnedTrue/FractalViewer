@@ -11,6 +11,9 @@ export const resolveHue = (parameters: ParametersNeededToResolveHue, iteration: 
 		case RenderingMethod.Distance:
 			return distance / parameters.maxStable;
 
+		case RenderingMethod.Arctan:
+			return math.atan2(iteration, distance);
+
 		default:
 			throw "unexpected rendering method";
 	}

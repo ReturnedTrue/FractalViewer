@@ -124,7 +124,8 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				}}
 				Ref={this.viewportRef}
 				BackgroundTransparency={1}
-				LightColor={new Color3(1, 1, 1)}
+				Ambient={new Color3(1, 1, 1)}
+				LightColor={new Color3()}
 				Position={
 					new UDim2(
 						0,
