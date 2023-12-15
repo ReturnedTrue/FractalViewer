@@ -9,8 +9,10 @@ import { InterpretController } from "../InterpretController";
 import { ExpressionNodeValue, isValueComplex } from "../InterpretController/ExpressionNode";
 import { ExpressionVariableMap, ExpressionEvaluator } from "../InterpretController/ExpressionEvaluator";
 import { barnsleyFernData } from "./BarnsleyFernData";
+import { resolveHue } from "./CommonFunctions";
 
 type FractalCache = Map<number, Map<number, number>>;
+type FractalSystem = (parameters: FractalParameters, cache: FractalCache) => void;
 
 const fillInMissedPoints = (parameters: FractalParameters, cache: FractalCache, value: number) => {
 	for (const i of $range(0, parameters.axisSize - 1)) {
@@ -80,8 +82,6 @@ class SystemTimeAccumulator {
 	}
 }
 
-type FractalSystem = (parameters: FractalParameters, cache: FractalCache) => void;
-
 export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	const calculator = fractalCalculators.get(parameters.fractalId);
 
@@ -93,7 +93,6 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 
 	for (const baseX of $range(0, parameters.axisSize - 1)) {
 		const positionX = baseX + parameters.offsetX;
-
 		const cacheColumn = getCacheColumn(cache, positionX);
 
 		timeAccumulator.startSegment();
@@ -155,8 +154,10 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				let zValue = evalComplex(initialEvaluator, initialVariables);
 
 				for (const iteration of $range(1, parameters.maxIterations)) {
-					if (modulus(zValue[0], zValue[1]) > parameters.maxStable) {
-						return iteration / parameters.maxIterations;
+					const distance = modulus(zValue[0], zValue[1]);
+
+					if (distance > parameters.maxStable) {
+						return resolveHue(parameters, iteration, distance);
 					}
 
 					calculationVariables.set("z", zValue);

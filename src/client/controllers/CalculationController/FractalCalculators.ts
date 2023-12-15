@@ -3,19 +3,10 @@ import { NEWTON_TOLERANCE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { newtonFunctionData } from "./NewtonFunctionData";
+import { resolveHue, resolveRootHueFromCache } from "./CommonFunctions";
 
-type FractalCalculator = (x: number, y: number, parameters: Omit<FractalParameters, "offsetX" | "offsetY">) => number;
-
-const getFunctionRootHueFromCache = (cache: Map<number, number>, closestRoot: number) => {
-	let hue = cache.get(closestRoot);
-
-	if (hue === undefined) {
-		hue = math.random(100) / 100;
-		cache.set(closestRoot, hue);
-	}
-
-	return hue;
-};
+type FractalCalculatorReceivedParameters = Omit<FractalParameters, "offsetX" | "offsetY">;
+type FractalCalculator = (x: number, y: number, parameters: FractalCalculatorReceivedParameters) => number;
 
 const isNaN = (x: number) => x !== x;
 
@@ -30,7 +21,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			let zImaginary = 0;
 
 			for (const iteration of $range(1, parameters.maxIterations)) {
-				if (modulus(zReal, zImaginary) > parameters.maxStable) return iteration / parameters.maxIterations;
+				const distance = modulus(zReal, zImaginary);
+				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
 
 				const zRealTemp = zReal;
 
@@ -52,7 +44,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			let zImaginary = 0;
 
 			for (const iteration of $range(1, parameters.maxIterations)) {
-				if (modulus(zReal, zImaginary) > parameters.maxStable) return iteration / parameters.maxIterations;
+				const distance = modulus(zReal, zImaginary);
+				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
 
 				const zRealTemp = zReal;
 
@@ -76,7 +69,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			let zImaginary = cImaginary;
 
 			for (const iteration of $range(1, parameters.maxIterations)) {
-				if (modulus(zReal, zImaginary) > parameters.maxStable) return iteration / parameters.maxIterations;
+				const distance = modulus(zReal, zImaginary);
+				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
 
 				const zRealTemp = zReal;
 
@@ -95,7 +89,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			let zImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
 			for (const iteration of $range(1, parameters.maxIterations)) {
-				if (modulus(zReal, zImaginary) > parameters.maxStable) return iteration / parameters.maxIterations;
+				const distance = modulus(zReal, zImaginary);
+				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
 
 				const zRealTemp = zReal;
 
@@ -163,7 +158,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				if (math.abs(size - closestRoot) >= NEWTON_TOLERANCE) continue;
 
 				return parameters.newtonPreferRootBasisHue
-					? getFunctionRootHueFromCache(data.rootHueCache, closestRoot)
+					? resolveRootHueFromCache(data.rootHueCache, closestRoot)
 					: iteration / parameters.maxIterations;
 			}
 

@@ -1,6 +1,7 @@
 import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
 import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
+import { RenderingMethod } from "shared/enums/RenderingMethod";
 
 export interface FractalParameters {
 	fractalId: FractalId;
@@ -14,6 +15,7 @@ export interface FractalParameters {
 	offsetY: number;
 	magnification: number;
 
+	renderingMethod: RenderingMethod;
 	hueShift: number;
 
 	burningShipFacesLeft: boolean;

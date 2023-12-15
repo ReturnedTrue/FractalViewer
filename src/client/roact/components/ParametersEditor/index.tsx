@@ -18,6 +18,7 @@ import { enumToArray } from "client/enums/enumToArray";
 import { StringInputParameter } from "./StringInputParameter";
 import { onFullPictureChange } from "client/roact/util/functions/onFullPictureChange";
 import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
+import { RenderingMethod } from "shared/enums/RenderingMethod";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -34,6 +35,7 @@ interface ParametersEditorProps {
 
 class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private fractalOptions = enumToArray(FractalId);
+	private renderingOptions = enumToArray(RenderingMethod);
 	private newtonFunctionOptions = enumToArray(NewtonFunction);
 	private barnsleyNameOptions = enumToArray(BarnsleyFernName);
 
@@ -56,6 +58,10 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 
 				...props,
 			} as never);
+		}
+
+		function fractalIsNotOneOf(fractals: FractalId[]) {
+			return !fractals.includes(parameters.fractalId);
 		}
 
 		const getEditorsForCurrentFractal = () => {
@@ -168,13 +174,15 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 						playerFacingName: "Max Iterations",
 					})}
 
-					{createParameter(NumberParameter, "maxStable", {
-						order: 4,
-						playerFacingName: "Max Stable",
-					})}
+					{fractalIsNotOneOf([FractalId.BarnsleyFern, FractalId.Newton]) &&
+						createParameter(NumberParameter, "maxStable", {
+							order: 4,
+							playerFacingName: "Max Stable",
+							newValueConstraint: (value) => math.max(value, 0),
+						})}
 
-					{createParameter(NumberParameter, "offsetX", { order: 5, playerFacingName: "X Offset" })}
-					{createParameter(NumberParameter, "offsetY", { order: 6, playerFacingName: "Y Offset" })}
+					{createParameter(NumberParameter, "offsetX", { order: 5, playerFacingName: "Offset X" })}
+					{createParameter(NumberParameter, "offsetY", { order: 6, playerFacingName: "Offset Y" })}
 
 					{createParameter(NumberParameter, "magnification", {
 						order: 7,
@@ -182,8 +190,16 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 						newValueConstraint: (value) => math.max(value, 1),
 					})}
 
+					{fractalIsNotOneOf([FractalId.Buddhabrot, FractalId.BarnsleyFern, FractalId.Newton]) &&
+						createParameter(StringOptionParameter, "renderingMethod", {
+							order: 8,
+							playerFacingName: "Rendering Method",
+							options: this.renderingOptions,
+							appearOnRight: true,
+						})}
+
 					{createParameter(NumberParameter, "hueShift", {
-						order: 8,
+						order: 9,
 						playerFacingName: "Hue Shift",
 						newValueConstraint: (value) => math.clamp(value, 0, 360),
 					})}

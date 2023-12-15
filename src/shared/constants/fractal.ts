@@ -1,6 +1,7 @@
 import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
 import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
+import { RenderingMethod } from "shared/enums/RenderingMethod";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 export const MAX_TIME_PER_CALCULATION_PART = 5;
@@ -29,6 +30,7 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 	offsetY: 0,
 	magnification: 1,
 
+	renderingMethod: RenderingMethod.Iteration,
 	hueShift: 0,
 
 	burningShipFacesLeft: true,

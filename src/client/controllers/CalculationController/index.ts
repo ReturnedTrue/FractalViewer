@@ -10,17 +10,10 @@ import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
 import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { NotifcationData } from "client/types/NotificationData";
+import { beginTimer } from "./CommonFunctions";
 
 const blackColor = new Color3();
 const whiteColor = new Color3(1, 1, 1);
-
-function beginTimer() {
-	const startTime = os.clock();
-
-	return () => {
-		return string.format("(%.2f ms)", (os.clock() - startTime) * 1000);
-	};
-}
 
 @Controller()
 export class CalculationController implements OnStart {
@@ -71,7 +64,7 @@ export class CalculationController implements OnStart {
 
 			// Errored, so override the results
 			if (!calculationSuccess) {
-				this.clearCacheApplyRed(parameters);
+				this.clearCacheApplyDefaultColor(parameters.axisSize);
 			} else {
 				this.applyFractal(parameters);
 			}
@@ -112,6 +105,7 @@ export class CalculationController implements OnStart {
 			for (const j of $range(0, axisSize - 1)) {
 				const part = new Instance("Part");
 				part.Name = `(${i}, ${j})`;
+				part.Color = blackColor;
 				part.Position = new Vector3(i, j, 0);
 				part.Size = Vector3.one;
 				part.Anchored = true;
@@ -178,14 +172,14 @@ export class CalculationController implements OnStart {
 		return $tuple(success, response);
 	}
 
-	private clearCacheApplyRed({ axisSize }: FractalParameters) {
+	private clearCacheApplyDefaultColor(axisSize: number) {
 		this.hueCache.clear();
 
 		for (const i of $range(0, axisSize - 1)) {
 			const partsColumn = this.partsGrid[i];
 
 			for (const j of $range(0, axisSize - 1)) {
-				partsColumn[j].Color = new Color3(1, 0, 0);
+				partsColumn[j].Color = blackColor;
 			}
 		}
 	}
@@ -219,7 +213,7 @@ export class CalculationController implements OnStart {
 
 		hue += trueHueShift;
 
-		return Color3.fromHSV(hue > 1 ? hue - 1 : hue, 1, 1);
+		return Color3.fromHSV(hue > 1 ? hue % 1 : hue, 1, 1);
 	}
 
 	private handleCalculationError(response: unknown) {
