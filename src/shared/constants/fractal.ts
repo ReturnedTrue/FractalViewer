@@ -5,7 +5,7 @@ import { RenderingMethod } from "shared/enums/RenderingMethod";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
 
 export const MAX_TIME_PER_CALCULATION_PART = 5;
-export const MAX_TIME_PER_CALCULATION_ENTIRETY = 10;
+export const MAX_TIME_PER_CALCULATION_ENTIRETY = 20;
 
 export const MAX_PARTS_PER_CREATION_SEGMENT = 20000;
 export const MAX_PARTS_PER_DELETION_SEGMENT = 25000;

@@ -1,3 +1,5 @@
+//!optimize 2
+
 // Pythagoras
 export const modulus = (x: number, y: number) => math.sqrt(x * x + y * y);
 

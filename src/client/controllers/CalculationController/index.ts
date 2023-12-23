@@ -4,13 +4,14 @@ import {
 	MAX_PARTS_PER_DELETION_SEGMENT,
 	MAX_TIME_PER_CALCULATION_ENTIRETY,
 } from "shared/constants/fractal";
-import { $print, $warn } from "rbxts-transform-debug";
+import { $dbg, $print, $warn } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
 import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
 import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { NotifcationData } from "client/types/NotificationData";
 import { beginTimer } from "./CommonFunctions";
+import { VERBOSE_DEBUG_MODE } from "shared/constants/core";
 
 const blackColor = new Color3();
 const whiteColor = new Color3(1, 1, 1);
@@ -39,7 +40,7 @@ export class CalculationController implements OnStart {
 			const oldParameters = oldFractal.parameters;
 
 			const endTimer = beginTimer();
-			$print("begin render of", parameters.fractalId, "fractal");
+			VERBOSE_DEBUG_MODE && $print("begin render of", parameters.fractalId, "fractal");
 
 			let viewAfterApplication = false;
 
@@ -56,7 +57,7 @@ export class CalculationController implements OnStart {
 			}
 
 			if (fractal.hasCacheBeenVoided) {
-				$print("cache voided");
+				VERBOSE_DEBUG_MODE && $print("cache voided");
 				this.hueCache.clear();
 			}
 
@@ -81,7 +82,7 @@ export class CalculationController implements OnStart {
 				return;
 			}
 
-			$print("complete render of", parameters.fractalId, "fractal", endTimer(), "\n");
+			VERBOSE_DEBUG_MODE && $print("complete render of", parameters.fractalId, "fractal", endTimer(), "\n");
 		});
 	}
 
@@ -166,7 +167,7 @@ export class CalculationController implements OnStart {
 			.await();
 
 		if (success) {
-			$print("complete fractal calculation", endTimer());
+			VERBOSE_DEBUG_MODE && $print("complete fractal calculation", endTimer());
 		}
 
 		return $tuple(success, response);
@@ -204,7 +205,7 @@ export class CalculationController implements OnStart {
 			}
 		}
 
-		$print("complete fractal application", endTimer());
+		VERBOSE_DEBUG_MODE && $print("complete fractal application", endTimer());
 	}
 
 	private getColorFromHue(hue: number, trueHueShift: number) {

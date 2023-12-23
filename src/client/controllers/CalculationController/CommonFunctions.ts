@@ -30,10 +30,10 @@ export const resolveRootHueFromCache = (cache: Map<number, number>, closestRoot:
 	return hue;
 };
 
-export function beginTimer() {
+export const beginTimer = () => {
 	const startTime = os.clock();
 
 	return () => {
 		return string.format("(%.2f ms)", (os.clock() - startTime) * 1000);
 	};
-}
+};

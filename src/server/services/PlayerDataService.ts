@@ -1,7 +1,12 @@
 import ProfileService from "@rbxts/profileservice";
 import { OnStart, Service } from "@flamework/core";
-import { Players } from "@rbxts/services";
-import { DEFAULT_PLAYER_DATA, PROFILE_KEY_FORMAT, PROFILE_STORE_NAME, RESET_PROFILE_DATA } from "shared/constants/data";
+import { Players, RunService } from "@rbxts/services";
+import {
+	DEFAULT_PLAYER_DATA,
+	PROFILE_KEY_FORMAT,
+	PROFILE_STORE_NAME,
+	RESET_DATA_IN_STUDIO,
+} from "shared/constants/data";
 import { Profile } from "@rbxts/profileservice/globals";
 import { PlayerData } from "shared/types/PlayerData";
 import { Events, Functions } from "server/remotes";
@@ -52,7 +57,7 @@ export class PlayerDataService implements OnStart {
 
 		profile.AddUserId(player.UserId);
 
-		if (RESET_PROFILE_DATA) {
+		if (RESET_DATA_IN_STUDIO && RunService.IsStudio()) {
 			profile.Data = DEFAULT_PLAYER_DATA;
 			//
 		} else {
