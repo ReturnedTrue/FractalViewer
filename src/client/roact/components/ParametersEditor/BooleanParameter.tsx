@@ -46,10 +46,10 @@ export class BooleanParameter extends Roact.Component<BooleanParameterProps> {
 
 					<textlabel
 						Key="ValueText"
+						Text={this.props.currentValue ? "Yes" : "No"}
 						BackgroundTransparency={1}
 						Font={Enum.Font.Ubuntu}
 						Size={new UDim2(1, 0, 1, 0)}
-						Text={this.props.currentValue ? "Yes" : "No"}
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}
 						TextSize={14}
@@ -61,10 +61,10 @@ export class BooleanParameter extends Roact.Component<BooleanParameterProps> {
 
 				<textlabel
 					Key="ParameterName"
+					Text={this.props.playerFacingName}
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(0.425, 0, 1, 0)}
-					Text={this.props.playerFacingName}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}

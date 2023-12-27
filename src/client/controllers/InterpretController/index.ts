@@ -2,9 +2,9 @@ import { Controller, OnStart } from "@flamework/core";
 import { ExpressionParser } from "./ExpressionParser";
 import { ExpressionLexer } from "./ExpressionLexer";
 import { ExpressionEvaluator } from "./ExpressionEvaluator";
-import { $print } from "rbxts-transform-debug";
+import { ExpressionHighlighter } from "./ExpressionHighlighter";
 
-/**
+/*
  * z^fib(mod(z)) + c = peanut
  * z^fib(mod(z) - n) + c = brain scan (works where initial z = c)
  * z^fib(mod(z) - ln(n)) + c = eye of cthulhu (more defined where initial z = c)
@@ -23,30 +23,37 @@ import { $print } from "rbxts-transform-debug";
 
 @Controller()
 export class InterpretController implements OnStart {
-	private interprettedExpressions = new Map<string, ExpressionEvaluator>();
+	private cachedEvaluators = new Map<string, ExpressionEvaluator>();
+	private cachedHighlighters = new Map<string, ExpressionHighlighter>();
 
 	onStart() {}
 
-	public interpret(expression: string) {
-		const previousResult = this.interprettedExpressions.get(expression);
+	public getEvaluator(expression: string) {
+		const previousResult = this.cachedEvaluators.get(expression);
 		if (previousResult) return previousResult;
-
-		$print("interpretting expression:", expression);
 
 		const lexer = new ExpressionLexer(expression);
 		const tokens = lexer.getAllTokens();
 
-		$print("tokens:", tokens);
-
 		const parser = new ExpressionParser(tokens);
 		const nodes = parser.getAllNodes();
 
-		$print("nodes:", nodes);
-
 		const evaluator = new ExpressionEvaluator(nodes);
-
-		this.interprettedExpressions.set(expression, evaluator);
+		this.cachedEvaluators.set(expression, evaluator);
 
 		return evaluator;
+	}
+
+	public getHighlighter(expression: string) {
+		const previousResult = this.cachedHighlighters.get(expression);
+		if (previousResult) return previousResult;
+
+		const lexer = new ExpressionLexer(expression);
+		const tokens = lexer.getAllTokens();
+
+		const highlighter = new ExpressionHighlighter(tokens);
+		this.cachedHighlighters.set(expression, highlighter);
+
+		return highlighter;
 	}
 }

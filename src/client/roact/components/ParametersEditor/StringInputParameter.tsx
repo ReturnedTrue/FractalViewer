@@ -35,10 +35,10 @@ export class StringInputParameter extends Roact.Component<StringInputParameterPr
 
 				<textlabel
 					Key="ParameterName"
+					Text={this.props.playerFacingName}
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(0.425, 0, 1, 0)}
-					Text={this.props.playerFacingName}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}
@@ -57,10 +57,11 @@ export class StringInputParameter extends Roact.Component<StringInputParameterPr
 					<uicorner />
 
 					<textbox
+						Key="EditBox"
 						Event={{
 							FocusLost: onFocusLost,
 						}}
-						Key="EditBox"
+						Text={this.props.currentValue}
 						Active={false}
 						BackgroundTransparency={1}
 						ClearTextOnFocus={false}
@@ -68,7 +69,6 @@ export class StringInputParameter extends Roact.Component<StringInputParameterPr
 						Position={new UDim2(0.1, 0, 0.1, 0)}
 						Selectable={false}
 						Size={new UDim2(0.8, 0, 0.8, 0)}
-						Text={tostring(this.props.currentValue)}
 						TextColor3={Color3.fromRGB(255, 255, 255)}
 						TextScaled={true}
 						TextWrapped={true}

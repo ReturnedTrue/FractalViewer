@@ -5,7 +5,6 @@ import { StringOptionParameter } from "./StringOptionParameter";
 import { FractalId } from "shared/enums/FractalId";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 import {
-	FractalParameterName,
 	FractalParameterNameForType,
 	FractalParameterValueForType,
 	FractalParameters,
@@ -15,10 +14,10 @@ import { BooleanParameter } from "./BooleanParameter";
 import { InterfaceMode } from "client/enums/InterfaceMode";
 import { TweenableNumberBinding } from "client/roact/util/classes/TweenableNumberBinding";
 import { enumToArray } from "client/enums/enumToArray";
-import { StringInputParameter } from "./StringInputParameter";
 import { onFullPictureChange } from "client/roact/util/functions/onFullPictureChange";
 import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
 import { RenderingMethod } from "shared/enums/RenderingMethod";
+import { ExpressionParameter } from "./ExpressionParameter";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -126,14 +125,18 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 
 				case FractalId.Custom:
 					return [
-						createParameter(StringInputParameter, "customInitialValueExpression", {
+						createParameter(ExpressionParameter, "customInitialValueExpression", {
 							order: 1,
 							playerFacingName: "Initial Value",
+							availableVariables: ["c", "x", "y"],
+							appearOnRight: false,
 						}),
 
-						createParameter(StringInputParameter, "customCalculationExpression", {
+						createParameter(ExpressionParameter, "customCalculationExpression", {
 							order: 2,
 							playerFacingName: "Calculate",
+							availableVariables: ["c", "x", "y", "z", "n"],
+							appearOnRight: false,
 						}),
 					];
 
@@ -224,7 +227,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 		);
 	}
 
-	didUpdate(previousProps: ParametersEditorProps) {
+	protected didUpdate(previousProps: ParametersEditorProps) {
 		onFullPictureChange(
 			this.props.interfaceMode,
 			previousProps.interfaceMode,

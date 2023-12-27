@@ -22,18 +22,19 @@ export class OptionFrame extends Roact.Component<OptionFrameProps> {
 					MouseButton1Click: () => this.props.onSelected(this.props.optionValue),
 				}}
 				BackgroundColor3={Color3.fromRGB(52, 52, 52)}
-				BorderSizePixel={0}
 				Position={this.props.position}
 				Size={this.props.size}
+				BorderSizePixel={0}
+				TextTransparency={0}
 			>
 				<CornerAndPadding />
 
 				<textlabel
 					Key="OptionText"
+					Text={this.props.optionValue}
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(1, 0, 1, 0)}
-					Text={this.props.optionValue}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}

@@ -17,9 +17,12 @@ const getGuaranteedFunctionData = (func: string) => {
 };
 
 export class ExpressionParser {
+	private allTokens: ExpressionToken[];
 	private currentTokenNumber = 0;
 
-	constructor(private allTokens: ExpressionToken[]) {}
+	constructor(unfilteredTokens: ExpressionToken[]) {
+		this.allTokens = unfilteredTokens.filter((token) => token.category !== ExpressionTokenCategory.Whitespace);
+	}
 
 	public getAllNodes() {
 		return this.parseExpression();

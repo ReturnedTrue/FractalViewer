@@ -83,7 +83,6 @@ export class ExpressionLexer {
 
 		while (this.position < this.numberOfCharacters) {
 			let isUnexpected = true;
-
 			let currentCharacter = "";
 
 			for (const capture of tokenCaptures) {
@@ -91,10 +90,7 @@ export class ExpressionLexer {
 				if (!this.captureMatchesWithCharacter(capture, currentCharacter)) continue;
 
 				const token = this.pullAllOfCapture(capture, currentCharacter);
-
-				if (token.category !== ExpressionTokenCategory.Whitespace) {
-					tokens.push(token);
-				}
+				tokens.push(token);
 
 				isUnexpected = false;
 				break;

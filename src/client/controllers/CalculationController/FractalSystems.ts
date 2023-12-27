@@ -116,10 +116,10 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 		(parameters, cache) => {
 			const interpretController = Dependency<InterpretController>();
 
-			const initialEvaluator = interpretController.interpret(parameters.customInitialValueExpression);
+			const initialEvaluator = interpretController.getEvaluator(parameters.customInitialValueExpression);
 			const initialVariables: ExpressionVariableMap = new Map();
 
-			const calculationEvaluator = interpretController.interpret(parameters.customCalculationExpression);
+			const calculationEvaluator = interpretController.getEvaluator(parameters.customCalculationExpression);
 			const calculationVariables: ExpressionVariableMap = new Map();
 
 			const timeAccumulator = new SystemTimeAccumulator();

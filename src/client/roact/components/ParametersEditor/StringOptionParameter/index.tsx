@@ -44,10 +44,10 @@ export class StringOptionParameter extends Roact.Component<StringOptionParameter
 
 				<textlabel
 					Key="ParameterName"
+					Text={this.props.playerFacingName}
 					BackgroundTransparency={1}
 					Font={Enum.Font.Ubuntu}
 					Size={new UDim2(0.425, 0, 1, 0)}
-					Text={this.props.playerFacingName}
 					TextColor3={Color3.fromRGB(255, 255, 255)}
 					TextScaled={true}
 					TextSize={14}

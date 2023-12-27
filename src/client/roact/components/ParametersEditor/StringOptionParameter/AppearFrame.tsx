@@ -20,11 +20,11 @@ export class AppearFrame extends Roact.Component<AppearFrameProps> {
 		return (
 			<frame
 				Key="AppearFrame"
+				Position={new UDim2(this.props.appearOnRight ? 1.1 : -0.7, 0, -0.105, 0)}
 				BackgroundColor3={Color3.fromRGB(68, 68, 68)}
 				BorderSizePixel={0}
 				ClipsDescendants={true}
-				Position={new UDim2(this.props.appearOnRight ? 1.1 : -0.7, 0, 0, 0)}
-				Size={new UDim2(0.6, 0, 2, 0)}
+				Size={new UDim2(0.6, 0, 1.8, 0)}
 			>
 				<uicorner />
 
@@ -35,8 +35,8 @@ export class AppearFrame extends Roact.Component<AppearFrameProps> {
 						time: 0.25,
 					}}
 					scrollingFrameProps={{
-						BackgroundTransparency: 1,
 						CanvasSize: new UDim2(0, 0, 0, (this.props.options.size() - 1) * (offsetYSize * (4 / 3))),
+						BackgroundTransparency: 1,
 						ClipsDescendants: false,
 						Position: new UDim2(0.1, 0, 0.1, 0),
 						ScrollBarThickness: 0,
