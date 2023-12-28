@@ -1,13 +1,6 @@
 import { DefinedFunctionData, DefinedOperatorData, DefinedOperatorDataEncirculingExecute } from "./SyntaxDefinitions";
 
-type Real = number;
-type Complex = [number, number];
-
-export type ExpressionNodeValue = Real | Complex;
-
-export function isValueComplex(value: ExpressionNodeValue): value is Complex {
-	return typeIs(value, "table");
-}
+export type ExpressionNodeValue = [number, number];
 
 export enum ExpressionNodeCategory {
 	Constant = "constant",

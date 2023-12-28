@@ -109,7 +109,7 @@ export class ExpressionParser {
 
 				return {
 					category: ExpressionNodeCategory.Constant,
-					constantValue: castedContent,
+					constantValue: [castedContent, 0],
 				};
 
 			case ExpressionTokenCategory.ImaginaryConstant:
@@ -152,7 +152,7 @@ export class ExpressionParser {
 
 				const argumentsCollected = new Array<ExpressionNode>();
 
-				for (const i of $range(1, functionData.argumentsExpected)) {
+				for (const i of $range(1, functionData.argumentsDetails.size())) {
 					if (i !== 1) {
 						this.consumeCurrentToken({ category: ExpressionTokenCategory.Comma, content: "," });
 					}

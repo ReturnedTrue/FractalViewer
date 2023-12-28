@@ -6,7 +6,6 @@ import { $warn } from "rbxts-transform-debug";
 import { modulus } from "client/math/complex";
 import { Dependency } from "@flamework/core";
 import { InterpretController } from "../InterpretController";
-import { isValueComplex } from "../InterpretController/ExpressionNode";
 import { ExpressionVariableMap, ExpressionEvaluator } from "../InterpretController/ExpressionEvaluator";
 import { barnsleyFernData } from "./BarnsleyFernData";
 import { resolveHue } from "./CommonFunctions";
@@ -123,19 +122,6 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 			const [startSegment, finishSegment] = createTimeAccumulator();
 
-			const evalComplex = (
-				evaluator: ExpressionEvaluator,
-				variables: ExpressionVariableMap,
-			): [number, number] => {
-				const result = evaluator.run(variables);
-
-				if (!isValueComplex(result)) {
-					return [result, 0];
-				}
-
-				return result;
-			};
-
 			const calculateAtPoint = (x: number, y: number) => {
 				const cValue: [number, number] = [
 					(x / parameters.axisSize / parameters.magnification) * 4 - 2,
@@ -143,14 +129,14 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				];
 
 				initialVariables.set("c", cValue);
-				initialVariables.set("x", x);
-				initialVariables.set("y", y);
+				initialVariables.set("x", [x, 0]);
+				initialVariables.set("y", [y, 0]);
 
 				calculationVariables.set("c", cValue);
-				calculationVariables.set("x", x);
-				calculationVariables.set("y", y);
+				calculationVariables.set("x", [x, 0]);
+				calculationVariables.set("y", [y, 0]);
 
-				let zValue = evalComplex(initialEvaluator, initialVariables);
+				let zValue = initialEvaluator.run(initialVariables);
 
 				for (const iteration of $range(1, parameters.maxIterations)) {
 					const distance = modulus(zValue[0], zValue[1]);
@@ -160,9 +146,9 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 					}
 
 					calculationVariables.set("z", zValue);
-					calculationVariables.set("n", iteration);
+					calculationVariables.set("n", [iteration, 0]);
 
-					zValue = evalComplex(calculationEvaluator, calculationVariables);
+					zValue = calculationEvaluator.run(calculationVariables);
 				}
 
 				return -1;
