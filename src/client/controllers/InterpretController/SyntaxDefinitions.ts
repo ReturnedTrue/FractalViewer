@@ -7,14 +7,14 @@ import {
 	complexTan,
 	modulus,
 	realToComplexPow,
-} from "../CalculationController/ComplexMath";
+} from "../../math/complex";
 import { ExpressionNodeValue, isValueComplex } from "./ExpressionNode";
 
 export enum DefinedFunction {
 	Mod = "mod",
 	Floor = "floor",
 	Fibonacci = "fib",
-	Weierstrass = "weir",
+	Weierstrass = "weier",
 	RiemannZeta = "zeta",
 	NaturalLog = "ln",
 	Exp = "exp",
@@ -87,11 +87,11 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 
 			execute: (a, b, x) => {
 				if (isValueComplex(a) || isValueComplex(b) || isValueComplex(x))
-					throw "unexpected complex number to weir function";
+					throw "unexpected complex number to weier function";
 
-				if (!(a > 0 && a < 1)) throw "weir expects 0 < a < 1";
-				if (!(math.modf(b)[1] === 0 && b % 2 !== 0)) throw "weir expects b to be an odd integer";
-				if (a * b < 1 + 1.5 * math.pi) throw "weir expects ab > 1 + 3/2 pi";
+				if (!(a > 0 && a < 1)) throw "weier expects 0 < a < 1";
+				if (!(math.modf(b)[1] === 0 && b % 2 !== 0)) throw "weier expects b to be an odd integer";
+				if (a * b < 1 + 1.5 * math.pi) throw "weier expects ab > 1 + 3/2 pi";
 
 				let result = 0;
 

@@ -1,4 +1,4 @@
-import { modulus, complexDiv, complexMul } from "client/controllers/CalculationController/ComplexMath";
+import { modulus, complexDiv, complexMul } from "client/math/complex";
 import { NEWTON_TOLERANCE } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
@@ -65,8 +65,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			const cReal = (x / parameters.axisSize / parameters.magnification) * (4 * facingFactor) + -2 * facingFactor;
 			const cImaginary = (y / parameters.axisSize / parameters.magnification) * -4 + 2;
 
-			let zReal = cReal;
-			let zImaginary = cImaginary;
+			let zReal = 0;
+			let zImaginary = 0;
 
 			for (const iteration of $range(1, parameters.maxIterations)) {
 				const distance = modulus(zReal, zImaginary);

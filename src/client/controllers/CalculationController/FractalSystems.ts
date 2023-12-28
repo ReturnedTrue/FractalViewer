@@ -1,12 +1,12 @@
-import { MAX_TIME_PER_CALCULATION_ENTIRETY, MAX_TIME_PER_CALCULATION_PART } from "shared/constants/fractal";
+import { MAX_TIME_PER_CALCULATION_PART } from "shared/constants/fractal";
 import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { fractalCalculators } from "./FractalCalculators";
 import { $warn } from "rbxts-transform-debug";
-import { modulus } from "client/controllers/CalculationController/ComplexMath";
+import { modulus } from "client/math/complex";
 import { Dependency } from "@flamework/core";
 import { InterpretController } from "../InterpretController";
-import { ExpressionNodeValue, isValueComplex } from "../InterpretController/ExpressionNode";
+import { isValueComplex } from "../InterpretController/ExpressionNode";
 import { ExpressionVariableMap, ExpressionEvaluator } from "../InterpretController/ExpressionEvaluator";
 import { barnsleyFernData } from "./BarnsleyFernData";
 import { resolveHue } from "./CommonFunctions";
@@ -55,32 +55,31 @@ const getCacheColumn = (cache: FractalCache, x: number) => {
 	return cacheColumn;
 };
 
-class SystemTimeAccumulator {
-	private currentAccumulated = 0;
+const createTimeAccumulator = () => {
+	let currentAccumulated = 0;
+	let startedSegmentAt: number | false = false;
 
-	private startedSegmentAt: number | false = false;
+	const startSegment = () => (startedSegmentAt = os.clock());
 
-	public startSegment() {
-		this.startedSegmentAt = os.clock();
-	}
-
-	public finishSegment() {
-		if (this.startedSegmentAt === false) {
+	const finishSegment = () => {
+		if (startedSegmentAt === false) {
 			$warn("attempted to finish a segment after not starting one");
 			return;
 		}
 
-		const segmentTime = os.clock() - this.startedSegmentAt;
-		this.startedSegmentAt = false;
+		const segmentTime = os.clock() - startedSegmentAt;
+		startedSegmentAt = false;
 
-		this.currentAccumulated = segmentTime;
+		currentAccumulated += segmentTime;
 
-		if (this.currentAccumulated >= MAX_TIME_PER_CALCULATION_PART) {
-			this.currentAccumulated = 0;
+		if (currentAccumulated >= MAX_TIME_PER_CALCULATION_PART) {
+			currentAccumulated = 0;
 			task.wait();
 		}
-	}
-}
+	};
+
+	return $tuple(startSegment, finishSegment);
+};
 
 export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 	const calculator = fractalCalculators.get(parameters.fractalId);
@@ -89,13 +88,13 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 		throw "fractal not defined in code";
 	}
 
-	const timeAccumulator = new SystemTimeAccumulator();
+	const [startSegment, finishSegment] = createTimeAccumulator();
 
 	for (const baseX of $range(0, parameters.axisSize - 1)) {
 		const positionX = baseX + parameters.offsetX;
 		const cacheColumn = getCacheColumn(cache, positionX);
 
-		timeAccumulator.startSegment();
+		startSegment();
 
 		for (const baseY of $range(0, parameters.axisSize - 1)) {
 			const positionY = baseY + parameters.offsetY;
@@ -106,7 +105,7 @@ export const defaultFractalSystem: FractalSystem = (parameters, cache) => {
 			}
 		}
 
-		timeAccumulator.finishSegment();
+		finishSegment();
 	}
 };
 
@@ -122,7 +121,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 			const calculationEvaluator = interpretController.getEvaluator(parameters.customCalculationExpression);
 			const calculationVariables: ExpressionVariableMap = new Map();
 
-			const timeAccumulator = new SystemTimeAccumulator();
+			const [startSegment, finishSegment] = createTimeAccumulator();
 
 			const evalComplex = (
 				evaluator: ExpressionEvaluator,
@@ -174,7 +173,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 				const cacheColumn = getCacheColumn(cache, positionX);
 
-				timeAccumulator.startSegment();
+				startSegment();
 
 				for (const baseY of $range(0, parameters.axisSize - 1)) {
 					const positionY = baseY + parameters.offsetY;
@@ -186,7 +185,7 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 					}
 				}
 
-				timeAccumulator.finishSegment();
+				finishSegment();
 			}
 		},
 	],
@@ -202,6 +201,8 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 			const scaledAxis = parameters.axisSize * parameters.magnification;
 			const scaledIterationAxis = scaledAxis - 1;
+
+			const [startSegment, finishSegment] = createTimeAccumulator();
 
 			let highestCount = 0;
 
@@ -252,16 +253,14 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 				}
 			};
 
-			const timeAccumulator = new SystemTimeAccumulator();
-
 			for (const x of $range(0, scaledIterationAxis)) {
-				timeAccumulator.startSegment();
+				startSegment();
 
 				for (const y of $range(0, scaledIterationAxis)) {
 					solveMandelbrotForPoint(x, y);
 				}
 
-				timeAccumulator.finishSegment();
+				finishSegment();
 			}
 
 			// Colored based upon the relative frequency of that point being unstable

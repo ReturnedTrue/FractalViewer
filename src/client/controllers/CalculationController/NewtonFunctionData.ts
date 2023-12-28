@@ -1,13 +1,4 @@
-import {
-	complexSquare,
-	complexPow,
-	complexSine,
-	complexCos,
-	complexTan,
-	complexDiv,
-	modulus,
-} from "client/controllers/CalculationController/ComplexMath";
-import { NEWTON_TOLERANCE } from "shared/constants/fractal";
+import { complexSquare, complexPow, complexSine, complexCos, complexTan, complexDiv } from "client/math/complex";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 
 type NewtonFunctionDefinedRoots = {

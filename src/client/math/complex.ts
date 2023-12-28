@@ -87,18 +87,6 @@ export const complexCos = (real: number, imaginary: number) => {
 	return $tuple(math.cos(real) * math.cosh(imaginary), -1 * math.sin(real) * math.sinh(imaginary));
 };
 
-/*
-export const complexTan = (real: number, imaginary: number) => {
-	const sineX = math.sin(real);
-	const sinehY = math.sinh(imaginary);
-
-	const cosineX = math.cos(real);
-	const cosinehY = math.cosh(imaginary);
-
-	return complexDiv(sineX * cosinehY, cosineX * sinehY, cosineX * cosinehY, -1 * sineX * sinehY);
-};
-*/
-
 export const complexTan = (real: number, imaginary: number) => {
 	const realTan = math.tan(real);
 	const imaginaryTanh = math.tanh(imaginary);
