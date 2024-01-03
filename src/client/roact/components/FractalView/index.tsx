@@ -6,6 +6,7 @@ import { CAMERA_FOV } from "shared/constants/fractal";
 import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { FractalId } from "shared/enums/FractalId";
+import { fractalStepFunctions } from "client/controllers/CalculationController/FractalCalculators";
 
 const playerCamera = Workspace.CurrentCamera!;
 
@@ -32,10 +33,6 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 			const absolutePos = viewport.AbsolutePosition;
 			const absoluteSize = viewport.AbsoluteSize;
 
-			//const inputPosition = UserInputService.GetMouseLocation();
-
-			//const unitInset = guiInset.Y / absoluteSize.Y;
-
 			const unitX = (inputPosition.X - absolutePos.X) / absoluteSize.X;
 			const unitY = 1 - (inputPosition.Y - absolutePos.Y) / absoluteSize.Y;
 
@@ -47,6 +44,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 
 			const parameters = this.props.parameters;
 
+			// Turning the unit values into x, y coordinates
 			const pivotX = math.round(unitX * parameters.axisSize + parameters.offsetX);
 			const pivotY = math.round(unitY * parameters.axisSize + parameters.offsetY);
 
@@ -64,7 +62,15 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 		};
 
 		const assignJuliaConstants = (viewport: ViewportFrame, inputPosition: Vector3) => {
-			if (this.props.parameters.fractalId !== FractalId.Julia) return;
+			const currentFractal = this.props.parameters.fractalId;
+			let doAssignCorresponding = false;
+
+			if (currentFractal !== FractalId.Julia) {
+				const canBeUsedAsCorresponding = fractalStepFunctions.has(currentFractal);
+				if (!canBeUsedAsCorresponding) return;
+
+				doAssignCorresponding = true;
+			}
 
 			const [unitX, unitY] = getClickUnitIntervals(viewport, inputPosition);
 
@@ -73,6 +79,7 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 			const complexOffsetX = (parameters.offsetX / parameters.magnification / parameters.axisSize) * 4;
 			const complexOffsetY = (parameters.offsetY / parameters.magnification / parameters.axisSize) * 4;
 
+			// Turning the unit values into complex space coordinates
 			const realConstant = toSigFig((unitX / parameters.magnification) * 4 - 2 + complexOffsetX, 3);
 			const imaginaryConstant = toSigFig((unitY / parameters.magnification) * 4 - 2 + complexOffsetY, 3);
 
@@ -85,6 +92,11 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				parameters: {
 					juliaRealConstant: realConstant,
 					juliaImaginaryConstant: imaginaryConstant,
+					...(doAssignCorresponding && {
+						fractalId: FractalId.Julia,
+						juliaCorrespondingSet: currentFractal,
+						// TODO add method to go back to last fractal
+					}),
 				},
 			});
 		};

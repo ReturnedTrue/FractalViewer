@@ -4,7 +4,6 @@ import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { newtonFunctionData } from "./NewtonFunctionData";
 import { resolveHue, resolveRootHueFromCache } from "./CommonFunctions";
-import { JuliaCorrespondingSet } from "shared/enums/JuliaCorrespondingSet";
 import { $error } from "rbxts-transform-debug";
 
 type FractalCalculatorReceivedParameters = Omit<FractalParameters, "offsetX" | "offsetY">;
@@ -12,87 +11,52 @@ type FractalCalculator = (x: number, y: number, parameters: FractalCalculatorRec
 
 const isNaN = (x: number) => x !== x;
 
-type StepFunction = (
+type FractalStepFunction = (
 	zReal: number,
 	zImaginary: number,
 	realConstant: number,
 	imaginaryConstant: number,
 ) => LuaTuple<[number, number]>;
 
-export const mandelbrotStep: StepFunction = (zReal, zImaginary, realConstant, imaginaryConstant) => {
-	return $tuple(zReal * zReal - zImaginary * zImaginary + realConstant, zReal * zImaginary * 2 + imaginaryConstant);
-};
-
-export const mandelbarStep: StepFunction = (zReal, zImaginary, realConstant, imaginaryConstant) => {
-	return $tuple(zReal * zReal - zImaginary * zImaginary + realConstant, zReal * zImaginary * -2 + imaginaryConstant);
-};
-
-export const burningShipStep: StepFunction = (zReal, zImaginary, realConstant, imaginaryConstant) => {
-	return $tuple(zReal * zReal - zImaginary * zImaginary + realConstant, zReal * zImaginary * 2 + imaginaryConstant);
-};
-
-const getJuliaStepForSet = (set: JuliaCorrespondingSet): StepFunction => {
-	switch (set) {
-		case JuliaCorrespondingSet.Mandelbrot:
-			return mandelbrotStep;
-
-		case JuliaCorrespondingSet.Mandelbar:
-			return mandelbarStep;
-
-		case JuliaCorrespondingSet.BurningShip:
-			return burningShipStep;
-
-		default:
-			$error(`unhandled julia corresponding set: ${set}`);
-	}
-};
-
-export const fractalCalculators = new Map<FractalId, FractalCalculator>([
+export const fractalStepFunctions = new Map<FractalId, FractalStepFunction>([
 	[
 		FractalId.Mandelbrot,
-		(x, y, parameters) => {
-			const cReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
-			const cImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
-
-			let zReal = 0;
-			let zImaginary = 0;
-
-			for (const iteration of $range(1, parameters.maxIterations)) {
-				const distance = modulus(zReal, zImaginary);
-				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
-
-				[zReal, zImaginary] = mandelbrotStep(zReal, zImaginary, cReal, cImaginary);
-			}
-
-			return -1;
+		(zReal, zImaginary, realConstant, imaginaryConstant) => {
+			return $tuple(
+				zReal * zReal - zImaginary * zImaginary + realConstant,
+				zReal * zImaginary * 2 + imaginaryConstant,
+			);
 		},
 	],
 
 	[
 		FractalId.Mandelbar,
-		(x, y, parameters) => {
-			const cReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
-			const cImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
-
-			let zReal = 0;
-			let zImaginary = 0;
-
-			for (const iteration of $range(1, parameters.maxIterations)) {
-				const distance = modulus(zReal, zImaginary);
-				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
-
-				[zReal, zImaginary] = mandelbarStep(zReal, zImaginary, cReal, cImaginary);
-			}
-
-			return -1;
+		(zReal, zImaginary, realConstant, imaginaryConstant) => {
+			return $tuple(
+				zReal * zReal - zImaginary * zImaginary + realConstant,
+				zReal * zImaginary * -2 + imaginaryConstant,
+			);
 		},
 	],
 
 	[
 		FractalId.BurningShip,
-		(x, y, parameters) => {
-			// TODO add way to select a point in mandelbrot/burning ship and see the corresponding julia fractal
+		(zReal, zImaginary, realConstant, imaginaryConstant) => {
+			return $tuple(
+				zReal * zReal - zImaginary * zImaginary - realConstant,
+				math.abs(zReal * zImaginary * 2) - imaginaryConstant,
+			);
+		},
+	],
+]);
 
+const withStepFunction = (fractalId: FractalId): [FractalId, FractalCalculator] => {
+	const step = fractalStepFunctions.get(fractalId);
+	if (!step) $error(`could not find step function for fractal: ${fractalId}`);
+
+	return [
+		fractalId,
+		(x, y, parameters) => {
 			const cReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
 			const cImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
@@ -103,12 +67,18 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				const distance = modulus(zReal, zImaginary);
 				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
 
-				[zReal, zImaginary] = burningShipStep(zReal, zImaginary, cReal, cImaginary);
+				[zReal, zImaginary] = step(zReal, zImaginary, cReal, cImaginary);
 			}
 
 			return -1;
 		},
-	],
+	];
+};
+
+export const fractalCalculators = new Map<FractalId, FractalCalculator>([
+	withStepFunction(FractalId.Mandelbrot),
+	withStepFunction(FractalId.Mandelbar),
+	withStepFunction(FractalId.BurningShip),
 
 	[
 		FractalId.Julia,
@@ -116,7 +86,8 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			let zReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
 			let zImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
-			const step = getJuliaStepForSet(parameters.juliaCorrespondingSet);
+			const step = fractalStepFunctions.get(parameters.juliaCorrespondingSet);
+			if (!step) $error(`could not find step function for fractal: ${parameters.juliaCorrespondingSet}`);
 
 			for (const iteration of $range(1, parameters.maxIterations)) {
 				const distance = modulus(zReal, zImaginary);

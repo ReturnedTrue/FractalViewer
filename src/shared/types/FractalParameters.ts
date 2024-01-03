@@ -1,6 +1,5 @@
 import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
 import { FractalId } from "shared/enums/FractalId";
-import { JuliaCorrespondingSet } from "shared/enums/JuliaCorrespondingSet";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 import { RenderingMethod } from "shared/enums/RenderingMethod";
 
@@ -21,7 +20,7 @@ export interface FractalParameters {
 
 	juliaRealConstant: number;
 	juliaImaginaryConstant: number;
-	juliaCorrespondingSet: JuliaCorrespondingSet;
+	juliaCorrespondingSet: FractalId;
 
 	newtonFunction: NewtonFunction;
 	newtonPreferRootBasisHue: boolean;

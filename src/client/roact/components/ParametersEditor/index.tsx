@@ -18,7 +18,7 @@ import { onFullPictureChange } from "client/roact/util/functions/onFullPictureCh
 import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
 import { RenderingMethod } from "shared/enums/RenderingMethod";
 import { ExpressionParameter } from "./ExpressionParameter";
-import { JuliaCorrespondingSet } from "shared/enums/JuliaCorrespondingSet";
+import { fractalStepFunctions } from "client/controllers/CalculationController/FractalCalculators";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -33,12 +33,22 @@ interface ParametersEditorProps {
 	interfaceMode: InterfaceMode;
 }
 
+const mapKeysToArray = <K extends defined, V>(map: Map<K, V>) => {
+	const array = new Array<K>();
+
+	for (const [key] of pairs(map)) {
+		array.push(key);
+	}
+
+	return array;
+};
+
 class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private fractalOptions = enumToArray(FractalId);
 	private renderingOptions = enumToArray(RenderingMethod);
 	private newtonFunctionOptions = enumToArray(NewtonFunction);
 	private barnsleyNameOptions = enumToArray(BarnsleyFernName);
-	private juliaCorrespondingOptions = enumToArray(JuliaCorrespondingSet);
+	private juliaCorrespondingOptions = mapKeysToArray(fractalStepFunctions);
 
 	private leftHandPosition = new TweenableNumberBinding(0.025, { time: 0.5 });
 	private rightHandPosition = new TweenableNumberBinding(0.775, { time: 0.5 });
