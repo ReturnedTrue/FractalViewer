@@ -71,7 +71,7 @@ export const complexMul = (real1: number, imaginary1: number, real2: number, ima
 */
 export const complexDiv = (real1: number, imaginary1: number, real2: number, imaginary2: number) => {
 	const denominator = real2 * real2 + imaginary2 * imaginary2;
-	if (denominator === 0) return $tuple(0, 0);
+	if (denominator === 0) return $tuple(math.huge, math.huge);
 
 	return $tuple(
 		(real1 * real2 + imaginary1 * imaginary2) / denominator,

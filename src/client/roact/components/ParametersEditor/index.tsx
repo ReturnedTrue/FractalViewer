@@ -18,6 +18,7 @@ import { onFullPictureChange } from "client/roact/util/functions/onFullPictureCh
 import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
 import { RenderingMethod } from "shared/enums/RenderingMethod";
 import { ExpressionParameter } from "./ExpressionParameter";
+import { JuliaCorrespondingSet } from "shared/enums/JuliaCorrespondingSet";
 
 export interface CoreParameterProps<T> {
 	playerFacingName: string;
@@ -37,6 +38,7 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 	private renderingOptions = enumToArray(RenderingMethod);
 	private newtonFunctionOptions = enumToArray(NewtonFunction);
 	private barnsleyNameOptions = enumToArray(BarnsleyFernName);
+	private juliaCorrespondingOptions = enumToArray(JuliaCorrespondingSet);
 
 	private leftHandPosition = new TweenableNumberBinding(0.025, { time: 0.5 });
 	private rightHandPosition = new TweenableNumberBinding(0.775, { time: 0.5 });
@@ -65,14 +67,6 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 
 		const getEditorsForCurrentFractal = () => {
 			switch (parameters.fractalId) {
-				case FractalId.BurningShip:
-					return [
-						createParameter(BooleanParameter, "burningShipFacesLeft", {
-							order: 1,
-							playerFacingName: "Ship Faces Left",
-						}),
-					];
-
 				case FractalId.Julia:
 					return [
 						createParameter(NumberParameter, "juliaRealConstant", {
@@ -85,6 +79,13 @@ class BaseParametersEditor extends Roact.Component<ParametersEditorProps> {
 							order: 2,
 							playerFacingName: "Julia Imaginary",
 							newValueConstraint: (value) => math.clamp(value, -2, 2),
+						}),
+
+						createParameter(StringOptionParameter, "juliaCorrespondingSet", {
+							order: 3,
+							playerFacingName: "Corresponding Set",
+							options: this.juliaCorrespondingOptions,
+							appearOnRight: false,
 						}),
 					];
 

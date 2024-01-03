@@ -1,5 +1,6 @@
 import { BarnsleyFernName } from "shared/enums/BarnsleyFernName";
 import { FractalId } from "shared/enums/FractalId";
+import { JuliaCorrespondingSet } from "shared/enums/JuliaCorrespondingSet";
 import { NewtonFunction } from "shared/enums/NewtonFunction";
 import { RenderingMethod } from "shared/enums/RenderingMethod";
 import { FractalParameterName, FractalParameters } from "shared/types/FractalParameters";
@@ -33,10 +34,9 @@ export const DEFAULT_FRACTAL_PARAMETERS = {
 	renderingMethod: RenderingMethod.Iteration,
 	hueShift: 0,
 
-	burningShipFacesLeft: true,
-
 	juliaRealConstant: 0.01,
 	juliaImaginaryConstant: 0.01,
+	juliaCorrespondingSet: JuliaCorrespondingSet.BurningShip,
 
 	newtonFunction: NewtonFunction.Quadratic,
 	newtonPreferRootBasisHue: false,

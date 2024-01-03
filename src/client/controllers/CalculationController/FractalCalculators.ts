@@ -4,11 +4,48 @@ import { FractalId } from "shared/enums/FractalId";
 import { FractalParameters } from "shared/types/FractalParameters";
 import { newtonFunctionData } from "./NewtonFunctionData";
 import { resolveHue, resolveRootHueFromCache } from "./CommonFunctions";
+import { JuliaCorrespondingSet } from "shared/enums/JuliaCorrespondingSet";
+import { $error } from "rbxts-transform-debug";
 
 type FractalCalculatorReceivedParameters = Omit<FractalParameters, "offsetX" | "offsetY">;
 type FractalCalculator = (x: number, y: number, parameters: FractalCalculatorReceivedParameters) => number;
 
 const isNaN = (x: number) => x !== x;
+
+type StepFunction = (
+	zReal: number,
+	zImaginary: number,
+	realConstant: number,
+	imaginaryConstant: number,
+) => LuaTuple<[number, number]>;
+
+export const mandelbrotStep: StepFunction = (zReal, zImaginary, realConstant, imaginaryConstant) => {
+	return $tuple(zReal * zReal - zImaginary * zImaginary + realConstant, zReal * zImaginary * 2 + imaginaryConstant);
+};
+
+export const mandelbarStep: StepFunction = (zReal, zImaginary, realConstant, imaginaryConstant) => {
+	return $tuple(zReal * zReal - zImaginary * zImaginary + realConstant, zReal * zImaginary * -2 + imaginaryConstant);
+};
+
+export const burningShipStep: StepFunction = (zReal, zImaginary, realConstant, imaginaryConstant) => {
+	return $tuple(zReal * zReal - zImaginary * zImaginary + realConstant, zReal * zImaginary * 2 + imaginaryConstant);
+};
+
+const getJuliaStepForSet = (set: JuliaCorrespondingSet): StepFunction => {
+	switch (set) {
+		case JuliaCorrespondingSet.Mandelbrot:
+			return mandelbrotStep;
+
+		case JuliaCorrespondingSet.Mandelbar:
+			return mandelbarStep;
+
+		case JuliaCorrespondingSet.BurningShip:
+			return burningShipStep;
+
+		default:
+			$error(`unhandled julia corresponding set: ${set}`);
+	}
+};
 
 export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 	[
@@ -24,10 +61,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				const distance = modulus(zReal, zImaginary);
 				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
 
-				const zRealTemp = zReal;
-
-				zReal = zReal * zReal - zImaginary * zImaginary + cReal;
-				zImaginary = zRealTemp * zImaginary * 2 + cImaginary;
+				[zReal, zImaginary] = mandelbrotStep(zReal, zImaginary, cReal, cImaginary);
 			}
 
 			return -1;
@@ -47,10 +81,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				const distance = modulus(zReal, zImaginary);
 				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
 
-				const zRealTemp = zReal;
-
-				zReal = zReal * zReal - zImaginary * zImaginary + cReal;
-				zImaginary = zRealTemp * zImaginary * -2 + cImaginary;
+				[zReal, zImaginary] = mandelbarStep(zReal, zImaginary, cReal, cImaginary);
 			}
 
 			return -1;
@@ -60,10 +91,10 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 	[
 		FractalId.BurningShip,
 		(x, y, parameters) => {
-			const facingFactor = parameters.burningShipFacesLeft ? -1 : 1;
+			// TODO add way to select a point in mandelbrot/burning ship and see the corresponding julia fractal
 
-			const cReal = (x / parameters.axisSize / parameters.magnification) * (4 * facingFactor) + -2 * facingFactor;
-			const cImaginary = (y / parameters.axisSize / parameters.magnification) * -4 + 2;
+			const cReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
+			const cImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
 			let zReal = 0;
 			let zImaginary = 0;
@@ -72,10 +103,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 				const distance = modulus(zReal, zImaginary);
 				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
 
-				const zRealTemp = zReal;
-
-				zReal = zReal * zReal - zImaginary * zImaginary + cReal;
-				zImaginary = math.abs(zRealTemp * zImaginary * 2) + cImaginary;
+				[zReal, zImaginary] = burningShipStep(zReal, zImaginary, cReal, cImaginary);
 			}
 
 			return -1;
@@ -88,14 +116,18 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 			let zReal = (x / parameters.axisSize / parameters.magnification) * 4 - 2;
 			let zImaginary = (y / parameters.axisSize / parameters.magnification) * 4 - 2;
 
+			const step = getJuliaStepForSet(parameters.juliaCorrespondingSet);
+
 			for (const iteration of $range(1, parameters.maxIterations)) {
 				const distance = modulus(zReal, zImaginary);
 				if (distance > parameters.maxStable) return resolveHue(parameters, iteration, distance);
 
-				const zRealTemp = zReal;
-
-				zReal = zReal * zReal - zImaginary * zImaginary + parameters.juliaRealConstant;
-				zImaginary = zRealTemp * zImaginary * 2 + parameters.juliaImaginaryConstant;
+				[zReal, zImaginary] = step(
+					zReal,
+					zImaginary,
+					parameters.juliaRealConstant,
+					parameters.juliaImaginaryConstant,
+				);
 			}
 
 			return -1;
