@@ -63,13 +63,13 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 
 		const assignJuliaConstants = (viewport: ViewportFrame, inputPosition: Vector3) => {
 			const currentFractal = this.props.parameters.fractalId;
-			let doAssignCorresponding = false;
+			let switchFromCorresponding = false;
 
 			if (currentFractal !== FractalId.Julia) {
-				const canBeUsedAsCorresponding = fractalStepFunctions.has(currentFractal);
-				if (!canBeUsedAsCorresponding) return;
+				const usedAsCorresponding = fractalStepFunctions.has(currentFractal);
+				if (!usedAsCorresponding) return;
 
-				doAssignCorresponding = true;
+				switchFromCorresponding = true;
 			}
 
 			const [unitX, unitY] = getClickUnitIntervals(viewport, inputPosition);
@@ -92,10 +92,9 @@ class BaseFractalView extends Roact.Component<FractalViewProps, FractalViewState
 				parameters: {
 					juliaRealConstant: realConstant,
 					juliaImaginaryConstant: imaginaryConstant,
-					...(doAssignCorresponding && {
+					...(switchFromCorresponding && {
 						fractalId: FractalId.Julia,
 						juliaCorrespondingSet: currentFractal,
-						// TODO add method to go back to last fractal
 					}),
 				},
 			});

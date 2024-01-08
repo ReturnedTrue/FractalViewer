@@ -231,7 +231,11 @@ export class CalculationController implements OnStart {
 				errorMessage = "fractal calculation timed out";
 			}
 
-			errorMessage = string.match(tableResponse.error, ":%d+: (.-)$")[0] as string;
+			const foundMessage = string.match(tableResponse.error, ":%d+: (.-)$")[0] as string | undefined;
+
+			if (foundMessage !== undefined) {
+				errorMessage = foundMessage;
+			}
 		}
 
 		const errorNotificationData = {

@@ -9,6 +9,7 @@ import {
 import { InterfaceMode } from "client/enums/InterfaceMode";
 import { FractalParameterNameForType, FractalParameters } from "shared/types/FractalParameters";
 import { NotifcationData } from "client/types/NotificationData";
+import { FractalId } from "shared/enums/FractalId";
 
 const playerMovementActions = [
 	"moveForwardAction",
@@ -49,6 +50,17 @@ const inputControls = new Map<Enum.KeyCode, InputControlData>([
 			return {
 				text: "fractal parameters were reset",
 			};
+		},
+	],
+
+	[
+		Enum.KeyCode.J,
+		() => {
+			const { parameters } = clientStore.getState().fractal;
+			if (parameters.fractalId !== FractalId.Julia) return;
+
+			const correspondingSet = parameters.juliaCorrespondingSet;
+			clientStore.dispatch({ type: "updateParameter", name: "fractalId", value: correspondingSet });
 		},
 	],
 

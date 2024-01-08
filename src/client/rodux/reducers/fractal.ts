@@ -169,6 +169,7 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 		return {
 			...state,
 			parametersLastUpdated: os.clock(),
+
 			parameters: {
 				...state.parameters,
 				...parameters,
@@ -185,6 +186,7 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 		return {
 			...state,
 			parametersLastUpdated: os.clock(),
+
 			parameters: {
 				...state.parameters,
 				[name]: value,

@@ -19,7 +19,7 @@ export const CAMERA_FOV = 70;
 export const NEWTON_TOLERANCE = 0.000001;
 
 export const DEFAULT_FRACTAL_PARAMETERS = {
-	fractalId: FractalId.BarnsleyFern,
+	fractalId: FractalId.Mandelbrot,
 	maxIterations: 100,
 	maxStable: 2,
 	axisSize: 100,
