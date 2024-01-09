@@ -1,0 +1,22 @@
+{
+  "customCalculationExpression": "z^2 + c",
+  "juliaRealConstant": -0.782,
+  "axisSize": 2000,
+  "renderingMethod": "Iteration",
+  "offsetX": 8652,
+  "maxStable": 2,
+  "hueShift": 150,
+  "maxIterations": 100,
+  "fractalId": "Julia",
+  "barnsleyFernName": "Barnsley",
+  "newtonCoefficientReal": 1,
+  "customInitialValueExpression": "0",
+  "juliaCorrespondingSet": "Mandelbrot",
+  "newtonPreferRootBasisHue": false,
+  "pivot": [9652, 13372],
+  "juliaImaginaryConstant": 0.124,
+  "magnification": 13,
+  "offsetY": 12372,
+  "newtonCoefficientImaginary": 0,
+  "newtonFunction": "z^2 - 1"
+}
