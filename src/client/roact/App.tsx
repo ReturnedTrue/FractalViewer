@@ -7,6 +7,8 @@ import { ParametersClipboard } from "./components/ParametersClipboard";
 import { GuiService } from "@rbxts/services";
 import { PivotDisplay } from "./components/PivotDisplay";
 import { NotificationBar } from "./components/NotificationBar";
+import { PopupMessage } from "./components/PopupMessage";
+import { FractalDescription } from "./components/FractalDescription";
 
 const [guiInset] = GuiService.GetGuiInset();
 
@@ -16,7 +18,7 @@ export class App extends Roact.Component<AppProps> {
 	render() {
 		return (
 			<RoactRodux.StoreProvider store={clientStore}>
-				<screengui Key="Main">
+				<screengui Key="Main" ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 					<frame
 						Key="Background"
 						BackgroundColor3={new Color3()}
@@ -26,8 +28,11 @@ export class App extends Roact.Component<AppProps> {
 					/>
 
 					<NotificationBar />
+					<PopupMessage />
 
 					<FractalView />
+					<FractalDescription />
+
 					<ParametersEditor />
 					<ParametersClipboard />
 					<PivotDisplay />

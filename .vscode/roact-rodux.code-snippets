@@ -51,7 +51,7 @@
 			"",
 			"const DEFAULT_VALUE = {} satisfies ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}State;",
 			"",
-			"export const ${TM_FILENAME_BASE}reducer = createReducer<${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}State, ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}Actions>(DEFAULT_VALUE, {",
+			"export const ${TM_FILENAME_BASE}Reducer = createReducer<${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}State, ${TM_FILENAME_BASE/(.*)/${1:/pascalcase}/}Actions>(DEFAULT_VALUE, {",
 			"\tdoAction: (state, action) => state,",
 			"});",
 			""
