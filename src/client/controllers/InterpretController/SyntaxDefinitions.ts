@@ -244,7 +244,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 			argumentsDetails: [
 				{
 					kind: "complex",
-					name: "arg",
+					name: "x",
 				},
 			],
 
@@ -358,11 +358,16 @@ export enum DefinedOperator {
 
 export type DefinedOperatorData = {
 	matchingPattern: string;
-	execute?: (leftHand: ExpressionNodeValue, rightHand: ExpressionNodeValue) => ExpressionNodeValue;
+	execute?: DefinedOperatorDataExecute;
 
 	unaryExecute?: DefinedOperatorDataEncirculingExecute;
 	postfixExecute?: DefinedOperatorDataEncirculingExecute;
 };
+
+export type DefinedOperatorDataExecute = (
+	leftHand: ExpressionNodeValue,
+	rightHand: ExpressionNodeValue,
+) => ExpressionNodeValue;
 
 export type DefinedOperatorDataEncirculingExecute = (arg: ExpressionNodeValue) => ExpressionNodeValue;
 

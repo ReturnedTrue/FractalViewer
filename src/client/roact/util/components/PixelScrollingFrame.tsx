@@ -5,6 +5,8 @@ interface PixelScrollingFrameProps {
 	pixelsPerScroll: number;
 	tweenData: Partial<BindingTweenData>;
 
+	ref?: Roact.Ref<ScrollingFrame>;
+
 	scrollingFrameProps: Omit<JsxInstanceProperties<ScrollingFrame>, "ScrollingEnabled" | "CanvasPosition">;
 }
 
@@ -22,6 +24,7 @@ export class PixelScrollingFrame extends Roact.Component<PixelScrollingFrameProp
 		return (
 			<scrollingframe
 				{...this.props.scrollingFrameProps}
+				Ref={this.props.ref}
 				ScrollingEnabled={false}
 				CanvasPosition={this.position.binding.map((value) => new Vector2(0, value))}
 				Event={{ InputChanged: onScroll }}

@@ -166,8 +166,8 @@ export class CalculationController implements OnStart {
 			.timeout(MAX_TIME_PER_CALCULATION_ENTIRETY)
 			.await();
 
-		if (success) {
-			VERBOSE_DEBUG_MODE && $print("complete fractal calculation", endTimer());
+		if (success && VERBOSE_DEBUG_MODE) {
+			$print("complete fractal calculation", endTimer());
 		}
 
 		return $tuple(success, response);

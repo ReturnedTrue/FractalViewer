@@ -284,12 +284,13 @@ export const fractalSystems = new Map<FractalId, FractalSystem>([
 
 				for (const terms of fernData.possibleTerms) {
 					accumulatedProbability += terms.probability;
-					if (accumulatedProbability < selectedProbability) continue;
 
-					x = terms.a * x + terms.b * y + terms.e;
-					y = terms.c * x + terms.d * y + terms.f;
+					if (accumulatedProbability > selectedProbability) {
+						x = terms.a * x + terms.b * y + terms.e;
+						y = terms.c * x + terms.d * y + terms.f;
 
-					break;
+						break;
+					}
 				}
 
 				const correctedX = (x + fernData.correctionalX) / fernData.correctionalDenominator;

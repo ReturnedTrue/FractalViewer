@@ -2,7 +2,7 @@ import { Controller, OnStart } from "@flamework/core";
 import { ExpressionParser } from "./ExpressionParser";
 import { ExpressionLexer } from "./ExpressionLexer";
 import { ExpressionEvaluator } from "./ExpressionEvaluator";
-import { ExpressionHighlighter } from "./ExpressionHighlighter";
+import { ExpressionHighlighter, getFunctionList, getOperatorList } from "./ExpressionHighlighter";
 
 /*
  * z^fib(mod(z)) + c = peanut
@@ -19,6 +19,14 @@ import { ExpressionHighlighter } from "./ExpressionHighlighter";
  *
  * Re(z^2) + (mod(Im(z^2)) * -1 * i) + c = burning ship
  * Conjugate(z)^2 + c = mandelbar
+ */
+
+/*
+ * expression => lexer => tokens
+ * tokens => parser => nodes
+ *
+ * nodes, variables => evaluator => result
+ * tokens => highlighter => richtext
  */
 
 @Controller()
@@ -55,5 +63,9 @@ export class InterpretController implements OnStart {
 		this.cachedHighlighters.set(expression, highlighter);
 
 		return highlighter;
+	}
+
+	public getCustomFractalDescription() {
+		return `Functions\n\n${getFunctionList()}\nOperators\n\n${getOperatorList()}`;
 	}
 }

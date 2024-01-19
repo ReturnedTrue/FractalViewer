@@ -1,18 +1,25 @@
-import Roact from "@rbxts/roact";
+import Roact, { createRef } from "@rbxts/roact";
 import { UnifiedTextScaler } from "client/roact/util/components/UnifiedTextScaler";
 import { FractalId } from "shared/enums/FractalId";
-
-const fractalDescriptions = new Map<FractalId, string>([
-	[FractalId.Mandelbrot, "Uses z = z^2 + c iterative formula"],
-	[FractalId.BurningShip, "Uses z = (Re(z^2) + |Im(z^2)|) + c iterative formula"],
-	// TODO add more fractal descriptions
-]);
+import { resolveDescription } from "./DescriptionData";
+import { TextService } from "@rbxts/services";
+import { PixelScrollingFrame } from "client/roact/util/components/PixelScrollingFrame";
 
 interface DescriptionBoxProps {
 	fractalViewed: FractalId;
 }
 
-export class DescriptionBox extends Roact.Component<DescriptionBoxProps> {
+interface DescriptionBoxState {
+	textYSize: number;
+}
+
+export class DescriptionBox extends Roact.Component<DescriptionBoxProps, DescriptionBoxState> {
+	state = {
+		textYSize: 0,
+	};
+
+	private scrollingHolder = createRef<ScrollingFrame>();
+
 	render() {
 		return (
 			<frame Key="DescriptionBox" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
@@ -29,21 +36,43 @@ export class DescriptionBox extends Roact.Component<DescriptionBoxProps> {
 					<UnifiedTextScaler />
 				</textlabel>
 
-				<textlabel
-					Key="FractalDescription"
-					Text={fractalDescriptions.get(this.props.fractalViewed) ?? "No description"}
-					BackgroundTransparency={1}
-					Position={UDim2.fromScale(0, 0.15)}
-					Size={UDim2.fromScale(1, 0.85)}
-					Font={Enum.Font.Ubuntu}
-					TextXAlignment={Enum.TextXAlignment.Left}
-					TextYAlignment={Enum.TextYAlignment.Top}
-					TextColor3={new Color3(1, 1, 1)}
-					TextScaled={true}
+				<PixelScrollingFrame
+					pixelsPerScroll={this.state.textYSize * 0.2}
+					tweenData={{
+						time: 0.25,
+					}}
+					ref={this.scrollingHolder}
+					scrollingFrameProps={{
+						CanvasSize: UDim2.fromOffset(0, this.state.textYSize),
+						BackgroundTransparency: 1,
+						Position: UDim2.fromScale(0, 0.15),
+						Size: UDim2.fromScale(1, 0.85),
+					}}
 				>
-					<UnifiedTextScaler />
-				</textlabel>
+					<textlabel
+						Key="FractalDescription"
+						Text={resolveDescription(this.props.fractalViewed)}
+						RichText={true}
+						BackgroundTransparency={1}
+						Size={UDim2.fromScale(1, 1)}
+						Font={Enum.Font.Ubuntu}
+						TextXAlignment={Enum.TextXAlignment.Left}
+						TextYAlignment={Enum.TextYAlignment.Top}
+						TextSize={32}
+						TextColor3={new Color3(1, 1, 1)}
+					/>
+				</PixelScrollingFrame>
 			</frame>
 		);
+	}
+
+	protected didMount() {
+		const holder = this.scrollingHolder.getValue();
+		if (!holder) return;
+
+		const description = resolveDescription(this.props.fractalViewed);
+		const textSize = TextService.GetTextSize(description, 32, Enum.Font.Ubuntu, holder.AbsoluteSize);
+
+		this.setState({ textYSize: textSize.Y });
 	}
 }
