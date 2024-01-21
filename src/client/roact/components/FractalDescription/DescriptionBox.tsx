@@ -37,7 +37,7 @@ export class DescriptionBox extends Roact.Component<DescriptionBoxProps, Descrip
 				</textlabel>
 
 				<PixelScrollingFrame
-					pixelsPerScroll={this.state.textYSize * 0.2}
+					pixelsPerScroll={this.state.textYSize * 0.1}
 					tweenData={{
 						time: 0.25,
 					}}

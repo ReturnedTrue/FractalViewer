@@ -105,6 +105,35 @@ export const complexTan = (real: number, imaginary: number) => {
 	return complexDiv(realTan, imaginaryTanh, 1, -1 * realTan * imaginaryTanh);
 };
 
+export const complexSinh = (real: number, imaginary: number) => {
+	const [positiveExpReal, positiveExpImaginary] = complexExp(real, imaginary);
+	const [negativeExpReal, negativeExpImaginary] = complexExp(-real, -imaginary);
+
+	return $tuple((positiveExpReal - negativeExpReal) / 2, (positiveExpImaginary - negativeExpImaginary) / 2);
+};
+
+export const complexCosh = (real: number, imaginary: number) => {
+	const [positiveExpReal, positiveExpImaginary] = complexExp(real, imaginary);
+	const [negativeExpReal, negativeExpImaginary] = complexExp(-real, -imaginary);
+
+	return $tuple((positiveExpReal + negativeExpReal) / 2, (positiveExpImaginary + negativeExpImaginary) / 2);
+};
+
+export const complexTanh = (real: number, imaginary: number) => {
+	const [positiveExpReal, positiveExpImaginary] = complexExp(real, imaginary);
+	const [negativeExpReal, negativeExpImaginary] = complexExp(-real, -imaginary);
+
+	const sinhReal = (positiveExpReal - negativeExpReal) / 2;
+	const sinhImaginary = (positiveExpImaginary - negativeExpImaginary) / 2;
+
+	const coshReal = (positiveExpReal + negativeExpReal) / 2;
+	const coshImaginary = (positiveExpImaginary + negativeExpImaginary) / 2;
+
+	const [divdedReal, divdedImaginary] = complexDiv(sinhReal, sinhImaginary, coshReal, coshImaginary);
+
+	return $tuple(divdedReal, divdedImaginary);
+};
+
 /*
 	Using exponential form
 
@@ -114,8 +143,6 @@ export const complexTan = (real: number, imaginary: number) => {
 	      = ln(r) + itheta
 */
 export const complexLn = (real: number, imaginary: number) => {
-	if (imaginary === 0) return $tuple(math.log(real), 0);
-
 	const magnitude = math.log(modulus(real, imaginary));
 	const theta = math.atan2(imaginary, real);
 

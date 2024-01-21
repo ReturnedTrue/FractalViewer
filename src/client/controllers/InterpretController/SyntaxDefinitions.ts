@@ -1,12 +1,15 @@
 import {
 	complexCos,
+	complexCosh,
 	complexDiv,
 	complexExp,
 	complexLn,
 	complexMul,
 	complexPow,
 	complexSine,
+	complexSinh,
 	complexTan,
+	complexTanh,
 	modulus,
 } from "../../math/complex";
 import { ExpressionNodeValue } from "./ExpressionNode";
@@ -24,22 +27,48 @@ const boxComplexTuple = <T extends unknown[]>(
 	return [real, imaginary] satisfies ExpressionNodeValue;
 };
 
+const singleComplexArgumentData: DefinedFunctionData["argumentData"] = [
+	{
+		kind: "complex",
+		name: "z",
+	},
+];
+
 export enum DefinedFunction {
+	// Complex
+	Real = "Re",
+	Imaginary = "Im",
+	Conjugate = "Conjugate",
+
+	// Calculus
 	Mod = "mod",
+	NaturalLog = "ln",
+	Exp = "exp",
+
+	// Rounding
 	Floor = "floor",
 	Ceil = "ceil",
+
+	// Trig
+	Sine = "sin",
+	Cosec = "cosec",
+	Cosine = "cos",
+	Sec = "sec",
+	Tan = "tan",
+	Cot = "cot",
+
+	// TODO add inverse trig, reciprocal hyp and inverse hyp functions
+
+	// Hyp
+	Sinh = "sinh",
+	Cosh = "cosh",
+	Tanh = "tanh",
+
+	// Misc
 	Fibonacci = "fib",
 	Weierstrass = "weier",
 	RiemannZeta = "zeta",
 	Gamma = "gamma",
-	NaturalLog = "ln",
-	Exp = "exp",
-	Sine = "sin",
-	Cosine = "cos",
-	Tan = "tan",
-	Real = "Re",
-	Imaginary = "Im",
-	Conjugate = "Conjugate",
 }
 
 export interface DefinedFunctionArgumentData {
@@ -50,84 +79,54 @@ export interface DefinedFunctionArgumentData {
 export type DefinedFunctionExecute = (...args: Array<ExpressionNodeValue>) => ExpressionNodeValue;
 
 export interface DefinedFunctionData {
+	order: number;
 	argumentData: Array<DefinedFunctionArgumentData>;
 
 	execute: DefinedFunctionExecute;
 }
 
-const sqrtTwoPi = math.sqrt(2 * math.pi);
-const lanczosApproxCoefficients = [
-	0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
-	12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7,
-];
-
-const gammaG = 7;
-
-/*
-	let t = z + g + 0.5
-
-	gamma(z + 1) = root(2 * pi) * ( t ^ (z + 0.5) ) * ( e ^ -t )
-*/
-const gamma: DefinedFunctionExecute = (z) => {
-	if (z[0] < 0.5) {
-		const [sineReal, sineImaginary] = complexSine(math.pi * z[0], math.pi * z[1]);
-		const recurseResult = gamma([1 - z[0], z[1]]);
-
-		const [denominatorReal, denominatorImaginary] = complexMul(
-			sineReal,
-			sineImaginary,
-			recurseResult[0],
-			recurseResult[1],
-		);
-
-		return boxComplexTuple(complexDiv, math.pi, 0, denominatorReal, denominatorImaginary);
-	}
-
-	const originalReal = z[0] - 1;
-	const originalImaginary = z[1];
-
-	let sumReal = lanczosApproxCoefficients[0];
-	let sumImaginary = 0;
-
-	for (let i = 0; i < lanczosApproxCoefficients.size(); i++) {
-		const [dividedReal, divdedImaginary] = complexDiv(
-			lanczosApproxCoefficients[i],
-			0,
-			originalReal + i,
-			originalImaginary,
-		);
-
-		sumReal += dividedReal;
-		sumImaginary += divdedImaginary;
-	}
-
-	const tReal = originalReal + gammaG + 0.5;
-	const tImaginary = originalImaginary;
-
-	const [powReal, powImaginary] = complexPow(tReal, tImaginary, originalReal + 0.5, originalImaginary);
-
-	const [multipliedReal, multipledImaginary] = complexMul(
-		sqrtTwoPi * sumReal,
-		sqrtTwoPi * sumImaginary,
-		powReal,
-		powImaginary,
-	);
-
-	const [expReal, expImaginary] = complexExp(-tReal, -tImaginary);
-
-	return boxComplexTuple(complexMul, multipliedReal, multipledImaginary, expReal, expImaginary);
-};
-
 export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>([
+	[
+		DefinedFunction.Real,
+		{
+			order: 0,
+			argumentData: singleComplexArgumentData,
+
+			execute: (z) => {
+				return createReal(z[0]);
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Imaginary,
+		{
+			order: 1,
+			argumentData: singleComplexArgumentData,
+
+			execute: (arg) => {
+				return createReal(arg[1]);
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Conjugate,
+		{
+			order: 2,
+			argumentData: singleComplexArgumentData,
+
+			execute: (z) => {
+				return [z[0], -z[1]];
+			},
+		},
+	],
+
 	[
 		DefinedFunction.Mod,
 		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "z",
-				},
-			],
+			order: 3,
+			argumentData: singleComplexArgumentData,
 
 			execute: (z) => createReal(modulus(...z)),
 		},
@@ -136,12 +135,8 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Floor,
 		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "z",
-				},
-			],
+			order: 100,
+			argumentData: singleComplexArgumentData,
 
 			execute: (z) => [math.floor(z[0]), math.floor(z[1])],
 		},
@@ -150,20 +145,201 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Ceil,
 		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "z",
-				},
-			],
+			order: 101,
+			argumentData: singleComplexArgumentData,
 
 			execute: (z) => [math.ceil(z[0]), math.ceil(z[1])],
 		},
 	],
 
 	[
+		DefinedFunction.NaturalLog,
+		{
+			order: 200,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) return boxComplexTuple(complexLn, x[0], x[1]);
+
+				return createReal(math.log(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Exp,
+		{
+			order: 201,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) return boxComplexTuple(complexExp, x[0], x[1]);
+
+				return createReal(math.exp(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Sine,
+		{
+			order: 300,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					return boxComplexTuple(complexSine, x[0], x[1]);
+				}
+
+				return createReal(math.sin(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Cosec,
+		{
+			order: 301,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					const [sineReal, sineImaginary] = complexSine(x[0], x[1]);
+
+					return boxComplexTuple(complexDiv, 1, 0, sineReal, sineImaginary);
+				}
+
+				const denominator = math.sin(x[0]);
+
+				return createReal(1 / denominator);
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Cosine,
+		{
+			order: 302,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					return boxComplexTuple(complexCos, x[0], x[1]);
+				}
+
+				return createReal(math.cos(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Sec,
+		{
+			order: 303,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					const [cosineReal, cosineImaginary] = complexCos(x[0], x[1]);
+
+					return boxComplexTuple(complexDiv, 1, 0, cosineReal, cosineImaginary);
+				}
+
+				const denominator = math.cos(x[0]);
+
+				return createReal(denominator === 0 ? math.huge : 1 / denominator);
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Tan,
+		{
+			order: 304,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					return boxComplexTuple(complexTan, x[0], x[1]);
+				}
+
+				return createReal(math.tan(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Cot,
+		{
+			order: 305,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					const [tanReal, tanImaginary] = complexTan(x[0], x[1]);
+
+					return boxComplexTuple(complexDiv, 1, 0, tanReal, tanImaginary);
+				}
+
+				const denominator = math.tan(x[0]);
+
+				return createReal(1 / denominator);
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Sinh,
+		{
+			order: 400,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					return boxComplexTuple(complexSinh, x[0], x[1]);
+				}
+
+				return createReal(math.sinh(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Cosh,
+		{
+			order: 401,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					return boxComplexTuple(complexCosh, x[0], x[1]);
+				}
+
+				return createReal(math.cosh(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.Tanh,
+		{
+			order: 402,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					return boxComplexTuple(complexTanh, x[0], x[1]);
+				}
+
+				return createReal(math.tanh(x[0]));
+			},
+		},
+	],
+
+	[
 		DefinedFunction.Fibonacci,
 		{
+			order: 500,
 			argumentData: [
 				{
 					kind: "real",
@@ -191,6 +367,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Weierstrass,
 		{
+			order: 501,
 			argumentData: [
 				{
 					kind: "real",
@@ -208,33 +385,37 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 				},
 			],
 
-			execute: (rawA, rawB, rawX) => {
-				if (hasImaginaryPart(rawA) || hasImaginaryPart(rawB) || hasImaginaryPart(rawX))
-					throw "unexpected complex number to weier function";
+			execute: (() => {
+				const weierstassN = 10;
 
-				const a = rawA[0];
-				const b = rawB[0];
-				const x = rawX[0];
+				return (rawA, rawB, rawX) => {
+					if (hasImaginaryPart(rawA) || hasImaginaryPart(rawB) || hasImaginaryPart(rawX))
+						throw "unexpected complex number to weier function";
 
-				if (!(a > 0 && a < 1)) throw "weier expects 0 < a < 1";
-				if (!(math.modf(b)[1] === 0 && b % 2 !== 0)) throw "weier expects b to be an odd integer";
-				if (a * b < 1 + 1.5 * math.pi) throw "weier expects ab > 1 + 3/2 pi";
+					const a = rawA[0];
+					const b = rawB[0];
+					const x = rawX[0];
 
-				let result = 0;
+					if (!(a > 0 && a < 1)) throw "weier expects 0 < a < 1";
+					if (!(math.modf(b)[1] === 0 && b % 2 !== 0)) throw "weier expects b to be an odd integer";
+					if (a * b < 1 + 1.5 * math.pi) throw "weier expects ab > 1 + 3/2 pi";
 
-				// n = 10
-				for (const r of $range(0, 10)) {
-					result += a ** r * math.cos(b ** r * math.pi * x);
-				}
+					let result = 0;
 
-				return createReal(result);
-			},
+					for (const r of $range(0, weierstassN)) {
+						result += a ** r * math.cos(b ** r * math.pi * x);
+					}
+
+					return createReal(result);
+				};
+			})(),
 		},
 	],
 
 	[
 		DefinedFunction.RiemannZeta,
 		{
+			order: 502,
 			argumentData: [
 				{
 					kind: "complex",
@@ -242,194 +423,119 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 				},
 			],
 
-			execute: (s) => {
-				const n = 10;
+			execute: (() => {
+				const zetaN = 10;
 
-				if (!hasImaginaryPart(s)) {
-					//if (s < 1) throw "zeta expects s > 1";
+				return (s) => {
+					if (!hasImaginaryPart(s)) {
+						//if (s < 1) throw "zeta expects s > 1";
 
-					let result = 0;
+						let result = 0;
 
-					for (const r of $range(1, n)) {
-						result += 1 / r ** s[0];
+						for (const r of $range(1, zetaN)) {
+							result += 1 / r ** s[0];
+						}
+
+						return [result, 0];
 					}
 
-					return [result, 0];
-				}
+					//if (s[0] < 1) throw "zeta expects Re(s) > 1";
 
-				//if (s[0] < 1) throw "zeta expects Re(s) > 1";
+					let resultReal = 0;
+					let resultImaginary = 0;
 
-				let resultReal = 0;
-				let resultImaginary = 0;
+					for (const r of $range(1, zetaN)) {
+						const [powReal, powImaginary] = complexPow(r, 0, s[0], s[1]);
+						const [divdedReal, divdedImaginary] = complexDiv(1, 0, powReal, powImaginary);
 
-				for (const r of $range(1, n)) {
-					let [real, imaginary] = complexPow(r, 0, s[0], s[1]);
-					[real, imaginary] = complexDiv(1, 0, real, imaginary);
+						resultReal += divdedReal;
+						resultImaginary += divdedImaginary;
+					}
 
-					resultReal += real;
-					resultImaginary += imaginary;
-				}
-
-				return [resultReal, resultImaginary];
-			},
+					return [resultReal, resultImaginary];
+				};
+			})(),
 		},
 	],
 
 	[
 		DefinedFunction.Gamma,
 		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "z",
-				},
-			],
+			order: 503,
+			argumentData: singleComplexArgumentData,
 
-			execute: gamma,
-		},
-	],
+			execute: (() => {
+				const sqrtTwoPi = math.sqrt(2 * math.pi);
+				const lanczosApproxCoefficients = [
+					0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313,
+					-176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6,
+					1.5056327351493116e-7,
+				];
 
-	[
-		DefinedFunction.NaturalLog,
-		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "x",
-				},
-			],
+				const gammaG = 7;
 
-			execute: (x) => {
-				if (hasImaginaryPart(x)) return boxComplexTuple(complexLn, x[0], x[1]);
+				/*
+					let t = z + g + 0.5
+				
+					gamma(z + 1) = root(2 * pi) * ( t ^ (z + 0.5) ) * ( e ^ -t )
+				*/
+				const gamma: DefinedFunctionExecute = (z) => {
+					if (z[0] < 0.5) {
+						const [sineReal, sineImaginary] = complexSine(math.pi * z[0], math.pi * z[1]);
+						const recurseResult = gamma([1 - z[0], z[1]]);
 
-				return createReal(math.log(x[0]));
-			},
-		},
-	],
+						const [denominatorReal, denominatorImaginary] = complexMul(
+							sineReal,
+							sineImaginary,
+							recurseResult[0],
+							recurseResult[1],
+						);
 
-	[
-		DefinedFunction.Exp,
-		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "x",
-				},
-			],
+						return boxComplexTuple(complexDiv, math.pi, 0, denominatorReal, denominatorImaginary);
+					}
 
-			execute: (x) => {
-				if (hasImaginaryPart(x)) return boxComplexTuple(complexExp, x[0], x[1]);
+					const originalReal = z[0] - 1;
+					const originalImaginary = z[1];
 
-				return createReal(math.exp(x[0]));
-			},
-		},
-	],
+					let sumReal = lanczosApproxCoefficients[0];
+					let sumImaginary = 0;
 
-	[
-		DefinedFunction.Sine,
-		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "x",
-				},
-			],
+					for (let i = 0; i < lanczosApproxCoefficients.size(); i++) {
+						const [dividedReal, divdedImaginary] = complexDiv(
+							lanczosApproxCoefficients[i],
+							0,
+							originalReal + i,
+							originalImaginary,
+						);
 
-			execute: (x) => {
-				if (hasImaginaryPart(x)) {
-					return boxComplexTuple(complexSine, x[0], x[1]);
-				}
+						sumReal += dividedReal;
+						sumImaginary += divdedImaginary;
+					}
 
-				return createReal(math.sin(x[0]));
-			},
-		},
-	],
+					const tReal = originalReal + gammaG + 0.5;
+					const tImaginary = originalImaginary;
 
-	[
-		DefinedFunction.Cosine,
-		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "x",
-				},
-			],
+					const [powReal, powImaginary] = complexPow(
+						tReal,
+						tImaginary,
+						originalReal + 0.5,
+						originalImaginary,
+					);
 
-			execute: (x) => {
-				if (hasImaginaryPart(x)) {
-					return boxComplexTuple(complexCos, x[0], x[1]);
-				}
+					const [multipliedReal, multipledImaginary] = complexMul(
+						sqrtTwoPi * sumReal,
+						sqrtTwoPi * sumImaginary,
+						powReal,
+						powImaginary,
+					);
 
-				return createReal(math.cos(x[0]));
-			},
-		},
-	],
+					const [expReal, expImaginary] = complexExp(-tReal, -tImaginary);
 
-	[
-		DefinedFunction.Tan,
-		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "x",
-				},
-			],
+					return boxComplexTuple(complexMul, multipliedReal, multipledImaginary, expReal, expImaginary);
+				};
 
-			execute: (x) => {
-				if (hasImaginaryPart(x)) {
-					return boxComplexTuple(complexTan, x[0], x[1]);
-				}
-
-				return createReal(math.tan(x[0]));
-			},
-		},
-	],
-
-	[
-		DefinedFunction.Real,
-		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "z",
-				},
-			],
-
-			execute: (z) => {
-				return createReal(z[0]);
-			},
-		},
-	],
-
-	[
-		DefinedFunction.Imaginary,
-		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "z",
-				},
-			],
-
-			execute: (arg) => {
-				return createReal(arg[1]);
-			},
-		},
-	],
-
-	[
-		DefinedFunction.Conjugate,
-		{
-			argumentData: [
-				{
-					kind: "complex",
-					name: "z",
-				},
-			],
-
-			execute: (z) => {
-				return [z[0], -z[1]];
-			},
+				return gamma;
+			})(),
 		},
 	],
 ]);
@@ -444,6 +550,7 @@ export enum DefinedOperator {
 }
 
 export type DefinedOperatorData = {
+	order: number;
 	matchingPattern: string;
 	execute?: DefinedOperatorDataExecute;
 
@@ -463,6 +570,7 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 		DefinedOperator.Plus,
 
 		{
+			order: 1,
 			matchingPattern: "%+",
 
 			execute: (leftHand, rightHand) => [leftHand[0] + rightHand[0], leftHand[1] + rightHand[1]],
@@ -473,6 +581,7 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 		DefinedOperator.Subtract,
 
 		{
+			order: 2,
 			matchingPattern: "%-",
 
 			execute: (leftHand, rightHand) => [leftHand[0] - rightHand[0], leftHand[1] - rightHand[1]],
@@ -484,6 +593,7 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 	[
 		DefinedOperator.Multiply,
 		{
+			order: 3,
 			matchingPattern: "*",
 
 			execute: (leftHand, rightHand) => {
@@ -495,6 +605,7 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 	[
 		DefinedOperator.Divide,
 		{
+			order: 4,
 			matchingPattern: "/",
 
 			execute: (leftHand, rightHand) => {
@@ -507,6 +618,7 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 		DefinedOperator.Power,
 
 		{
+			order: 5,
 			matchingPattern: "%^",
 
 			execute: (leftHand, rightHand) => {
@@ -518,6 +630,7 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 	[
 		DefinedOperator.Factorial,
 		{
+			order: 6,
 			matchingPattern: "!",
 
 			postfixExecute: (x) => {

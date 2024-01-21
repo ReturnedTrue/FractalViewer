@@ -3,7 +3,6 @@ import { ExpressionParser } from "./ExpressionParser";
 import { ExpressionLexer } from "./ExpressionLexer";
 import { ExpressionEvaluator } from "./ExpressionEvaluator";
 import { ExpressionHighlighter, getFunctionList, getOperatorList } from "./ExpressionHighlighter";
-import { DefinedFunction, definedFunctionData } from "./SyntaxDefinitions";
 
 /*
  * z^fib(mod(z)) + c = peanut
@@ -17,6 +16,8 @@ import { DefinedFunction, definedFunctionData } from "./SyntaxDefinitions";
  * z^(floor(mod(z + 2))!) + c = shattered glass
  * z^(mod(tan(c))) + c = alien
  * z^4 + z^3 + z^2 + z + c = mandelbrot ridge
+ * tanh(z)^2 + c = bell
+ * cot(z)^2 + c = mandelbrot veins + ridge (where intiial = c)
  *
  * Re(z^2) + (mod(Im(z^2)) * -1 * i) + c = burning ship
  * Conjugate(z)^2 + c = mandelbar

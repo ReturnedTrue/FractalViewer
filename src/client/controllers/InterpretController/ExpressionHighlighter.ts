@@ -1,5 +1,5 @@
 import { ExpressionToken, ExpressionTokenCategory } from "./ExpressionToken";
-import { definedFunctionData, definedOperatorData } from "./SyntaxDefinitions";
+import { DefinedFunction, DefinedFunctionData, definedFunctionData, definedOperatorData } from "./SyntaxDefinitions";
 
 const defaultColor = "204, 204, 204"; // white
 const unrecognisedVariableColor = "255, 0, 0"; // red
@@ -44,7 +44,7 @@ export class ExpressionHighlighter {
 	}
 }
 
-export const createStringConnector = (separator: string) => {
+const createStringConnector = (separator: string) => {
 	let str = "";
 	let isTrailing = false;
 
@@ -63,6 +63,29 @@ export const createStringConnector = (separator: string) => {
 	return $tuple(get, connect);
 };
 
+const sortMapByOrder = <K, V extends { order: number }>(mapData: Map<K, V>) => {
+	const sortedData = new Array<[K, V]>();
+
+	for (const [key, value] of mapData) {
+		let i = sortedData.size() - 1;
+
+		while (i >= 0) {
+			const valueAtIndex = sortedData[i][1];
+			sortedData[i + 1] = sortedData[i];
+
+			if (valueAtIndex.order < value.order) {
+				break;
+			}
+
+			i--;
+		}
+
+		sortedData[i + 1] = [key, value];
+	}
+
+	return sortedData;
+};
+
 export const getFunctionList = () => {
 	let list = "";
 
@@ -75,7 +98,9 @@ export const getFunctionList = () => {
 	const openParenthesis = getFontString(parenthesisColor, "(");
 	const closeParenthesis = getFontString(parenthesisColor, ")");
 
-	for (const [funcName, funcData] of definedFunctionData) {
+	const sortedFunctionData = sortMapByOrder(definedFunctionData);
+
+	for (const [funcName, funcData] of sortedFunctionData) {
 		const func = getFontString(functionColor, funcName);
 		const [getArgumentList, connectToArgumentList] = createStringConnector(comma);
 
@@ -96,7 +121,9 @@ export const getOperatorList = () => {
 
 	const operatorColor = getCategoryColor(ExpressionTokenCategory.Operator);
 
-	for (const [operatorName, operatorData] of definedOperatorData) {
+	const sortedOperatorData = sortMapByOrder(definedOperatorData);
+
+	for (const [operatorName, operatorData] of sortedOperatorData) {
 		const operator = getFontString(operatorColor, operatorName);
 
 		const [getModeList, connectToModeList] = createStringConnector(" | ");

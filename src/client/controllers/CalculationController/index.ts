@@ -50,8 +50,10 @@ export class CalculationController implements OnStart {
 				viewAfterApplication = true;
 
 				// If the parts are viewed and the axis size has changed, recreate the view
-				// eslint-disable-next-line prettier/prettier
-			} else if (oldFractal.interfaceMode !== InterfaceMode.Hidden && oldParameters.axisSize !== parameters.axisSize) {
+			} else if (
+				oldFractal.interfaceMode !== InterfaceMode.Hidden &&
+				oldParameters.axisSize !== parameters.axisSize
+			) {
 				this.handleAxisSizeChange(oldParameters.axisSize, parameters.axisSize);
 				viewAfterApplication = true;
 			}
