@@ -1,12 +1,13 @@
 import {
 	complexCos,
 	complexDiv,
+	complexExp,
+	complexLn,
 	complexMul,
 	complexPow,
 	complexSine,
 	complexTan,
 	modulus,
-	realToComplexPow,
 } from "../../math/complex";
 import { ExpressionNodeValue } from "./ExpressionNode";
 
@@ -30,6 +31,7 @@ export enum DefinedFunction {
 	Fibonacci = "fib",
 	Weierstrass = "weier",
 	RiemannZeta = "zeta",
+	Gamma = "gamma",
 	NaturalLog = "ln",
 	Exp = "exp",
 	Sine = "sin",
@@ -45,17 +47,82 @@ export interface DefinedFunctionArgumentData {
 	name: string;
 }
 
-export interface DefinedFunctionData {
-	argumentsDetails: Array<DefinedFunctionArgumentData>;
+export type DefinedFunctionExecute = (...args: Array<ExpressionNodeValue>) => ExpressionNodeValue;
 
-	execute: (...args: Array<ExpressionNodeValue>) => ExpressionNodeValue;
+export interface DefinedFunctionData {
+	argumentData: Array<DefinedFunctionArgumentData>;
+
+	execute: DefinedFunctionExecute;
 }
+
+const sqrtTwoPi = math.sqrt(2 * math.pi);
+const lanczosApproxCoefficients = [
+	0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
+	12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7,
+];
+
+const gammaG = 7;
+
+/*
+	let t = z + g + 0.5
+
+	gamma(z + 1) = root(2 * pi) * ( t ^ (z + 0.5) ) * ( e ^ -t )
+*/
+const gamma: DefinedFunctionExecute = (z) => {
+	if (z[0] < 0.5) {
+		const [sineReal, sineImaginary] = complexSine(math.pi * z[0], math.pi * z[1]);
+		const recurseResult = gamma([1 - z[0], z[1]]);
+
+		const [denominatorReal, denominatorImaginary] = complexMul(
+			sineReal,
+			sineImaginary,
+			recurseResult[0],
+			recurseResult[1],
+		);
+
+		return boxComplexTuple(complexDiv, math.pi, 0, denominatorReal, denominatorImaginary);
+	}
+
+	const originalReal = z[0] - 1;
+	const originalImaginary = z[1];
+
+	let sumReal = lanczosApproxCoefficients[0];
+	let sumImaginary = 0;
+
+	for (let i = 0; i < lanczosApproxCoefficients.size(); i++) {
+		const [dividedReal, divdedImaginary] = complexDiv(
+			lanczosApproxCoefficients[i],
+			0,
+			originalReal + i,
+			originalImaginary,
+		);
+
+		sumReal += dividedReal;
+		sumImaginary += divdedImaginary;
+	}
+
+	const tReal = originalReal + gammaG + 0.5;
+	const tImaginary = originalImaginary;
+
+	const [powReal, powImaginary] = complexPow(tReal, tImaginary, originalReal + 0.5, originalImaginary);
+
+	const [multipliedReal, multipledImaginary] = complexMul(
+		sqrtTwoPi * sumReal,
+		sqrtTwoPi * sumImaginary,
+		powReal,
+		powImaginary,
+	);
+
+	const [expReal, expImaginary] = complexExp(-tReal, -tImaginary);
+
+	return boxComplexTuple(complexMul, multipliedReal, multipledImaginary, expReal, expImaginary);
+};
 
 export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>([
 	[
 		DefinedFunction.Mod,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "complex",
 					name: "z",
@@ -69,7 +136,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Floor,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "complex",
 					name: "z",
@@ -83,7 +150,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Ceil,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "complex",
 					name: "z",
@@ -97,7 +164,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Fibonacci,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "real",
 					name: "x",
@@ -124,7 +191,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Weierstrass,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "real",
 					name: "a",
@@ -141,19 +208,23 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 				},
 			],
 
-			execute: (a, b, x) => {
-				if (hasImaginaryPart(a) || hasImaginaryPart(b) || hasImaginaryPart(x))
+			execute: (rawA, rawB, rawX) => {
+				if (hasImaginaryPart(rawA) || hasImaginaryPart(rawB) || hasImaginaryPart(rawX))
 					throw "unexpected complex number to weier function";
 
-				if (!(a[0] > 0 && a[0] < 1)) throw "weier expects 0 < a < 1";
-				if (!(math.modf(b[0])[1] === 0 && b[0] % 2 !== 0)) throw "weier expects b to be an odd integer";
-				if (a[0] * b[0] < 1 + 1.5 * math.pi) throw "weier expects ab > 1 + 3/2 pi";
+				const a = rawA[0];
+				const b = rawB[0];
+				const x = rawX[0];
+
+				if (!(a > 0 && a < 1)) throw "weier expects 0 < a < 1";
+				if (!(math.modf(b)[1] === 0 && b % 2 !== 0)) throw "weier expects b to be an odd integer";
+				if (a * b < 1 + 1.5 * math.pi) throw "weier expects ab > 1 + 3/2 pi";
 
 				let result = 0;
 
 				// n = 10
 				for (const r of $range(0, 10)) {
-					result += a[0] ** r * math.cos(b[0] ** r * math.pi * x[0]);
+					result += a ** r * math.cos(b ** r * math.pi * x);
 				}
 
 				return createReal(result);
@@ -164,7 +235,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.RiemannZeta,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "complex",
 					name: "s",
@@ -188,32 +259,48 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 
 				//if (s[0] < 1) throw "zeta expects Re(s) > 1";
 
-				let result: ExpressionNodeValue = [0, 0];
+				let resultReal = 0;
+				let resultImaginary = 0;
 
 				for (const r of $range(1, n)) {
-					let [real, imaginary] = realToComplexPow(r, s[0], s[1]);
+					let [real, imaginary] = complexPow(r, 0, s[0], s[1]);
 					[real, imaginary] = complexDiv(1, 0, real, imaginary);
 
-					result = [result[0] + real, result[1] + imaginary];
+					resultReal += real;
+					resultImaginary += imaginary;
 				}
 
-				return result;
+				return [resultReal, resultImaginary];
 			},
+		},
+	],
+
+	[
+		DefinedFunction.Gamma,
+		{
+			argumentData: [
+				{
+					kind: "complex",
+					name: "z",
+				},
+			],
+
+			execute: gamma,
 		},
 	],
 
 	[
 		DefinedFunction.NaturalLog,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
-					kind: "real",
+					kind: "complex",
 					name: "x",
 				},
 			],
 
 			execute: (x) => {
-				if (hasImaginaryPart(x)) throw "unexpected complex number to ln";
+				if (hasImaginaryPart(x)) return boxComplexTuple(complexLn, x[0], x[1]);
 
 				return createReal(math.log(x[0]));
 			},
@@ -223,15 +310,15 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Exp,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
-					kind: "real",
+					kind: "complex",
 					name: "x",
 				},
 			],
 
 			execute: (x) => {
-				if (hasImaginaryPart(x)) throw "unexpected complex number to exp";
+				if (hasImaginaryPart(x)) return boxComplexTuple(complexExp, x[0], x[1]);
 
 				return createReal(math.exp(x[0]));
 			},
@@ -241,7 +328,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Sine,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "complex",
 					name: "x",
@@ -261,7 +348,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Cosine,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "complex",
 					name: "x",
@@ -281,9 +368,9 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Tan,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
-					kind: "real",
+					kind: "complex",
 					name: "x",
 				},
 			],
@@ -301,7 +388,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Real,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "complex",
 					name: "z",
@@ -317,7 +404,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Imaginary,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "complex",
 					name: "z",
@@ -333,7 +420,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Conjugate,
 		{
-			argumentsDetails: [
+			argumentData: [
 				{
 					kind: "complex",
 					name: "z",
@@ -371,16 +458,6 @@ export type DefinedOperatorDataExecute = (
 
 export type DefinedOperatorDataEncirculingExecute = (arg: ExpressionNodeValue) => ExpressionNodeValue;
 
-type NodeValueHandlerResult = number | [number, number] | string;
-
-type NodeValueHandlers = {
-	bothReal: (leftHand: number, rightHand: number) => NodeValueHandlerResult;
-	bothComplex: (leftHand: [number, number], rightHand: [number, number]) => NodeValueHandlerResult;
-
-	leftComplex: (leftHand: [number, number], rightHand: number) => NodeValueHandlerResult;
-	rightComplex: (leftHand: number, rightHand: [number, number]) => NodeValueHandlerResult;
-};
-
 export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>([
 	[
 		DefinedOperator.Plus,
@@ -409,8 +486,9 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 		{
 			matchingPattern: "*",
 
-			execute: (leftHand, rightHand) =>
-				boxComplexTuple(complexMul, leftHand[0], leftHand[1], rightHand[0], rightHand[1]),
+			execute: (leftHand, rightHand) => {
+				return boxComplexTuple(complexMul, leftHand[0], leftHand[1], rightHand[0], rightHand[1]);
+			},
 		},
 	],
 
@@ -419,8 +497,9 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 		{
 			matchingPattern: "/",
 
-			execute: (leftHand, rightHand) =>
-				boxComplexTuple(complexDiv, leftHand[0], leftHand[1], rightHand[0], rightHand[1]),
+			execute: (leftHand, rightHand) => {
+				return boxComplexTuple(complexDiv, leftHand[0], leftHand[1], rightHand[0], rightHand[1]);
+			},
 		},
 	],
 
@@ -431,19 +510,7 @@ export const definedOperatorData = new Map<DefinedOperator, DefinedOperatorData>
 			matchingPattern: "%^",
 
 			execute: (leftHand, rightHand) => {
-				if (hasImaginaryPart(leftHand)) {
-					if (hasImaginaryPart(rightHand)) {
-						throw "complex to complex power is not supported";
-					}
-
-					return boxComplexTuple(complexPow, leftHand[0], leftHand[1], rightHand[0]);
-				}
-
-				if (hasImaginaryPart(rightHand)) {
-					return boxComplexTuple(realToComplexPow, leftHand[0], rightHand[0], rightHand[1]);
-				}
-
-				return createReal(leftHand[0] ** rightHand[0]);
+				return boxComplexTuple(complexPow, leftHand[0], leftHand[1], rightHand[0], rightHand[1]);
 			},
 		},
 	],

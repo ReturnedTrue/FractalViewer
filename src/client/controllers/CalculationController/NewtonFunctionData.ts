@@ -47,7 +47,7 @@ export const newtonFunctionData = new Map<NewtonFunction, NewtonFunctionData>([
 			],
 
 			execute: (real, imaginary) => {
-				const [cubedReal, cubedImaginary] = complexPow(real, imaginary, 3);
+				const [cubedReal, cubedImaginary] = complexPow(real, imaginary, 3, 0);
 
 				return $tuple(cubedReal - 1, cubedImaginary);
 			},
@@ -71,13 +71,13 @@ export const newtonFunctionData = new Map<NewtonFunction, NewtonFunctionData>([
 			],
 
 			execute: (real, imaginary) => {
-				const [poweredReal, poweredImaginary] = complexPow(real, imaginary, 4);
+				const [poweredReal, poweredImaginary] = complexPow(real, imaginary, 4, 0);
 
 				return $tuple(poweredReal - 1, poweredImaginary);
 			},
 
 			derivativeExecute: (real, imaginary) => {
-				const [cubedReal, cubedImaginary] = complexPow(real, imaginary, 3);
+				const [cubedReal, cubedImaginary] = complexPow(real, imaginary, 3, 0);
 
 				return $tuple(4 * cubedReal, 4 * cubedImaginary);
 			},

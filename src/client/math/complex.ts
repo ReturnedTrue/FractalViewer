@@ -16,49 +16,57 @@ export const complexSquare = (real: number, imaginary: number) => {
 	return $tuple(real * real - imaginary * imaginary, 2 * real * imaginary);
 };
 
-/* 
-	De Moivre's
-
-	z = r(cos(theta) + isin(theta))
-
-	z ^ n = (r ^ n) * (cos(theta * n) + isin(theta * n))
-*/
-export const complexPow = (real: number, imaginary: number, exponent: number) => {
-	if (exponent === 0) return $tuple(1, 0);
-	if (imaginary === 0) return $tuple(real ** exponent, 0);
-
-	const newMagnitude = modulus(real, imaginary) ** exponent;
-	const newTheta = math.atan2(imaginary, real) * exponent;
-
-	return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));
-};
-
 /*
-	z = x + yi
+	z1 = a + bi
+	z2 = c + di
 
-	a^z = a^x * a^yi
+	If d = 0 then apply De Moivre's 
+	
+	z1^c = ( r * ( cos(theta) + isin(theta) ) ) ^ c
+	     = (r ** c) * (cos(theta * c) + isin(theta * c)) 
 
-	Since a^loga(b) = b, e^ln(a) = a
+	Else apply t = e^ln(t)
 
-	a^z = a^x * e^ln(a)yi
-		= a^x * [ r( cos(theta * ln(a)) + isin(theta * ln(a)) ) ]
+	z1^z2 = e^ln(z1^z2)
+	      = e^(z2 * ln(z1))
 */
-export const realToComplexPow = (x: number, real: number, imaginary: number) => {
-	const newMagnitude = modulus(real, imaginary) * x ** real;
-	const newTheta = math.atan2(imaginary, real) * math.log(imaginary);
+export const complexPow = (
+	baseReal: number,
+	baseImaginary: number,
+	exponentReal: number,
+	exponentImaginary: number,
+) => {
+	if (exponentImaginary === 0) {
+		const newMagnitude = modulus(baseReal, baseImaginary) ** exponentReal;
+		const newTheta = math.atan2(baseImaginary, baseReal) * exponentReal;
 
-	return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));
+		return $tuple(newMagnitude * math.cos(newTheta), newMagnitude * math.sin(newTheta));
+	}
+
+	const [baseLogReal, baseLogImaginary] = complexLn(baseReal, baseImaginary);
+	const [multipliedReal, multipliedImaginary] = complexMul(
+		exponentReal,
+		exponentImaginary,
+		baseLogReal,
+		baseLogImaginary,
+	);
+
+	const [resultReal, resultImaginary] = complexExp(multipliedReal, multipliedImaginary);
+
+	return $tuple(resultReal, resultImaginary);
 };
 
 /*
 	z1 = a + bi
 	z2 = c + di
 
-	z1 * z2 = (a * c - b * d) + (a * d + b * c)i
+	z1 * z2 = (a + bi)(c + di) 
+			= ac + adi + bci + bd(i^2)
+			= (ac - bd) + (bc + ad)i
 */
 export const complexMul = (real1: number, imaginary1: number, real2: number, imaginary2: number) => {
 	const real = real1 * real2 - imaginary1 * imaginary2;
-	const imaginary = real1 * imaginary2 + imaginary1 * real2;
+	const imaginary = imaginary1 * real2 + real1 * imaginary2;
 
 	return $tuple(real, imaginary);
 };
@@ -67,7 +75,10 @@ export const complexMul = (real1: number, imaginary1: number, real2: number, ima
 	z1 = a + bi
 	z2 = c + di
 
-	z1 / z2 = ( (a * c + b * d) / (c^2 + d^2) ) + ( (b * c - a * d) / (c^2 + d^2) )i
+	z1 / z2 = (a + bi) / (c + di)
+	        = (a + bi)(c - di) / (c + di)(c - di)
+			= ( ac - adi + bci - bd(i^2) ) / (c^2 + d^2)
+			= ( (ac + bd) + (bc - ad)i ) / (c^2 + d^2)
 */
 export const complexDiv = (real1: number, imaginary1: number, real2: number, imaginary2: number) => {
 	const denominator = real2 * real2 + imaginary2 * imaginary2;
@@ -92,4 +103,51 @@ export const complexTan = (real: number, imaginary: number) => {
 	const imaginaryTanh = math.tanh(imaginary);
 
 	return complexDiv(realTan, imaginaryTanh, 1, -1 * realTan * imaginaryTanh);
+};
+
+/*
+	Using exponential form
+
+	z = x + yi
+
+	ln(z) = ln(re^itheta) 
+	      = ln(r) + itheta
+*/
+export const complexLn = (real: number, imaginary: number) => {
+	if (imaginary === 0) return $tuple(math.log(real), 0);
+
+	const magnitude = math.log(modulus(real, imaginary));
+	const theta = math.atan2(imaginary, real);
+
+	return $tuple(magnitude, theta);
+};
+
+/* 
+	Using log change of base formula
+
+	z1 = x + yi
+	z2 = x + yi
+
+	log(z1, z2) = ln(z1) / ln(z2)
+*/
+export const complexLog = (baseReal: number, baseImaginary: number, valueReal: number, valueImaginary: number) => {
+	const [baseLogReal, baseLogImaginary] = complexLn(baseReal, baseImaginary);
+	const [valueLogReal, valueLogImaginary] = complexLn(valueReal, valueImaginary);
+
+	const [dividedReal, dividedImaginary] = complexDiv(baseLogReal, baseLogImaginary, valueLogReal, valueLogImaginary);
+
+	return $tuple(dividedReal, dividedImaginary);
+};
+
+/*
+	Using euler's formula
+
+	z = x + yi
+
+	e^z = e^x * (cos(y) + isin(y))
+*/
+export const complexExp = (real: number, imaginary: number) => {
+	const realExp = math.exp(real);
+
+	return $tuple(realExp * math.cos(imaginary), realExp * math.sin(imaginary));
 };

@@ -1,10 +1,5 @@
 import { ExpressionToken, ExpressionTokenCategory } from "./ExpressionToken";
-import {
-	DefinedOperatorDataEncirculingExecute,
-	DefinedOperatorDataExecute,
-	definedFunctionData,
-	definedOperatorData,
-} from "./SyntaxDefinitions";
+import { definedFunctionData, definedOperatorData } from "./SyntaxDefinitions";
 
 const defaultColor = "204, 204, 204"; // white
 const unrecognisedVariableColor = "255, 0, 0"; // red
@@ -22,6 +17,7 @@ const categoryColors = new Map<ExpressionTokenCategory, string>([
 	[ExpressionTokenCategory.Pipe, purple],
 ]);
 
+const getCategoryColor = (category: ExpressionTokenCategory) => categoryColors.get(category) ?? defaultColor;
 const getFontString = (color: string, content: string) => `<font color="rgb(${color})">${content}</font>`;
 
 export class ExpressionHighlighter {
@@ -44,7 +40,7 @@ export class ExpressionHighlighter {
 			return unrecognisedVariableColor;
 		}
 
-		return categoryColors.get(token.category) ?? defaultColor;
+		return getCategoryColor(token.category);
 	}
 }
 
@@ -70,21 +66,26 @@ export const createStringConnector = (separator: string) => {
 export const getFunctionList = () => {
 	let list = "";
 
-	// TODO cleanup
-	const functionColor = categoryColors.get(ExpressionTokenCategory.Function) ?? defaultColor;
-	const parenthesisColor = categoryColors.get(ExpressionTokenCategory.Parenthesis) ?? defaultColor;
-	const operatorColor = categoryColors.get(ExpressionTokenCategory.Operator) ?? defaultColor;
-	const commaColor = categoryColors.get(ExpressionTokenCategory.Comma) ?? defaultColor;
+	const functionColor = getCategoryColor(ExpressionTokenCategory.Function);
+	const parenthesisColor = getCategoryColor(ExpressionTokenCategory.Parenthesis);
+	const operatorColor = getCategoryColor(ExpressionTokenCategory.Operator);
+	const commaColor = getCategoryColor(ExpressionTokenCategory.Comma);
 
-	for (const [func, funcData] of definedFunctionData) {
-		const [getArgumentList, connectToArgumentList] = createStringConnector(getFontString(commaColor, ", "));
+	const comma = getFontString(commaColor, ", ");
+	const openParenthesis = getFontString(parenthesisColor, "(");
+	const closeParenthesis = getFontString(parenthesisColor, ")");
 
-		for (const arg of funcData.argumentsDetails) {
-			connectToArgumentList(`${arg.name}${getFontString(operatorColor, ":")} ${arg.kind}`);
+	for (const [funcName, funcData] of definedFunctionData) {
+		const func = getFontString(functionColor, funcName);
+		const [getArgumentList, connectToArgumentList] = createStringConnector(comma);
+
+		for (const argData of funcData.argumentData) {
+			const colon = getFontString(operatorColor, ":");
+
+			connectToArgumentList(`${argData.name}${colon} ${argData.kind}`);
 		}
 
-		list += `${getFontString(functionColor, func)}${getFontString(parenthesisColor, "(")}`;
-		list += `${getArgumentList()}${getFontString(parenthesisColor, ")")}\n`;
+		list += `${func}${openParenthesis}${getArgumentList()}${closeParenthesis}\n`;
 	}
 
 	return list;
@@ -93,26 +94,26 @@ export const getFunctionList = () => {
 export const getOperatorList = () => {
 	let list = "";
 
-	const operatorColor = categoryColors.get(ExpressionTokenCategory.Operator) ?? defaultColor;
+	const operatorColor = getCategoryColor(ExpressionTokenCategory.Operator);
 
-	for (const [operator, operatorData] of definedOperatorData) {
-		const coloredOperator = getFontString(operatorColor, operator);
+	for (const [operatorName, operatorData] of definedOperatorData) {
+		const operator = getFontString(operatorColor, operatorName);
 
 		const [getModeList, connectToModeList] = createStringConnector(" | ");
 
 		if (operatorData.execute) {
-			connectToModeList(`a ${coloredOperator} b`);
+			connectToModeList(`a ${operator} b`);
 		}
 
 		if (operatorData.unaryExecute) {
-			connectToModeList(`${coloredOperator}a`);
+			connectToModeList(`${operator}a`);
 		}
 
 		if (operatorData.postfixExecute) {
-			connectToModeList(`a${coloredOperator}`);
+			connectToModeList(`a${operator}`);
 		}
 
-		list += `[${coloredOperator}]: ${getModeList()}\n`;
+		list += `[${operator}]: ${getModeList()}\n`;
 	}
 
 	return list;

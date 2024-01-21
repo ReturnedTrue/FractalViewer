@@ -3,6 +3,7 @@ import { ExpressionParser } from "./ExpressionParser";
 import { ExpressionLexer } from "./ExpressionLexer";
 import { ExpressionEvaluator } from "./ExpressionEvaluator";
 import { ExpressionHighlighter, getFunctionList, getOperatorList } from "./ExpressionHighlighter";
+import { DefinedFunction, definedFunctionData } from "./SyntaxDefinitions";
 
 /*
  * z^fib(mod(z)) + c = peanut

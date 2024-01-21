@@ -152,7 +152,7 @@ export class ExpressionParser {
 
 				const argumentsCollected = new Array<ExpressionNode>();
 
-				for (const i of $range(1, functionData.argumentsDetails.size())) {
+				for (const i of $range(1, functionData.argumentData.size())) {
 					if (i !== 1) {
 						this.consumeCurrentToken({ category: ExpressionTokenCategory.Comma, content: "," });
 					}
