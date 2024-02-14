@@ -1,4 +1,3 @@
-import { Signal } from "@rbxts/beacon";
 import { Binding, BindingFunction, createBinding } from "@rbxts/roact";
 import { RunService, TweenService } from "@rbxts/services";
 
@@ -27,7 +26,10 @@ export class TweenableNumberBinding {
 		callback?: (didComplete: boolean) => void;
 	};
 
-	constructor(initialValue = 0, private sharedData?: Partial<BindingTweenData>) {
+	constructor(
+		initialValue = 0,
+		private sharedData?: Partial<BindingTweenData>,
+	) {
 		[this.binding, this.updateBinding] = createBinding(initialValue);
 	}
 
