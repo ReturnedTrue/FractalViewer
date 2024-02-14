@@ -4,7 +4,7 @@ import {
 	MAX_PARTS_PER_DELETION_SEGMENT,
 	MAX_TIME_PER_CALCULATION_ENTIRETY,
 } from "shared/constants/fractal";
-import { $dbg, $print, $warn } from "rbxts-transform-debug";
+import { $print, $warn } from "rbxts-transform-debug";
 import { clientStore, connectToStoreChange } from "client/rodux/store";
 import { defaultFractalSystem, fractalSystems } from "./FractalSystems";
 import { InterfaceMode } from "client/enums/InterfaceMode";
@@ -107,14 +107,9 @@ export class CalculationController implements OnStart {
 
 			for (const j of $range(0, axisSize - 1)) {
 				const part = new Instance("Part");
-				part.Name = `(${i}, ${j})`;
 				part.Color = blackColor;
 				part.Position = new Vector3(i, j, 0);
 				part.Size = Vector3.one;
-				part.Anchored = true;
-				part.CanQuery = false;
-				part.CanTouch = false;
-				part.CanCollide = false;
 				part.Parent = this.containingFolder;
 
 				column.push(part);
