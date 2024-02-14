@@ -1,4 +1,4 @@
-<img src="https://github.com/ReturnedTrue/FractalViewer/images/Icon1SecondDraft.png" alt="Icon" width="400">
+<img src="https://github.com/ReturnedTrue/FractalViewer/blob/master/images/Icon1SecondDraft.png" alt="Icon" width="400">
 
 ## Technologies
 - Roblox-ts
@@ -13,7 +13,7 @@ Terminology:
 - 'Fractal Calculator' = used by the default fractal system, used to calculate the value for each (x, y) coordinate which is then put into cache
 
 <br>
-<img src="https://github.com/ReturnedTrue/FractalViewer/images/MainSystemFlowchart.png">
+<img src="https://github.com/ReturnedTrue/FractalViewer/blob/master/images/MainSystemFlowchart.png">
 
 ## Roadmap
 - More documentation
