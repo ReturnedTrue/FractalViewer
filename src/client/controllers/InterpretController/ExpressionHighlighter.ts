@@ -95,8 +95,12 @@ export const getFunctionList = () => {
 	const commaColor = getCategoryColor(ExpressionTokenCategory.Comma);
 
 	const comma = getFontString(commaColor, ", ");
+	const colon = getFontString(operatorColor, ":");
 	const openParenthesis = getFontString(parenthesisColor, "(");
 	const closeParenthesis = getFontString(parenthesisColor, ")");
+
+	list += "complex: real part, possibly an imaginary part\n";
+	list += "real: only a real part\n\n";
 
 	const sortedFunctionData = sortMapByOrder(definedFunctionData);
 
@@ -105,8 +109,6 @@ export const getFunctionList = () => {
 		const [getArgumentList, connectToArgumentList] = createStringConnector(comma);
 
 		for (const argData of funcData.argumentData) {
-			const colon = getFontString(operatorColor, ":");
-
 			connectToArgumentList(`${argData.name}${colon} ${argData.kind}`);
 		}
 

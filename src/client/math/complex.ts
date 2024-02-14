@@ -27,7 +27,7 @@ export const complexSquare = (real: number, imaginary: number) => {
 
 	Else apply t = e^ln(t)
 
-	z1^z2 = e^ln(z1^z2)
+	z1^z2 = e^ln(z1 ^ z2)
 	      = e^(z2 * ln(z1))
 */
 export const complexPow = (
@@ -105,6 +105,9 @@ export const complexTan = (real: number, imaginary: number) => {
 	return complexDiv(realTan, imaginaryTanh, 1, -1 * realTan * imaginaryTanh);
 };
 
+/*
+	sinh(z) = ((e^z) - (e^-z)) / 2
+*/
 export const complexSinh = (real: number, imaginary: number) => {
 	const [positiveExpReal, positiveExpImaginary] = complexExp(real, imaginary);
 	const [negativeExpReal, negativeExpImaginary] = complexExp(-real, -imaginary);
@@ -112,6 +115,9 @@ export const complexSinh = (real: number, imaginary: number) => {
 	return $tuple((positiveExpReal - negativeExpReal) / 2, (positiveExpImaginary - negativeExpImaginary) / 2);
 };
 
+/*
+	cosh(z) = ((e^z) + (e^-z)) / 2
+*/
 export const complexCosh = (real: number, imaginary: number) => {
 	const [positiveExpReal, positiveExpImaginary] = complexExp(real, imaginary);
 	const [negativeExpReal, negativeExpImaginary] = complexExp(-real, -imaginary);
@@ -119,15 +125,20 @@ export const complexCosh = (real: number, imaginary: number) => {
 	return $tuple((positiveExpReal + negativeExpReal) / 2, (positiveExpImaginary + negativeExpImaginary) / 2);
 };
 
+/*
+	tanh(z) = sinh(z) / cosh(z)
+	        = ( ((e^z) - (e^-z)) / 2 ) / ( ((e^z) + (e^-z)) / 2 )
+			= ((e^z) - (e^-z)) / ((e^z) + (e^-z))
+*/
 export const complexTanh = (real: number, imaginary: number) => {
 	const [positiveExpReal, positiveExpImaginary] = complexExp(real, imaginary);
 	const [negativeExpReal, negativeExpImaginary] = complexExp(-real, -imaginary);
 
-	const sinhReal = (positiveExpReal - negativeExpReal) / 2;
-	const sinhImaginary = (positiveExpImaginary - negativeExpImaginary) / 2;
+	const sinhReal = positiveExpReal - negativeExpReal;
+	const sinhImaginary = positiveExpImaginary - negativeExpImaginary;
 
-	const coshReal = (positiveExpReal + negativeExpReal) / 2;
-	const coshImaginary = (positiveExpImaginary + negativeExpImaginary) / 2;
+	const coshReal = positiveExpReal + negativeExpReal;
+	const coshImaginary = positiveExpImaginary + negativeExpImaginary;
 
 	const [divdedReal, divdedImaginary] = complexDiv(sinhReal, sinhImaginary, coshReal, coshImaginary);
 
@@ -139,7 +150,7 @@ export const complexTanh = (real: number, imaginary: number) => {
 
 	z = x + yi
 
-	ln(z) = ln(re^itheta) 
+	ln(z) = ln(r(e ^ itheta)) 
 	      = ln(r) + itheta
 */
 export const complexLn = (real: number, imaginary: number) => {
@@ -171,7 +182,8 @@ export const complexLog = (baseReal: number, baseImaginary: number, valueReal: n
 
 	z = x + yi
 
-	e^z = e^x * (cos(y) + isin(y))
+	e^z = (e ^ x) * (e * yi) 
+	    = (e ^ x) * (cos(y) + isin(y))
 */
 export const complexExp = (real: number, imaginary: number) => {
 	const realExp = math.exp(real);

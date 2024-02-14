@@ -51,18 +51,19 @@ export enum DefinedFunction {
 
 	// Trig
 	Sine = "sin",
-	Cosec = "cosec",
+	Cosecant = "cosec",
 	Cosine = "cos",
-	Sec = "sec",
-	Tan = "tan",
-	Cot = "cot",
-
-	// TODO add inverse trig, reciprocal hyp and inverse hyp functions
+	Secant = "sec",
+	Tangent = "tan",
+	Cotangent = "cot",
 
 	// Hyp
-	Sinh = "sinh",
-	Cosh = "cosh",
-	Tanh = "tanh",
+	HyperbolicSine = "sinh",
+	HyperbolicCosecant = "cosech",
+	HyperbolicCosine = "cosh",
+	HyperbolicSecant = "sech",
+	HyperbolicTangent = "tanh",
+	HyperbolicCotangent = "coth",
 
 	// Misc
 	Fibonacci = "fib",
@@ -123,16 +124,6 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	],
 
 	[
-		DefinedFunction.Mod,
-		{
-			order: 3,
-			argumentData: singleComplexArgumentData,
-
-			execute: (z) => createReal(modulus(...z)),
-		},
-	],
-
-	[
 		DefinedFunction.Floor,
 		{
 			order: 100,
@@ -153,9 +144,19 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	],
 
 	[
-		DefinedFunction.NaturalLog,
+		DefinedFunction.Mod,
 		{
 			order: 200,
+			argumentData: singleComplexArgumentData,
+
+			execute: (z) => createReal(modulus(...z)),
+		},
+	],
+
+	[
+		DefinedFunction.NaturalLog,
+		{
+			order: 201,
 			argumentData: singleComplexArgumentData,
 
 			execute: (x) => {
@@ -169,7 +170,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	[
 		DefinedFunction.Exp,
 		{
-			order: 201,
+			order: 202,
 			argumentData: singleComplexArgumentData,
 
 			execute: (x) => {
@@ -197,7 +198,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	],
 
 	[
-		DefinedFunction.Cosec,
+		DefinedFunction.Cosecant,
 		{
 			order: 301,
 			argumentData: singleComplexArgumentData,
@@ -209,9 +210,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 					return boxComplexTuple(complexDiv, 1, 0, sineReal, sineImaginary);
 				}
 
-				const denominator = math.sin(x[0]);
-
-				return createReal(1 / denominator);
+				return createReal(1 / math.sin(x[0]));
 			},
 		},
 	],
@@ -233,7 +232,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	],
 
 	[
-		DefinedFunction.Sec,
+		DefinedFunction.Secant,
 		{
 			order: 303,
 			argumentData: singleComplexArgumentData,
@@ -245,15 +244,13 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 					return boxComplexTuple(complexDiv, 1, 0, cosineReal, cosineImaginary);
 				}
 
-				const denominator = math.cos(x[0]);
-
-				return createReal(denominator === 0 ? math.huge : 1 / denominator);
+				return createReal(1 / math.cos(x[0]));
 			},
 		},
 	],
 
 	[
-		DefinedFunction.Tan,
+		DefinedFunction.Tangent,
 		{
 			order: 304,
 			argumentData: singleComplexArgumentData,
@@ -269,7 +266,7 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	],
 
 	[
-		DefinedFunction.Cot,
+		DefinedFunction.Cotangent,
 		{
 			order: 305,
 			argumentData: singleComplexArgumentData,
@@ -281,15 +278,13 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 					return boxComplexTuple(complexDiv, 1, 0, tanReal, tanImaginary);
 				}
 
-				const denominator = math.tan(x[0]);
-
-				return createReal(1 / denominator);
+				return createReal(1 / math.tan(x[0]));
 			},
 		},
 	],
 
 	[
-		DefinedFunction.Sinh,
+		DefinedFunction.HyperbolicSine,
 		{
 			order: 400,
 			argumentData: singleComplexArgumentData,
@@ -305,9 +300,27 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	],
 
 	[
-		DefinedFunction.Cosh,
+		DefinedFunction.HyperbolicCosecant,
 		{
 			order: 401,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					const [sinhReal, sinhImaginary] = complexSinh(x[0], x[1]);
+
+					return boxComplexTuple(complexDiv, 1, 0, sinhReal, sinhImaginary);
+				}
+
+				return createReal(1 / math.sinh(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.HyperbolicCosine,
+		{
+			order: 402,
 			argumentData: singleComplexArgumentData,
 
 			execute: (x) => {
@@ -321,9 +334,27 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 	],
 
 	[
-		DefinedFunction.Tanh,
+		DefinedFunction.HyperbolicSecant,
 		{
-			order: 402,
+			order: 403,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					const [coshReal, coshImaginary] = complexCosh(x[0], x[1]);
+
+					return boxComplexTuple(complexDiv, 1, 0, coshReal, coshImaginary);
+				}
+
+				return createReal(1 / math.cosh(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.HyperbolicTangent,
+		{
+			order: 404,
 			argumentData: singleComplexArgumentData,
 
 			execute: (x) => {
@@ -332,6 +363,24 @@ export const definedFunctionData = new Map<DefinedFunction, DefinedFunctionData>
 				}
 
 				return createReal(math.tanh(x[0]));
+			},
+		},
+	],
+
+	[
+		DefinedFunction.HyperbolicCotangent,
+		{
+			order: 405,
+			argumentData: singleComplexArgumentData,
+
+			execute: (x) => {
+				if (hasImaginaryPart(x)) {
+					const [tanhReal, tanhImaginary] = complexTanh(x[0], x[1]);
+
+					return boxComplexTuple(complexDiv, 1, 0, tanhReal, tanhImaginary);
+				}
+
+				return createReal(1 / math.tanh(x[0]));
 			},
 		},
 	],
