@@ -69,8 +69,8 @@ const inputControls = new Map<Enum.KeyCode, InputControlData>([
 		() => {
 			clientStore.dispatch({ type: "toggleResetOnFractalChange" });
 
-			const { parametersResetWithFractalChange } = clientStore.getState().fractal;
-			const innerText = parametersResetWithFractalChange ? "now" : "no longer";
+			const { parametersResetOnIdChange } = clientStore.getState().fractal;
+			const innerText = parametersResetOnIdChange ? "now" : "no longer";
 
 			return {
 				text: `parameters will ${innerText} reset on fractal change`,

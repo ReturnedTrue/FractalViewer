@@ -9,8 +9,6 @@ import { $error } from "rbxts-transform-debug";
 type FractalCalculatorReceivedParameters = Omit<FractalParameters, "offsetX" | "offsetY">;
 type FractalCalculator = (x: number, y: number, parameters: FractalCalculatorReceivedParameters) => number;
 
-const isNaN = (x: number) => x !== x;
-
 type FractalStepFunction = (
 	zReal: number,
 	zImaginary: number,
@@ -118,16 +116,7 @@ export const fractalCalculators = new Map<FractalId, FractalCalculator>([
 
 			for (const iteration of $range(1, parameters.maxIterations)) {
 				const [functionReal, functionImaginary] = data.execute(zReal, zImaginary);
-
-				if (isNaN(functionReal) || isNaN(functionImaginary)) {
-					return -1;
-				}
-
 				const [derivativeReal, derivativeImaginary] = data.derivativeExecute(zReal, zImaginary);
-
-				if (isNaN(derivativeReal) || isNaN(derivativeImaginary)) {
-					return -1;
-				}
 
 				const [dividedReal, dividedImaginary] = complexDiv(
 					functionReal,

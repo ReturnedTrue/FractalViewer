@@ -14,6 +14,8 @@ export const resolveHue = (parameters: ParametersNeededToResolveHue, iteration: 
 };
 
 export const resolveRootHueFromCache = (cache: Map<number, number>, closestRoot: number) => {
+	if (closestRoot !== closestRoot) return -1;
+
 	let hue = cache.get(closestRoot);
 
 	if (hue === undefined) {

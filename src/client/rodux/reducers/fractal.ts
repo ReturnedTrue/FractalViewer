@@ -43,7 +43,7 @@ export type FractalActions =
 	| ResetParameters;
 
 export interface FractalState {
-	parametersResetWithFractalChange: boolean;
+	parametersResetOnIdChange: boolean;
 	parametersLastUpdated: number | false;
 	parameters: FractalParameters;
 
@@ -54,7 +54,7 @@ export interface FractalState {
 }
 
 const DEFAULT_VALUE = {
-	parametersResetWithFractalChange: false,
+	parametersResetOnIdChange: false,
 	parametersLastUpdated: false,
 	parameters: DEFAULT_FRACTAL_PARAMETERS,
 
@@ -119,8 +119,8 @@ const parameterSideEffects: ParameterSideEffects = {
 		};
 	},
 
-	fractalId: (_newFractal, _oldFractal, { parametersResetWithFractalChange }) => {
-		if (!parametersResetWithFractalChange) return;
+	fractalId: (_newFractal, _oldFractal, { parametersResetOnIdChange }) => {
+		if (!parametersResetOnIdChange) return;
 
 		return resetPart;
 	},
@@ -161,7 +161,7 @@ export const fractalReducer = createReducer<FractalState, FractalActions>(DEFAUL
 	toggleResetOnFractalChange: (state) => {
 		return {
 			...state,
-			parametersResetWithFractalChange: !state.parametersResetWithFractalChange,
+			parametersResetOnIdChange: !state.parametersResetOnIdChange,
 		};
 	},
 

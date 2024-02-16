@@ -60,6 +60,7 @@ export class DescriptionBox extends Roact.Component<DescriptionBoxProps, Descrip
 						TextYAlignment={Enum.TextYAlignment.Top}
 						TextSize={32}
 						TextColor3={new Color3(1, 1, 1)}
+						TextWrapped={true}
 					/>
 				</PixelScrollingFrame>
 			</frame>

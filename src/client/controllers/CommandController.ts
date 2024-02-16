@@ -17,14 +17,32 @@ const commands: Array<CommandData> = [
 			const parameters = clientStore.getState().fractal.parameters;
 
 			const [remoteSuccess, savingSuccess] = Functions.saveParameters.invoke(parameters).await();
-			const text =
-				remoteSuccess && savingSuccess
-					? "saved parameters successfully"
-					: "failed to save parameters, please try again";
+			const fullSuccess = remoteSuccess && savingSuccess;
 
 			clientStore.dispatch({
 				type: "sendNotification",
-				data: { text },
+				data: {
+					text: fullSuccess ? "saved parameters successfully" : "failed to save parameters, please try again",
+				},
+			});
+		},
+	},
+
+	{
+		name: "loadsave",
+		triggered: () => {
+			const { savedParameters } = clientStore.getState().persistentData;
+
+			clientStore.dispatch({
+				type: "setParameters",
+				parameters: savedParameters,
+			});
+
+			clientStore.dispatch({
+				type: "sendNotification",
+				data: {
+					text: "loaded saved parameters",
+				},
 			});
 		},
 	},
@@ -33,14 +51,15 @@ const commands: Array<CommandData> = [
 		name: "removesave",
 		triggered: () => {
 			const [remoteSuccess, savingSuccess] = Functions.saveParameters.invoke(DEFAULT_FRACTAL_PARAMETERS).await();
-			const text =
-				remoteSuccess && savingSuccess
-					? "removed saved parameters successfully"
-					: "failed to remove saved parameters, please try again";
+			const fullSuccess = remoteSuccess && savingSuccess;
 
 			clientStore.dispatch({
 				type: "sendNotification",
-				data: { text },
+				data: {
+					text: fullSuccess
+						? "removed saved parameters successfully"
+						: "failed to remove saved parameters, please try again",
+				},
 			});
 		},
 	},

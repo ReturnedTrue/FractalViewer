@@ -67,7 +67,10 @@ export class InterpretController implements OnStart {
 		return highlighter;
 	}
 
-	public getCustomFractalDescription() {
-		return `Functions\n\n${getFunctionList()}\nOperators\n\n${getOperatorList()}`;
+	public getCustomLists() {
+		return {
+			functions: getFunctionList(),
+			operators: getOperatorList(),
+		};
 	}
 }
