@@ -3,11 +3,11 @@ import { InterpretController } from "client/controllers/InterpretController";
 import { FractalId } from "shared/enums/FractalId";
 
 export const fractalDescriptions = new Map<FractalId, string | (() => string)>([
-	[FractalId.Mandelbrot, "Uses z = z^2 + c iterative formula,\nwhere z = 0 and c = coordinate"],
-	[FractalId.BurningShip, "Uses z = (Re(z^2) + |Im(z^2)|) + c iterative formula,\nwhere z = 0 and c = coordinate"],
-	[FractalId.Mandelbar, "Uses z = Conjugate(z)^2 + c iterative formula,\nwhere z = 0 and c = coordinate"],
+	[FractalId.Mandelbrot, "Uses z = z^2 + c iterative formula\nWhere z = 0 and c = coordinate"],
+	[FractalId.BurningShip, "Uses z = (Re(z^2) + |Im(z^2)|) + c iterative formula\nWhere z = 0 and c = coordinate"],
+	[FractalId.Mandelbar, "Uses z = Conjugate(z)^2 + c iterative formula\nWhere z = 0 and c = coordinate"],
 
-	[FractalId.Julia, "Uses its 'corresponding set' iterative formula, but z = coordinate and c = given coordinate"],
+	[FractalId.Julia, "Uses its 'corresponding set' iterative formula\nBut z = coordinate and c = given coordinate"],
 
 	[
 		FractalId.Newton,
